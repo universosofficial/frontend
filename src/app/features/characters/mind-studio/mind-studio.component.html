@@ -1,0 +1,432 @@
+<div class="wa-studio-container">
+  <!-- Studio Top Bar -->
+  <header class="wa-studio-header">
+    <div class="wa-header-left">
+      <a [routerLink]="['/dashboard/characters']" class="wa-back-btn" title="Back to Companions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+      <div class="wa-header-info">
+        <div class="wa-title-row">
+          <h1 class="wa-studio-title">Training Studio: {{ character()?.name || 'AI Mind' }}</h1>
+          @if (isPublic()) {
+            <span class="wa-badge wa-badge-teal">Public Mind</span>
+          } @else {
+            <span class="wa-badge wa-badge-gray">Private Companion</span>
+          }
+        </div>
+        <p class="wa-studio-subtitle">Train and ground your digital twin with authentic writings, decision frameworks, and articles.</p>
+      </div>
+    </div>
+
+    <div class="wa-header-actions">
+      @if (handle()) {
+        <a [routerLink]="['/minds', '@' + handle()]" target="_blank" class="wa-btn-secondary">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="wa-btn-icon">
+            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+          </svg>
+          <span>Preview in Commons</span>
+        </a>
+      }
+
+      <button type="button" class="wa-btn-primary" [disabled]="isSaving()" (click)="saveMindSettings()">
+        @if (isSaving()) {
+          <span class="wa-spin"></span>
+          <span>Saving...</span>
+        } @else {
+          <svg viewBox="0 0 20 20" fill="currentColor" class="wa-btn-icon">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          <span>Save &amp; Publish</span>
+        }
+      </button>
+    </div>
+  </header>
+
+  <!-- Notifications -->
+  @if (successMessage()) {
+    <div class="wa-alert wa-alert-success">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="wa-alert wa-alert-error">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Studio Main Content Area -->
+  <main class="wa-studio-body">
+    <div class="wa-studio-columns">
+      <!-- COLUMN 1: Digital Twin Identity & Decision Doctrine -->
+      <section class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-icon-disc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="wa-card-title">Digital Twin Identity &amp; Doctrine</h2>
+            <p class="wa-card-desc">Configure your public handle, worldview, and core decision-making frameworks.</p>
+          </div>
+        </div>
+
+        <div class="wa-form-grid">
+          <!-- Toggle Public Mind -->
+          <div class="wa-toggle-row">
+            <div class="wa-toggle-text">
+              <span class="wa-toggle-label">Publish as Public Digital Twin</span>
+              <span class="wa-toggle-hint">When active, users across the platform can discover, add, and consult this Mind.</span>
+            </div>
+            <label class="wa-switch">
+              <input type="checkbox" [checked]="isPublic()" (change)="isPublic.set(!isPublic())" />
+              <span class="wa-slider"></span>
+            </label>
+          </div>
+
+          <!-- Handle -->
+          <div class="wa-field">
+            <label class="wa-label">Unique Handle</label>
+            <div class="wa-handle-input-wrap">
+              <span class="wa-handle-at">&#64;</span>
+              <input
+                type="text"
+                class="wa-input wa-handle-field"
+                [value]="handle()"
+                (input)="handle.set($any($event.target).value)"
+                placeholder="elonmusk, warrenbuffett, sokrates"
+                maxlength="30"
+              />
+            </div>
+            <span class="wa-field-hint">Letters, numbers, and underscores only. Used for direct profile URL: /minds/&#64;handle</span>
+          </div>
+
+          <!-- Headline -->
+          <div class="wa-field">
+            <label class="wa-label">Professional Headline / Digital Persona</label>
+            <input
+              type="text"
+              class="wa-input"
+              [value]="headline()"
+              (input)="headline.set($any($event.target).value)"
+              placeholder="e.g. CEO of SpaceX &amp; Tesla | First Principles Thinker"
+              maxlength="255"
+            />
+          </div>
+
+          <!-- Personal Website / Blog URL -->
+          <div class="wa-field">
+            <label class="wa-label">Personal Website / Blog</label>
+            <input
+              type="url"
+              class="wa-input"
+              [value]="websiteUrl()"
+              (input)="websiteUrl.set($any($event.target).value)"
+              placeholder="https://yourblog.com or https://x.com/username"
+            />
+          </div>
+
+          <!-- Philosophy Statement -->
+          <div class="wa-field">
+            <label class="wa-label">Core Philosophy &amp; Stated Doctrine</label>
+            <textarea
+              class="wa-textarea"
+              rows="4"
+              [value]="philosophyStatement()"
+              (input)="philosophyStatement.set($any($event.target).value)"
+              placeholder="State the fundamental principles guiding your decisions, advice style, and world outlook..."
+            ></textarea>
+          </div>
+
+          <!-- Decision Frameworks -->
+          <div class="wa-field">
+            <label class="wa-label">Decision Frameworks &amp; Rules of Thought</label>
+            <div class="wa-frameworks-list">
+              @for (rule of decisionFrameworks(); track $index) {
+                <div class="wa-framework-item">
+                  <span class="wa-framework-num">{{ $index + 1 }}</span>
+                  <span class="wa-framework-text">{{ rule }}</span>
+                  <button type="button" class="wa-remove-btn" (click)="removeFramework($index)">&times;</button>
+                </div>
+              }
+            </div>
+
+            <div class="wa-add-item-row">
+              <input
+                type="text"
+                class="wa-input"
+                [value]="newFrameworkInput()"
+                (input)="newFrameworkInput.set($any($event.target).value)"
+                (keydown.enter)="$event.preventDefault(); addFramework()"
+                placeholder="e.g. Rule 1: Delete any part or process requirement that isn't strictly necessary"
+              />
+              <button type="button" class="wa-btn-secondary" (click)="addFramework()">Add Rule</button>
+            </div>
+          </div>
+
+          <!-- Category Tags -->
+          <div class="wa-field">
+            <label class="wa-label">Focus Domains &amp; Tags</label>
+            <div class="wa-tags-wrap">
+              @for (tag of tags(); track tag) {
+                <span class="wa-tag-chip">
+                  #{{ tag }}
+                  <button type="button" (click)="removeTag(tag)">&times;</button>
+                </span>
+              }
+            </div>
+            <div class="wa-add-item-row">
+              <input
+                type="text"
+                class="wa-input"
+                [value]="newTagInput()"
+                (input)="newTagInput.set($any($event.target).value)"
+                (keydown.enter)="$event.preventDefault(); addTag()"
+                placeholder="e.g. Technology, Engineering, Founders"
+              />
+              <button type="button" class="wa-btn-secondary" (click)="addTag()">Add Tag</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Grounding Knowledge Base & Ingestion Engine -->
+      <section class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-icon-disc wa-teal-disc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="wa-card-title">Knowledge Ingestion Engine</h2>
+            <p class="wa-card-desc">Ingest PDFs, essays, blog links, and rulebooks. Text is cleaned and segmented into indexed knowledge nodes.</p>
+          </div>
+        </div>
+
+        <!-- Ingestion Tabs -->
+        <div class="wa-tabs-bar">
+          <button
+            type="button"
+            class="wa-tab-btn"
+            [class.active]="activeIngestTab() === 'upload'"
+            (click)="activeIngestTab.set('upload')"
+          >
+            Upload File (.pdf, .txt, .md)
+          </button>
+          <button
+            type="button"
+            class="wa-tab-btn"
+            [class.active]="activeIngestTab() === 'url'"
+            (click)="activeIngestTab.set('url')"
+          >
+            Link URL / Blog
+          </button>
+          <button
+            type="button"
+            class="wa-tab-btn"
+            [class.active]="activeIngestTab() === 'text'"
+            (click)="activeIngestTab.set('text')"
+          >
+            Write Direct Doctrine
+          </button>
+        </div>
+
+        <!-- Progress or Error Feedback -->
+        @if (isIngesting()) {
+          <div class="wa-ingest-status-banner">
+            <div class="wa-spin"></div>
+            <span>{{ ingestProgressMessage() }}</span>
+          </div>
+        }
+        @if (ingestError()) {
+          <div class="wa-alert wa-alert-error">
+            <span>{{ ingestError() }}</span>
+          </div>
+        }
+
+        <!-- TAB 1: File Upload (Drag & Drop) -->
+        @if (activeIngestTab() === 'upload') {
+          <div class="wa-tab-pane">
+            <div
+              class="wa-dropzone"
+              [class.drag-over]="isDragOver()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onFileDropped($event)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="wa-drop-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <div class="wa-drop-content">
+                @if (selectedFile()) {
+                  <p class="wa-drop-selected">Selected: <strong>{{ selectedFile()?.name }}</strong> ({{ ((selectedFile()?.size || 0) / 1024).toFixed(1) }} KB)</p>
+                } @else {
+                  <p class="wa-drop-prompt">Drag &amp; drop your PDF, markdown (.md), or text (.txt) file here</p>
+                  <span class="wa-drop-or">or</span>
+                }
+                <label class="wa-file-pick-btn">
+                  Browse Document
+                  <input type="file" accept=".pdf,.txt,.md,.markdown" (change)="onFileSelected($event)" hidden />
+                </label>
+              </div>
+            </div>
+
+            @if (selectedFile()) {
+              <div class="wa-upload-fields">
+                <input
+                  type="text"
+                  class="wa-input"
+                  [value]="docTitleInput()"
+                  (input)="docTitleInput.set($any($event.target).value)"
+                  placeholder="Document Title (e.g. 5-Step Engineering Process Memo)"
+                />
+                <button
+                  type="button"
+                  class="wa-btn-primary"
+                  [disabled]="isIngesting()"
+                  (click)="uploadDocument()"
+                >
+                  Upload &amp; Index Document
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- TAB 2: Link URL -->
+        @if (activeIngestTab() === 'url') {
+          <div class="wa-tab-pane">
+            <div class="wa-field">
+              <label class="wa-label">Web Article or Blog URL</label>
+              <input
+                type="url"
+                class="wa-input"
+                [value]="urlInput()"
+                (input)="urlInput.set($any($event.target).value)"
+                placeholder="https://example.com/essay-on-manufacturing"
+              />
+            </div>
+            <div class="wa-field">
+              <label class="wa-label">Source Title (Optional)</label>
+              <input
+                type="text"
+                class="wa-input"
+                [value]="urlTitleInput()"
+                (input)="urlTitleInput.set($any($event.target).value)"
+                placeholder="e.g. First Principles Manufacturing Memo"
+              />
+            </div>
+            <button
+              type="button"
+              class="wa-btn-primary"
+              [disabled]="isIngesting() || !urlInput()"
+              (click)="ingestUrl()"
+            >
+              Scrape &amp; Index Webpage
+            </button>
+          </div>
+        }
+
+        <!-- TAB 3: Write Direct Doctrine -->
+        @if (activeIngestTab() === 'text') {
+          <div class="wa-tab-pane">
+            <div class="wa-field">
+              <label class="wa-label">Doctrine Title</label>
+              <input
+                type="text"
+                class="wa-input"
+                [value]="manualTextTitle()"
+                (input)="manualTextTitle.set($any($event.target).value)"
+                placeholder="e.g. The 5-Step Engineering Algorithm"
+              />
+            </div>
+            <div class="wa-field">
+              <label class="wa-label">Document / Memo Text</label>
+              <textarea
+                class="wa-textarea"
+                rows="6"
+                [value]="manualTextContent()"
+                (input)="manualTextContent.set($any($event.target).value)"
+                placeholder="Paste the full text of your essay, internal memo, or rules here..."
+              ></textarea>
+            </div>
+            <button
+              type="button"
+              class="wa-btn-primary"
+              [disabled]="isIngesting() || !manualTextContent()"
+              (click)="ingestText()"
+            >
+              Segment &amp; Index Text
+            </button>
+          </div>
+        }
+
+        <!-- Active Knowledge Sources Registry -->
+        <div class="wa-sources-section">
+          <div class="wa-sources-header">
+            <h3 class="wa-sources-title">Verified Knowledge Sources ({{ sources().length }})</h3>
+            <span class="wa-sources-hint">Indexed chunks ground all future consultation answers.</span>
+          </div>
+
+          @if (isLoadingSources()) {
+            <div class="wa-sources-loading">
+              <div class="wa-spin"></div>
+              <span>Loading indexed knowledge nodes...</span>
+            </div>
+          } @else if (sources().length === 0) {
+            <div class="wa-sources-empty">
+              <p>No knowledge sources uploaded yet. Add a blog post or upload a PDF above to ground this Mind.</p>
+            </div>
+          } @else {
+            <div class="wa-sources-list">
+              @for (src of sources(); track src.id) {
+                <div class="wa-source-card">
+                  <div class="wa-source-left">
+                    <div class="wa-source-badge" [class]="src.source_type || src.sourceType">
+                      {{ (src.source_type || src.sourceType) | uppercase }}
+                    </div>
+                    <div class="wa-source-details">
+                      <h4 class="wa-source-name">{{ src.title }}</h4>
+                      <div class="wa-source-meta">
+                        <span class="wa-meta-chunks">{{ src.chunk_count || src.chunkCount || 0 }} chunks indexed</span>
+                        @if (src.source_uri || src.sourceUri) {
+                          <span class="wa-meta-uri">{{ src.source_uri || src.sourceUri }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="wa-source-right">
+                    <span class="wa-status-pill" [class]="src.status">
+                      {{ src.status | uppercase }}
+                    </span>
+                    <button
+                      type="button"
+                      class="wa-delete-src-btn"
+                      title="Delete Source"
+                      (click)="deleteSource(src.id)"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

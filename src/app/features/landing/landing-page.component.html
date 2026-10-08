@@ -1,0 +1,102 @@
+<div class="landing-page-root">
+  <!-- Sticky Navigation Header -->
+  <header class="landing-header">
+    <div class="header-inner">
+      <!-- Logo Branding -->
+      <a routerLink="/" class="brand-link" (click)="scrollToSection('hero')">
+        <div class="brand-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div class="brand-text-wrap">
+          <span class="brand-title">MIND/NETWORK</span>
+          <span class="brand-sub">Human Continuity</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="desktop-nav">
+        <button class="nav-link-btn" (click)="scrollToSection('paradigms')">Dual Paradigm</button>
+        <button class="nav-link-btn" (click)="scrollToSection('directory')">Commons Directory</button>
+        <button class="nav-link-btn" (click)="scrollToSection('ingestion')">Ingestion Engine</button>
+        <button class="nav-link-btn" (click)="scrollToSection('socratic')">Socratic Method</button>
+        <button class="nav-link-btn" (click)="scrollToSection('pricing')">Token Tiers</button>
+      </nav>
+
+      <!-- Auth Action Buttons -->
+      <div class="auth-action-group">
+        @if (authService.isAuthenticated()) {
+          <!-- Logged in state -->
+          <div class="logged-in-box">
+            <span class="user-greeting">
+              Welcome back, <strong>{{ authService.currentUser()?.email?.split('@')?.[0] || 'Explorer' }}</strong>
+            </span>
+            <a routerLink="/dashboard" class="btn-dash-jump">
+              <span>Go to Dashboard</span>
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </a>
+          </div>
+        } @else {
+          <!-- Guest state -->
+          <a routerLink="/login" class="nav-login-btn">Sign In</a>
+          <a routerLink="/register" class="nav-cta-btn">
+            <span>Build Mind Free</span>
+          </a>
+        }
+
+        <!-- Mobile Menu Toggle Button -->
+        <button class="mobile-toggle-btn" (click)="toggleMobileMenu()" aria-label="Toggle navigation">
+          @if (isMobileMenuOpen()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer -->
+    @if (isMobileMenuOpen()) {
+      <div class="mobile-nav-drawer">
+        <button class="drawer-link" (click)="scrollToSection('paradigms')">Dual Paradigm</button>
+        <button class="drawer-link" (click)="scrollToSection('directory')">Commons Directory</button>
+        <button class="drawer-link" (click)="scrollToSection('ingestion')">Ingestion Engine</button>
+        <button class="drawer-link" (click)="scrollToSection('socratic')">Socratic Method</button>
+        <button class="drawer-link" (click)="scrollToSection('pricing')">Token Tiers</button>
+
+        <div class="drawer-divider"></div>
+
+        @if (authService.isAuthenticated()) {
+          <a routerLink="/dashboard" class="drawer-cta-primary" (click)="closeMobileMenu()">
+            Go to Dashboard →
+          </a>
+        } @else {
+          <div class="drawer-auth-buttons">
+            <a routerLink="/login" class="drawer-login-btn" (click)="closeMobileMenu()">Sign In</a>
+            <a routerLink="/register" class="drawer-cta-primary" (click)="closeMobileMenu()">Build Mind Free</a>
+          </div>
+        }
+      </div>
+    }
+  </header>
+
+  <!-- Main Content Sections -->
+  <main class="landing-main-content">
+    <app-hero-section></app-hero-section>
+    <app-dual-paradigm></app-dual-paradigm>
+    <app-mind-directory-preview></app-mind-directory-preview>
+    <app-ingestion-feature></app-ingestion-feature>
+    <app-socratic-demo></app-socratic-demo>
+    <app-pricing-cta></app-pricing-cta>
+  </main>
+
+  <!-- Footer -->
+  <app-footer></app-footer>
+</div>

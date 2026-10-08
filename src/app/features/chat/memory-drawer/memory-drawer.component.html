@@ -1,0 +1,181 @@
+@if (isOpen) {
+  <aside class="wa-drawer-container">
+    <!-- WhatsApp Contact Info Header -->
+    <header class="wa-drawer-header">
+      <button (click)="onClose()" class="wa-drawer-close-btn" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h3 class="wa-drawer-title">Contact info</h3>
+    </header>
+
+    <div class="wa-drawer-body">
+      <!-- Profile Hero Card -->
+      @if (chatService.activeCharacter(); as char) {
+        <div class="wa-drawer-section wa-profile-hero">
+          <div class="wa-drawer-avatar-wrap">
+            @if (char.avatar_url) {
+              <img [src]="char.avatar_url" [alt]="char.name" class="wa-drawer-avatar-img" />
+            } @else {
+              <div class="wa-drawer-avatar-fallback" [class.official]="char.is_system">
+                {{ char.name.charAt(0).toUpperCase() }}
+              </div>
+            }
+          </div>
+
+          <h2 class="wa-drawer-name">{{ char.name }}</h2>
+          <div class="wa-hero-badges">
+            <span class="wa-badge wa-badge-teal">{{ char.tone }}</span>
+            @if (char.relationship_type) {
+              <span class="wa-badge wa-badge-gold">{{ char.relationship_type | titlecase }}</span>
+            }
+            @if (char.is_system) {
+              <span class="wa-badge wa-badge-teal">Official Persona</span>
+            }
+          </div>
+        </div>
+
+        <!-- Relational Persona Grounding -->
+        @if (char.nicknames_for_user.length || char.catchphrases.length || char.speech_quirks) {
+          <div class="wa-drawer-section">
+            <span class="wa-section-label">Relational Persona</span>
+            @if (char.nicknames_for_user.length) {
+              <div class="wa-style-row">
+                <span class="wa-style-label">Calls you:</span>
+                <span class="wa-style-val">{{ char.nicknames_for_user.join(', ') }}</span>
+              </div>
+            }
+            @if (char.catchphrases.length) {
+              <div class="wa-style-row">
+                <span class="wa-style-label">Catchphrases:</span>
+                <span class="wa-style-val">"{{ char.catchphrases.join('", "') }}"</span>
+              </div>
+            }
+            @if (char.speech_quirks) {
+              <div class="wa-style-row">
+                <span class="wa-style-label">Quirks & Voice:</span>
+                <span class="wa-style-val">{{ char.speech_quirks }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- About Card -->
+        <div class="wa-drawer-section">
+          <span class="wa-section-label">About</span>
+          <p class="wa-section-desc">{{ char.personality }}</p>
+          <div class="wa-style-row">
+            <span class="wa-style-label">Style:</span>
+            <span class="wa-style-val">{{ char.style }}</span>
+          </div>
+        </div>
+
+        <!-- Personality Calibration Stats -->
+        <div class="wa-drawer-section">
+          <span class="wa-section-label">Calibration Traits</span>
+          <div class="wa-traits-list">
+            <div class="wa-trait-bar-row">
+              <span class="wa-trait-name">Humor</span>
+              <div class="wa-bar-track">
+                <div class="wa-bar-fill" [style.width.%]="char.humor * 10"></div>
+              </div>
+              <span class="wa-trait-num">{{ char.humor }}/10</span>
+            </div>
+            <div class="wa-trait-bar-row">
+              <span class="wa-trait-name">Friendliness</span>
+              <div class="wa-bar-track">
+                <div class="wa-bar-fill" [style.width.%]="char.friendliness * 10"></div>
+              </div>
+              <span class="wa-trait-num">{{ char.friendliness }}/10</span>
+            </div>
+            <div class="wa-trait-bar-row">
+              <span class="wa-trait-name">Creativity</span>
+              <div class="wa-bar-track">
+                <div class="wa-bar-fill" [style.width.%]="char.creativity * 10"></div>
+              </div>
+              <span class="wa-trait-num">{{ char.creativity }}/10</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Neural Recall Bank / Memories Section -->
+      <div class="wa-drawer-section">
+        <div class="wa-memories-header">
+          <span class="wa-section-label">Neural Memories</span>
+          <span class="wa-badge wa-badge-teal">{{ memoryService.memories().length }} saved</span>
+        </div>
+
+        @if (memoryService.isLoading() && memoryService.memories().length === 0) {
+          <div class="wa-drawer-loading">
+            <div class="wa-spinner"></div>
+            <span>Reading memory bank...</span>
+          </div>
+        } @else if (memoryService.memories().length === 0) {
+          <div class="wa-drawer-empty">
+            <span class="wa-empty-icon">🧠</span>
+            <h4>No Memories Formed Yet</h4>
+            <p>During conversations, important facts, goals, and preferences are automatically remembered.</p>
+          </div>
+        } @else {
+          <div class="wa-memories-list">
+            @for (mem of memoryService.memories(); track mem.id) {
+              <div class="wa-memory-item">
+                <div class="wa-memory-meta-row">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="wa-category-tag" [attr.data-cat]="mem.category">
+                      {{ mem.category }}
+                    </span>
+                    @if (mem.memory_type) {
+                      <span class="wa-type-tag" [attr.data-type]="mem.memory_type">
+                        {{ mem.memory_type === 'persona_anchor' ? 'Anchor' : (mem.memory_type === 'emotional_state' ? 'Emotion' : (mem.memory_type === 'shared_event' ? 'Shared' : 'Fact')) }}
+                      </span>
+                    }
+                  </div>
+                  <div class="wa-memory-controls">
+                    <span class="wa-stars" title="Relevance Score">
+                      ★ {{ mem.importance_score }}/5
+                    </span>
+                    <button (click)="onDelete(mem, $event)" class="wa-forget-btn" title="Forget fact">
+                      Forget
+                    </button>
+                  </div>
+                </div>
+
+                <p class="wa-memory-text">{{ mem.content }}</p>
+
+                <div class="wa-memory-footer-row">
+                  <div class="wa-memory-time-group">
+                    <span class="wa-memory-calendar-date">
+                      📅 {{ (mem.occurred_at || mem.created_at) | date:'mediumDate' }}
+                    </span>
+                    <span class="wa-memory-relative-badge" [title]="(mem.occurred_at || mem.created_at) | date:'medium'">
+                      {{ mem.relative_time || ((mem.occurred_at || mem.created_at) | date:'shortTime') }}
+                    </span>
+                    @if (mem.conversation_id) {
+                      <span class="wa-memory-conv-link" title="Grounded in Conversation #{{ mem.conversation_id }}">
+                        💬 Chat session
+                      </span>
+                    }
+                  </div>
+                  @if (mem.last_recalled_at) {
+                    <span class="wa-recalled-badge">Recalled recently</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Information Card -->
+      <div class="wa-drawer-section wa-encryption-info">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+        </svg>
+        <p>Memories are securely isolated per user and hydrated into system prompts to maintain consistent companion identity.</p>
+      </div>
+    </div>
+  </aside>
+}

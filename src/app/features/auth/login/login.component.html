@@ -1,0 +1,110 @@
+<div class="wa-auth-screen">
+  <!-- WhatsApp Iconic Top Green Banner -->
+  <div class="wa-auth-top-bar">
+    <div class="wa-auth-brand">
+      <div class="wa-auth-logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2z" />
+        </svg>
+      </div>
+      <span class="wa-brand-text">UniversOS AI Companion</span>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button 
+      (click)="themeService.toggleTheme()" 
+      class="wa-icon-btn wa-auth-theme-btn" 
+      [title]="themeService.currentTheme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+    >
+      @if (themeService.currentTheme() === 'dark') {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      }
+    </button>
+  </div>
+
+  <!-- Centered WhatsApp Web Login Card -->
+  <div class="wa-auth-card-wrapper">
+    <div class="wa-auth-card">
+      <div class="wa-card-header">
+        <h1 class="wa-card-title">Sign in to your account</h1>
+        <p class="wa-card-sub">Access your autonomous AI companions and neural recall bank</p>
+      </div>
+
+      @if (errorMessage) {
+        <div class="wa-error-alert" role="alert">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="wa-auth-form" novalidate>
+        <div class="wa-field-group">
+          <label for="email" class="wa-label">Email Address</label>
+          <div class="wa-input-pill" [class.is-invalid]="email?.invalid && email?.touched">
+            <input 
+              id="email"
+              type="email" 
+              formControlName="email"
+              placeholder="you@example.com"
+              class="wa-input"
+            />
+          </div>
+          @if (email?.invalid && email?.touched) {
+            <span class="wa-error-text">
+              @if (email?.errors?.['required']) { <span>Email is required.</span> }
+              @if (email?.errors?.['email']) { <span>Enter a valid email address.</span> }
+            </span>
+          }
+        </div>
+
+        <div class="wa-field-group">
+          <label for="password" class="wa-label">Password</label>
+          <div class="wa-input-pill" [class.is-invalid]="password?.invalid && password?.touched">
+            <input 
+              id="password"
+              type="password" 
+              formControlName="password"
+              placeholder="••••••••"
+              class="wa-input"
+            />
+          </div>
+          @if (password?.invalid && password?.touched) {
+            <span class="wa-error-text">
+              @if (password?.errors?.['required']) { <span>Password is required.</span> }
+              @if (password?.errors?.['minlength']) { <span>Minimum 8 characters.</span> }
+            </span>
+          }
+        </div>
+
+        <button type="submit" class="wa-btn-submit" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="wa-spinner-sm"></span> Signing in...
+          } @else {
+            Continue
+          }
+        </button>
+      </form>
+
+      <div class="wa-card-footer">
+        <p>Don't have an account? <a routerLink="/register" class="wa-link">Create an account</a></p>
+      </div>
+    </div>
+
+    <!-- Security notice -->
+    <div class="wa-auth-notice">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+      </svg>
+      <span>Your personal data and chat recall memory bank are private</span>
+    </div>
+  </div>
+</div>

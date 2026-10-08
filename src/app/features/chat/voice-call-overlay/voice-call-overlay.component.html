@@ -1,0 +1,190 @@
+<div class="voice-call-backdrop" role="dialog" aria-modal="true">
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow ambient-glow-1" [class]="'state-' + callState()"></div>
+  <div class="ambient-glow ambient-glow-2" [class]="'state-' + callState()"></div>
+
+  <!-- Header Section -->
+  <header class="call-header">
+    <div class="call-security-badge">
+      <svg viewBox="0 0 20 20" fill="currentColor" class="lock-icon">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+      </svg>
+      <span>Live Voice Presence</span>
+    </div>
+
+    <div class="call-timer-pill">
+      <span class="timer-dot"></span>
+      <span class="timer-digits">{{ formattedTime() }}</span>
+    </div>
+
+    <button (click)="toggleTextInput()" class="call-header-action" title="Toggle Text Fallback">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Central Companion Stage -->
+  <main class="call-stage">
+    <!-- Pulsating Orbital Rings and Avatar -->
+    <div class="avatar-orbit-wrap" [class]="'state-' + callState()">
+      <div class="orbit-ring ring-1"></div>
+      <div class="orbit-ring ring-2"></div>
+      <div class="orbit-ring ring-3"></div>
+
+      <div class="avatar-core">
+        @if (targetAvatar) {
+          <img [src]="targetAvatar" [alt]="targetName" class="avatar-image" />
+        } @else {
+          <div class="avatar-fallback">
+            {{ targetName.charAt(0).toUpperCase() }}
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Identity & Dynamic Status -->
+    <div class="stage-identity">
+      <h2 class="target-name">{{ targetName }}</h2>
+      <p class="target-subtitle">{{ targetSubtitle }}</p>
+
+      <div class="status-indicator-pill" [class]="'state-' + callState()">
+        @switch (callState()) {
+          @case ('listening') {
+            <span class="pulse-beacon listening"></span>
+            <span>Listening to you...</span>
+          }
+          @case ('thinking') {
+            <span class="pulse-beacon thinking"></span>
+            <span>Synthesizing thoughts...</span>
+          }
+          @case ('speaking') {
+            <span class="pulse-beacon speaking"></span>
+            <span>Speaking...</span>
+          }
+          @case ('muted') {
+            <span class="pulse-beacon muted"></span>
+            <span>Microphone Muted</span>
+          }
+          @default {
+            <span class="pulse-beacon"></span>
+            <span>Connecting...</span>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Frequency Waveforms -->
+    <div class="waveform-container" [class]="'state-' + callState()">
+      @for (height of waveBars(); track $index) {
+        <div class="wave-bar" [style.height.%]="height"></div>
+      }
+    </div>
+
+    <!-- Live Subtitles & Captions -->
+    <div class="subtitles-tray">
+      @if (errorMessage()) {
+        <div class="subtitles-error">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="err-icon">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      } @else if (callState() === 'speaking' && assistantReply()) {
+        <div class="subtitle-bubble assistant-subtitle">
+          <span class="speaker-tag">{{ targetName }}:</span>
+          <p class="subtitle-text">"{{ assistantReply() }}"</p>
+        </div>
+      } @else if (userTranscript()) {
+        <div class="subtitle-bubble user-subtitle">
+          <span class="speaker-tag">You:</span>
+          <p class="subtitle-text">"{{ userTranscript() }}"</p>
+        </div>
+      } @else {
+        <p class="subtitles-placeholder">Speak naturally into your microphone...</p>
+      }
+    </div>
+
+    <!-- Optional Fallback Text Input Drawer -->
+    @if (showTextInput()) {
+      <div class="fallback-input-bar">
+        <input
+          type="text"
+          [(ngModel)]="textInputFallback"
+          (keydown.enter)="sendFallbackText()"
+          placeholder="Type message instead of speaking..."
+          class="fallback-input"
+        />
+        <button (click)="sendFallbackText()" class="fallback-send-btn" title="Send spoken turn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          </svg>
+        </button>
+      </div>
+    }
+  </main>
+
+  <!-- Dock Controls -->
+  <footer class="call-controls-dock">
+    <!-- Mute / Unmute Button -->
+    <button
+      (click)="toggleMute()"
+      class="control-btn mute-btn"
+      [class.active]="isMuted()"
+      [title]="isMuted() ? 'Unmute Microphone' : 'Mute Microphone'"
+    >
+      @if (isMuted()) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+        </svg>
+      }
+      <span class="control-label">{{ isMuted() ? 'Unmute' : 'Mute' }}</span>
+    </button>
+
+    <!-- Central Turn Action Button -->
+    @if (callState() === 'listening') {
+      <button (click)="finishSpeaking()" class="main-action-btn listening" title="Done speaking — send to companion">
+        <div class="btn-ripple"></div>
+        <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+        </svg>
+        <span class="action-caption">Done Speaking</span>
+      </button>
+    } @else if (callState() === 'thinking') {
+      <button class="main-action-btn thinking" disabled title="Processing your thoughts">
+        <div class="thinking-spinner"></div>
+        <span class="action-caption">Reflecting...</span>
+      </button>
+    } @else if (callState() === 'speaking') {
+      <button (click)="voiceService.stopAudio()" class="main-action-btn speaking" title="Companion is speaking (click to interrupt)">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+        </svg>
+        <span class="action-caption">Speaking</span>
+      </button>
+    } @else {
+      <button (click)="finishSpeaking()" class="main-action-btn" title="Tap to talk">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+        </svg>
+        <span class="action-caption">Speak</span>
+      </button>
+    }
+
+    <!-- End Call Button (Red Hangup) -->
+    <button (click)="endCall()" class="control-btn end-call-btn" title="End Voice Session">
+      <div class="end-call-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08a.996.996 0 010-1.41C2.94 8.78 7.21 7 12 7c4.79 0 9.06 1.78 11.71 4.67.39.39.39 1.02 0 1.41l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z" />
+        </svg>
+      </div>
+      <span class="control-label">End</span>
+    </button>
+  </footer>
+</div>

@@ -1,0 +1,486 @@
+<div class="wa-app" 
+  [class.in-chat]="isChatRoute()" 
+  [class.in-form]="isFormRoute()"
+  [class.mobile-tab-personas]="activeMobileTab() === 'personas'"
+  [class.mobile-tab-chats]="activeMobileTab() === 'chats'">
+
+  <!-- ========================================================
+       WHATSAPP WEB LEFT SIDEBAR (Chats & Companions)
+       ======================================================== -->
+  <aside class="wa-sidebar">
+    <!-- WhatsApp Top Header -->
+    <header class="wa-header">
+      <div class="wa-user-profile" [title]="authService.currentUser()?.email || 'User Profile'" (click)="toggleSettings()">
+        <div class="wa-user-avatar">
+          {{ authService.currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' }}
+        </div>
+        <div class="wa-user-meta">
+          <span class="wa-user-name">{{ authService.currentUser()?.email?.split('@')?.[0] || 'User' }}</span>
+          <span class="wa-token-chip">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+            </svg>
+            {{ (authService.currentUser()?.daily_token_limit || 50000) | number }} tokens/day
+          </span>
+        </div>
+      </div>
+
+      <div class="wa-header-actions">
+        <!-- View All Personas Gallery -->
+        <button 
+          (click)="onNavigatePersonas()" 
+          class="wa-icon-btn" 
+          title="My Companions (1:N Private)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </button>
+
+        <!-- Explore Minds (Public Thought Commons) -->
+        <button 
+          (click)="onNavigateExplore()" 
+          class="wa-icon-btn" 
+          title="Explore Minds (Thought Commons)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+        </button>
+
+        <!-- My AI Mind Studio (1:1 Digital Twin) -->
+        <button 
+          (click)="onNavigateMyMind()" 
+          class="wa-icon-btn" 
+          title="My AI Mind (1:1 Digital Twin Studio)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+        </button>
+
+        <!-- Settings Button (Houses Theme toggle, Account details, and Logout) -->
+        <button 
+          (click)="toggleSettings()" 
+          class="wa-icon-btn" 
+          [class.active]="isSettingsOpen()"
+          title="Settings (Theme, Appearance & Sign Out)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search & Filter Bar -->
+    <div class="wa-search-section">
+      <div class="wa-search-bar">
+        <svg class="wa-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          placeholder="Search or start new chat" 
+          class="wa-search-input"
+        />
+        @if (searchQuery()) {
+          <button (click)="searchQuery.set('')" class="wa-clear-btn">&times;</button>
+        }
+      </div>
+
+      <!-- Quick Filter Pills -->
+      <div class="wa-filter-pills">
+        <button 
+          class="wa-pill" 
+          [class.active]="activeTab() === 'all'" 
+          (click)="activeTab.set('all')"
+        >
+          All
+        </button>
+        <button 
+          class="wa-pill" 
+          [class.active]="activeTab() === 'official'" 
+          (click)="activeTab.set('official')"
+        >
+          Official
+        </button>
+        <button 
+          class="wa-pill" 
+          [class.active]="activeTab() === 'custom'" 
+          (click)="activeTab.set('custom')"
+        >
+          Custom
+        </button>
+        <button 
+          class="wa-pill wa-pill-minds" 
+          (click)="onNavigateExplore()"
+          title="Explore Public AI Minds in Thought Commons"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px; display: inline-block; vertical-align: -1px; margin-right: 3px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+          AI Minds
+        </button>
+      </div>
+    </div>
+
+    <!-- WhatsApp Companion / Chat List -->
+    <div class="wa-chat-list">
+      @if (characterService.isLoading() && characterService.characters().length === 0) {
+        <div class="wa-list-loading">
+          <div class="wa-spinner"></div>
+          <span>Loading chats...</span>
+        </div>
+      } @else if (filteredCharacters().length === 0) {
+        <div class="wa-list-empty">
+          <p>No companions found</p>
+          <button (click)="onNewPersona()" class="wa-btn-link">+ Create Persona</button>
+        </div>
+      } @else {
+        @for (char of filteredCharacters(); track char.id) {
+          <div 
+            class="wa-chat-item" 
+            [class.active]="activeCharacterId() === char.id"
+            (click)="onSelectCharacter(char)"
+          >
+            <!-- Circular Avatar -->
+            <div class="wa-avatar-wrap">
+              @if (char.avatar_url) {
+                <img [src]="char.avatar_url" [alt]="char.name" class="wa-avatar-img" />
+              } @else {
+                <div class="wa-avatar-fallback" [class.official]="char.is_system">
+                  {{ char.name.charAt(0).toUpperCase() }}
+                </div>
+              }
+              <span class="wa-online-dot"></span>
+            </div>
+
+            <!-- Chat Item Body -->
+            <div class="wa-chat-content">
+              <div class="wa-chat-top-row">
+                <div class="wa-name-badge">
+                  <span class="wa-chat-title">{{ char.name }}</span>
+                  @if (char.is_system) {
+                    <span class="wa-badge wa-badge-teal">Official</span>
+                  }
+                  @if (char.is_public) {
+                    <span class="wa-badge wa-badge-teal">Digital Twin</span>
+                  } @else if (char.relationship_type) {
+                    <span class="wa-badge wa-badge-gold">{{ char.relationship_type | titlecase }}</span>
+                  }
+                </div>
+                <span class="wa-chat-tone">{{ char.tone }}</span>
+              </div>
+
+              <div class="wa-chat-bottom-row">
+                <p class="wa-chat-snippet">{{ char.personality }}</p>
+
+                <!-- Action icons for custom characters -->
+                @if (isOwner(char)) {
+                  <div class="wa-chat-actions" (click)="$event.stopPropagation()">
+                    <button 
+                      (click)="onOpenStudio(char, $event)" 
+                      class="wa-row-btn" 
+                      title="Training Knowledge Studio"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                    <button 
+                      (click)="onEditCharacter(char, $event)" 
+                      class="wa-row-btn" 
+                      title="Edit Character"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                    <button 
+                      (click)="onDeleteCharacter(char, $event)" 
+                      class="wa-row-btn wa-btn-danger" 
+                      title="Delete Character"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Sidebar Bottom Security Banner -->
+    <div class="wa-sidebar-footer">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+      </svg>
+      <span>End-to-end memory recall enabled</span>
+    </div>
+
+    <!-- Floating Rounded Plus Button (WhatsApp Style FAB) -->
+    <button 
+      (click)="onNewPersona()" 
+      class="wa-fab-btn" 
+      title="Add New Persona"
+      aria-label="Add New Persona"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </aside>
+
+  <!-- ========================================================
+       WHATSAPP WEB RIGHT MAIN PANE (Routed Content)
+       ======================================================== -->
+  <main class="wa-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- ========================================================
+       MOBILE BOTTOM NAVIGATION BAR (WhatsApp Mobile Style)
+       ======================================================== -->
+  @if (!isChatRoute() && !isFormRoute()) {
+    <nav class="wa-mobile-nav">
+      <!-- Chats Tab -->
+      <button 
+        class="wa-mobile-nav-item" 
+        [class.active]="activeMobileTab() === 'chats' && !isSettingsOpen()" 
+        (click)="setMobileTab('chats')"
+      >
+        <div class="wa-nav-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          @if (filteredCharacters().length > 0) {
+            <span class="wa-nav-badge-dot"></span>
+          }
+        </div>
+        <span class="wa-nav-text">Chats</span>
+      </button>
+
+      <!-- Companions Tab -->
+      <button 
+        class="wa-mobile-nav-item" 
+        [class.active]="activeMobileTab() === 'personas' && !isSettingsOpen()" 
+        (click)="setMobileTab('personas')"
+      >
+        <div class="wa-nav-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <span class="wa-nav-text">Companions</span>
+      </button>
+
+      <!-- Explore Minds Tab -->
+      <button 
+        class="wa-mobile-nav-item" 
+        (click)="onNavigateExplore()"
+      >
+        <div class="wa-nav-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <span class="wa-nav-text">Explore</span>
+      </button>
+
+      <!-- My AI Mind Tab -->
+      <button 
+        class="wa-mobile-nav-item" 
+        (click)="onNavigateMyMind()"
+      >
+        <div class="wa-nav-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+        </div>
+        <span class="wa-nav-text">My Mind</span>
+      </button>
+
+      <!-- Settings Tab -->
+      <button 
+        class="wa-mobile-nav-item" 
+        [class.active]="isSettingsOpen()" 
+        (click)="toggleSettings()"
+      >
+        <div class="wa-nav-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <span class="wa-nav-text">Settings</span>
+      </button>
+    </nav>
+  }
+
+  <!-- ========================================================
+       SETTINGS MODAL / POPOVER (Theme, Account, Sign Out)
+       ======================================================== -->
+  @if (isSettingsOpen()) {
+    <div class="wa-modal-backdrop" (click)="closeSettings()">
+      <div class="wa-settings-modal" (click)="$event.stopPropagation()">
+        <!-- Modal Top Bar -->
+        <header class="wa-settings-header">
+          <div class="wa-settings-title-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="wa-settings-head-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <h2 class="wa-settings-title">Settings</h2>
+          </div>
+          <button (click)="closeSettings()" class="wa-settings-close-btn" title="Close Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </header>
+
+        <!-- Modal Body Content -->
+        <div class="wa-settings-body">
+          <!-- Profile Info Card -->
+          <div class="wa-settings-profile-card">
+            <div class="wa-settings-big-avatar">
+              {{ authService.currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' }}
+            </div>
+            <div class="wa-settings-profile-info">
+              <span class="wa-settings-email">{{ authService.currentUser()?.email }}</span>
+              <div class="wa-settings-meta-row">
+                <span class="wa-badge wa-badge-teal">{{ authService.currentUser()?.role || 'User' }}</span>
+                <span class="wa-settings-token-stat">
+                  ⚡ {{ (authService.currentUser()?.daily_token_limit || 50000) | number }} tokens/day
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Preferences (Dark / Light Mode) -->
+          <div class="wa-settings-section">
+            <span class="wa-section-heading">Preferences</span>
+
+            <!-- Theme Toggle Option -->
+            <div class="wa-setting-item" (click)="themeService.toggleTheme()">
+              <div class="wa-setting-item-left">
+                <div class="wa-setting-icon-wrap wa-icon-theme">
+                  @if (themeService.currentTheme() === 'dark') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="5" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  }
+                </div>
+                <div class="wa-setting-text">
+                  <span class="wa-setting-label">Appearance Theme</span>
+                  <span class="wa-setting-sublabel">{{ themeService.currentTheme() === 'dark' ? 'Dark Mode (Active)' : 'Light Mode (Active)' }}</span>
+                </div>
+              </div>
+
+              <!-- Animated Toggle Switch -->
+              <div class="wa-switch" [class.checked]="themeService.currentTheme() === 'dark'">
+                <div class="wa-switch-thumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: AI Minds & Companions -->
+          <div class="wa-settings-section">
+            <span class="wa-section-heading">AI Minds & Companions</span>
+
+            <div class="wa-setting-item" (click)="onNavigateMyMind()">
+              <div class="wa-setting-item-left">
+                <div class="wa-setting-icon-wrap wa-icon-teal">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <div class="wa-setting-text">
+                  <span class="wa-setting-label">My AI Mind Studio (1:1)</span>
+                  <span class="wa-setting-sublabel">Train and manage your personal public Digital Twin</span>
+                </div>
+              </div>
+              <span class="wa-setting-arrow">&rarr;</span>
+            </div>
+
+            <div class="wa-setting-item" (click)="onNavigatePersonas()">
+              <div class="wa-setting-item-left">
+                <div class="wa-setting-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div class="wa-setting-text">
+                  <span class="wa-setting-label">My Private Companions (1:N)</span>
+                  <span class="wa-setting-sublabel">Browse and manage private emotional personas</span>
+                </div>
+              </div>
+              <span class="wa-setting-arrow">&rarr;</span>
+            </div>
+
+            <div class="wa-setting-item" (click)="onNavigateExplore()">
+              <div class="wa-setting-item-left">
+                <div class="wa-setting-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                  </svg>
+                </div>
+                <div class="wa-setting-text">
+                  <span class="wa-setting-label">Explore Thought Commons</span>
+                  <span class="wa-setting-sublabel">Search public AI Minds and consult digital twins</span>
+                </div>
+              </div>
+              <span class="wa-setting-arrow">&rarr;</span>
+            </div>
+
+            <div class="wa-setting-item" (click)="onNewPersona()">
+              <div class="wa-setting-item-left">
+                <div class="wa-setting-icon-wrap wa-icon-teal">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div class="wa-setting-text">
+                  <span class="wa-setting-label">Create New Private Persona</span>
+                  <span class="wa-setting-sublabel">Design a custom private AI companion</span>
+                </div>
+              </div>
+              <span class="wa-setting-arrow">&rarr;</span>
+            </div>
+          </div>
+
+          <!-- Section: Account & Logout -->
+          <div class="wa-settings-section">
+            <span class="wa-section-heading">Account</span>
+
+            <div class="wa-setting-item wa-item-danger" (click)="onLogout()">
+              <div class="wa-setting-item-left">
+                <div class="wa-setting-icon-wrap wa-icon-danger">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+                <div class="wa-setting-text">
+                  <span class="wa-setting-label wa-label-danger">Sign Out</span>
+                  <span class="wa-setting-sublabel">End current session securely</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

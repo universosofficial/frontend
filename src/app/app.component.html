@@ -1,0 +1,27 @@
+<router-outlet></router-outlet>
+
+<!-- Minimalist, Authentic WhatsApp-style Preloader -->
+@if (isLoadingApp()) {
+  <div class="wa-splash" [class.fade-out]="isFadingOut()">
+    <div class="wa-splash-content">
+      <div class="wa-splash-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm0 18.06c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.03 8.03 0 0 1-1.23-4.29c0-4.46 3.63-8.09 8.09-8.09 2.16 0 4.19.84 5.72 2.37 1.53 1.53 2.37 3.56 2.37 5.72 0 4.46-3.63 8.09-8.09 8.09z"/>
+        </svg>
+      </div>
+
+      <div class="wa-splash-track">
+        <div class="wa-splash-bar"></div>
+      </div>
+
+      <div class="wa-splash-name">AI Companion</div>
+    </div>
+
+    <div class="wa-splash-footer">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+      </svg>
+      <span>End-to-end encrypted</span>
+    </div>
+  </div>
+}

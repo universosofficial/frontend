@@ -1,0 +1,488 @@
+<div class="wa-chat-container">
+  <!-- ========================================================
+       WHATSAPP CHAT APP BAR (Top Header)
+       ======================================================== -->
+  <header class="wa-chat-header">
+    <div class="wa-header-left">
+      <!-- Mobile Back Button -->
+      <a routerLink="/dashboard/characters" class="wa-btn-back" title="Back to Chats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+
+      @if (chatService.activeCharacter(); as char) {
+        <div class="wa-header-avatar-wrap" (click)="toggleMemoryDrawer()" title="View Companion Info">
+          @if (char.avatar_url) {
+            <img [src]="char.avatar_url" [alt]="char.name" class="wa-header-avatar" />
+          } @else {
+            <div class="wa-header-fallback" [class.official]="char.is_system">
+              {{ char.name.charAt(0).toUpperCase() }}
+            </div>
+          }
+          <span class="wa-online-dot"></span>
+        </div>
+
+        <div class="wa-header-info" (click)="toggleMemoryDrawer()">
+          <div class="wa-header-title-row">
+            <h2 class="wa-header-name">{{ char.name }}</h2>
+            @if (char.is_verified) {
+              <span class="wa-verified-disc" title="Verified Public Mind">
+                <svg viewBox="0 0 20 20" fill="currentColor" class="wa-verified-icon">
+                  <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              </span>
+            }
+            @if (char.handle) {
+              <span class="wa-mind-handle-pill">&#64;{{ char.handle }}</span>
+            }
+            @if (char.is_system) {
+              <span class="wa-badge wa-badge-teal">Official</span>
+            }
+            @if (char.is_public) {
+              <span class="wa-badge wa-badge-teal">Digital Twin</span>
+            } @else if (char.relationship_type) {
+              <span class="wa-badge wa-badge-gold">{{ char.relationship_type | titlecase }}</span>
+            }
+          </div>
+          <p class="wa-header-status">
+            @if (isStreaming()) {
+              <span class="wa-status-typing">
+                typing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+              </span>
+            } @else if (isVoiceNoteSending()) {
+              <span class="wa-status-typing">
+                recording audio<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+              </span>
+            } @else {
+              <span class="wa-status-online">online</span>
+            }
+          </p>
+        </div>
+      }
+    </div>
+
+    <!-- Header Right Action Icons -->
+    <div class="wa-header-right">
+
+      <!-- Memories Button (styled as WhatsApp contact info / starred items) -->
+      <button 
+        (click)="toggleMemoryDrawer()" 
+        class="wa-header-memory-btn" 
+        [class.active]="isMemoryDrawerOpen()"
+        title="Companion Neural Memories"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+        </svg>
+        <span>Memories</span>
+        @if (memoryService.memories().length > 0) {
+          <span class="wa-memory-counter">{{ memoryService.memories().length }}</span>
+        }
+      </button>
+
+      <!-- More Menu / Info -->
+      <button (click)="toggleMemoryDrawer()" class="wa-icon-btn" title="Contact Info">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       WHATSAPP CHAT WALLPAPER & MESSAGES STREAM
+       ======================================================== -->
+  <div class="wa-chat-body wa-wallpaper" #messagesContainer (scroll)="onScroll($event)">
+    <!-- WhatsApp End-to-End Encryption / Memory System Pill -->
+    <div class="wa-system-banner">
+      <div class="wa-system-pill">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Messages are end-to-end memory augmented. Only you and this persona have access to these recall banks.</span>
+      </div>
+    </div>
+
+    <!-- Date Divider Pill -->
+    <div class="wa-date-divider">
+      <span class="wa-date-pill">TODAY</span>
+    </div>
+
+    <!-- Loading State -->
+    @if (chatService.isLoadingMessages()) {
+      <div class="wa-chat-loading">
+        <div class="wa-spinner"></div>
+        <span>Hydrating conversation history & memories...</span>
+      </div>
+    } @else {
+      <!-- Empty Hero when no messages -->
+      @if (chatService.messages().length === 0) {
+        <div class="wa-chat-empty-hero">
+          @if (chatService.activeCharacter(); as char) {
+            <div class="wa-hero-avatar-disc">
+              @if (char.avatar_url) {
+                <img [src]="char.avatar_url" [alt]="char.name" class="wa-hero-avatar-img" />
+              } @else {
+                <div class="wa-hero-avatar-fallback" [class.official]="char.is_system">
+                  {{ char.name.charAt(0).toUpperCase() }}
+                </div>
+              }
+            </div>
+
+            <h3 class="wa-hero-name">{{ char.name }}</h3>
+
+            <div class="wa-hero-badges">
+              @if (char.is_system) {
+                <span class="wa-badge wa-badge-teal">Official Companion</span>
+              }
+              @if (char.relationship_type) {
+                <span class="wa-badge wa-badge-gold">{{ char.relationship_type | titlecase }}</span>
+              }
+              @if (char.tone) {
+                <span class="wa-badge wa-badge-purple">{{ char.tone | titlecase }}</span>
+              }
+            </div>
+
+            @if (char.greeting) {
+              <div class="wa-hero-greeting-box">
+                <svg class="wa-quote-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                </svg>
+                <p class="wa-hero-greeting-text">"{{ char.greeting }}"</p>
+              </div>
+            }
+
+            <div class="wa-hero-starters">
+              <p class="wa-starters-label">Tap to start the conversation:</p>
+              <div class="wa-prompt-chips">
+                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Hey ' + char.name + ', how are you doing today?')">
+                  <span>👋</span>
+                  <span>Say hello</span>
+                </button>
+                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('I wanted to talk to you about something on my mind...')">
+                  <span>💭</span>
+                  <span>Share thoughts</span>
+                </button>
+                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Do you remember some of our favorite memories?')">
+                  <span>✨</span>
+                  <span>Recall memories</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Messages Stream -->
+      <div class="wa-messages-flow">
+        @for (msg of chatService.messages(); track msg.id) {
+          <div 
+            class="wa-msg-row" 
+            [class.outgoing]="msg.sender_type === 'user'"
+            [class.incoming]="msg.sender_type === 'assistant'"
+          >
+            <div class="wa-bubble">
+              <!-- Bubble Tail SVG -->
+              @if (msg.sender_type === 'user') {
+                <span class="wa-tail-out">
+                  <svg viewBox="0 0 8 13" width="8" height="13">
+                    <path opacity="1" fill="#005c4b" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z" />
+                  </svg>
+                </span>
+              } @else {
+                <span class="wa-tail-in">
+                  <svg viewBox="0 0 8 13" width="8" height="13">
+                    <path opacity="1" fill="#202c33" d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z" />
+                  </svg>
+                </span>
+              }
+
+              <!-- Message Content: Voice Note or Text -->
+              @if (msg.message_type === 'voice') {
+                <div class="wa-voice-bubble" [class.is-playing]="voiceService.currentPlayingMessageId() === msg.id">
+                  <!-- Voice Note Avatar with Mic Disc -->
+                  <div class="wa-vn-avatar-box">
+                    @if (msg.sender_type === 'user') {
+                      <div class="wa-vn-avatar user-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                      </div>
+                    } @else {
+                      @if (chatService.activeCharacter()?.avatar_url) {
+                        <img [src]="chatService.activeCharacter()?.avatar_url" class="wa-vn-avatar" alt="Avatar" />
+                      } @else {
+                        <div class="wa-vn-avatar ai-icon">
+                          {{ chatService.activeCharacter()?.name?.charAt(0) || 'A' }}
+                        </div>
+                      }
+                    }
+                    <span class="wa-vn-mic-badge">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <!-- Play/Pause Button -->
+                  <button 
+                    type="button" 
+                    class="wa-vn-play-btn" 
+                    (click)="togglePlayVoiceNote(msg)"
+                    [title]="voiceService.currentPlayingMessageId() === msg.id && voiceService.isAudioPlaying() ? 'Pause' : 'Play voice note'"
+                  >
+                    @if (voiceService.currentPlayingMessageId() === msg.id && voiceService.isAudioPlaying()) {
+                      <!-- Pause Icon -->
+                      <svg viewBox="0 0 24 24" fill="currentColor" class="wa-vn-btn-icon">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                      </svg>
+                    } @else {
+                      <!-- Play Icon -->
+                      <svg viewBox="0 0 24 24" fill="currentColor" class="wa-vn-btn-icon play-triangle">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    }
+                  </button>
+
+                  <!-- Waveform & Progress Tracker -->
+                  <div class="wa-vn-track-wrap">
+                    <div class="wa-vn-waveform" (click)="onSeekVoiceNote($event, msg)" title="Click to seek">
+                      @for (bar of getWaveformBars(msg.id); track $index) {
+                        <span 
+                          class="wa-vn-bar" 
+                          [style.height.px]="bar.height"
+                          [class.played]="voiceService.currentPlayingMessageId() === msg.id && $index <= (voiceService.currentPlaybackProgress() / 100) * 28"
+                        ></span>
+                      }
+                    </div>
+
+                    <!-- Scrubber Track Line -->
+                    <div class="wa-vn-slider-track" (click)="onSeekVoiceNote($event, msg)">
+                      <div 
+                        class="wa-vn-slider-fill"
+                        [style.width.%]="voiceService.currentPlayingMessageId() === msg.id ? voiceService.currentPlaybackProgress() : 0"
+                      >
+                        <span class="wa-vn-slider-thumb"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Voice Note Meta & Transcript Accordion -->
+                <div class="wa-vn-footer">
+                  <div class="wa-vn-meta-row">
+                    <span class="wa-vn-duration">
+                      @if (voiceService.currentPlayingMessageId() === msg.id) {
+                        {{ formatSeconds(voiceService.currentPlaybackTime()) }}
+                      } @else {
+                        {{ formatSeconds(msg.duration_seconds || 0) }}
+                      }
+                    </span>
+
+                    <div class="wa-vn-meta-right">
+                      @if (msg.content && msg.content !== '🎤 Voice message' && !msg.content.startsWith('🎤')) {
+                        <button type="button" class="wa-vn-transcript-btn" (click)="toggleTranscript(msg.id)">
+                          <span>{{ expandedTranscripts().has(msg.id) ? 'Hide text' : 'Transcript' }}</span>
+                        </button>
+                      }
+                      <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
+                      @if (msg.sender_type === 'user') {
+                        <span class="wa-ticks">
+                          <svg viewBox="0 0 16 15" width="16" height="15">
+                            <path fill="#53bdeb" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z" />
+                          </svg>
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Collapsible Transcript Text -->
+                  @if (expandedTranscripts().has(msg.id) && msg.content && msg.content !== '🎤 Voice message' && !msg.content.startsWith('🎤')) {
+                    <div class="wa-vn-transcript-box">
+                      <p class="wa-vn-transcript-text">{{ msg.content }}</p>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <!-- Standard Text Message Content -->
+                <div class="wa-bubble-content">
+                  <p class="wa-text">{{ msg.content }}</p>
+                  @if (isStreaming() && msg.sender_type === 'assistant' && msg.id === chatService.messages()[chatService.messages().length - 1].id) {
+                    <span class="wa-streaming-cursor"></span>
+                  }
+                </div>
+
+                <!-- Message Timestamp & Read Ticks -->
+                <div class="wa-meta">
+                  <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
+                  @if (msg.sender_type === 'user') {
+                    <span class="wa-ticks" title="Read by Companion">
+                      <svg viewBox="0 0 16 15" width="16" height="15">
+                        <path fill="#53bdeb" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z" />
+                      </svg>
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Grounded Knowledge Indicator for Public Minds -->
+    @if (lastGroundedInfo(); as info) {
+      @if (info.count > 0) {
+        <div class="wa-grounded-pill-banner" title="Response grounded in verified authored knowledge nodes">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="wa-grounded-svg">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span class="wa-grounded-text">
+            Grounded Knowledge: synthesized from {{ info.count }} verified source excerpt(s)
+          </span>
+        </div>
+      }
+    }
+
+    <!-- Error Banner -->
+    @if (errorMessage) {
+      <div class="wa-error-banner">
+        <span>{{ errorMessage }}</span>
+        <button (click)="initChat(characterId)" class="wa-retry-btn">Retry</button>
+      </div>
+    }
+  </div>
+
+  <!-- ========================================================
+       WHATSAPP CHAT INPUT BAR
+       ======================================================== -->
+  <footer class="wa-chat-input-bar">
+    @if (isRecordingVoiceNote()) {
+      <!-- ========================================================
+           WHATSAPP RECORDING BAR (ACTIVE RECORDING MODE)
+           ======================================================== -->
+      <div class="wa-recording-mode-bar">
+        <!-- Delete / Trash Button -->
+        <button 
+          type="button" 
+          (click)="cancelVoiceNoteRecording()" 
+          class="wa-rec-trash-btn" 
+          title="Delete voice note"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+        </button>
+
+        <!-- Live Waveform & Duration Counter -->
+        <div class="wa-rec-info-box">
+          <span class="wa-rec-dot"></span>
+          <span class="wa-rec-time">{{ recordingTimeFormatted() }}</span>
+          <div class="wa-live-waveform-bars">
+            <span class="rec-bar rb1"></span>
+            <span class="rec-bar rb2"></span>
+            <span class="rec-bar rb3"></span>
+            <span class="rec-bar rb4"></span>
+            <span class="rec-bar rb5"></span>
+            <span class="rec-bar rb6"></span>
+            <span class="rec-bar rb7"></span>
+            <span class="rec-bar rb8"></span>
+          </div>
+        </div>
+
+        <!-- Finish & Send Voice Note Button -->
+        <button 
+          type="button" 
+          (click)="sendVoiceNote()" 
+          class="wa-rec-send-btn" 
+          title="Send voice note"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    } @else {
+      <!-- Normal Text / Mic Input Bar -->
+      <!-- Emoji Button -->
+      <button class="wa-icon-btn" title="Emoji">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-3.5-9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+        </svg>
+      </button>
+
+      <!-- Attachment Paperclip Button -->
+      <button class="wa-icon-btn" title="Attach">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 015 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3 3 0 006 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
+        </svg>
+      </button>
+
+      <!-- Pill-shaped Text Input -->
+      <div class="wa-input-pill">
+        <textarea
+          #messageInput
+          [(ngModel)]="userInput"
+          (keydown)="onKeyDown($event)"
+          (input)="onInputResize()"
+          placeholder="Type a message"
+          rows="1"
+          class="wa-textarea"
+          [disabled]="isStreaming() || isVoiceNoteSending() || chatService.isLoadingMessages()"
+        ></textarea>
+      </div>
+
+      <!-- Action Button (Green Send button when text is present / Mic icon when empty) -->
+      @if (userInput.trim() || isStreaming() || isVoiceNoteSending()) {
+        <button 
+          (click)="sendMessage()" 
+          class="wa-send-btn"
+          [disabled]="!userInput.trim() || isStreaming() || isVoiceNoteSending() || chatService.isLoadingMessages()"
+          title="Send Message"
+        >
+          @if (isStreaming() || isVoiceNoteSending()) {
+            <div class="wa-btn-spinner"></div>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          }
+        </button>
+      } @else {
+        <!-- WhatsApp Voice Note Mic Button -->
+        <button 
+          type="button"
+          (click)="startVoiceNoteRecording()" 
+          class="wa-icon-btn wa-mic-btn" 
+          title="Record WhatsApp Voice Note"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+          </svg>
+        </button>
+      }
+    }
+  </footer>
+
+  <!-- ========================================================
+       WHATSAPP "CONTACT INFO" SLIDE-OVER DRAWER (Memories)
+       ======================================================== -->
+  <app-memory-drawer 
+    [isOpen]="isMemoryDrawerOpen()" 
+    [characterId]="characterId"
+    (close)="isMemoryDrawerOpen.set(false)"
+  ></app-memory-drawer>
+
+  <!-- ========================================================
+       LIVE VOICE CALL OVERLAY
+       ======================================================== -->
+  @if (isVoiceCallActive()) {
+    <app-voice-call-overlay
+      [character]="chatService.activeCharacter()"
+      [conversationId]="chatService.activeConversation()?.id || null"
+      (closeCall)="endVoiceCall()"
+      (messageAdded)="onVoiceTurnMessageAdded($event)"
+    ></app-voice-call-overlay>
+  }
+</div>

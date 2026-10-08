@@ -1,0 +1,459 @@
+<div class="wa-profile-container">
+  @if (isLoadingMind()) {
+    <div class="wa-profile-loading">
+      <div class="wa-spinner"></div>
+      <span>Calibrating mind connection with &#64;{{ handle() }}...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="wa-profile-error">
+      <div class="wa-error-disc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      </div>
+      <h2>Mind Unavailable</h2>
+      <button type="button" (click)="goBack()" class="wa-btn-primary">&larr; Return to Thought Commons</button>
+    </div>
+  } @else {
+    @if (mind(); as m) {
+    <!-- Mind Profile Header / Hero Card -->
+    <header class="wa-mind-profile-hero">
+      <div class="wa-hero-top-row">
+        <button type="button" (click)="goBack()" class="wa-back-btn" title="Back to Explore">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div class="wa-hero-meta-badges">
+          <!-- Voice Call Button -->
+          <button type="button" (click)="startVoiceCall()" class="wa-btn-voice-call" title="Start Live Voice Consultation">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-2.2 2.2a15.053 15.053 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-.99-1.12z" />
+            </svg>
+            <span>Voice Call</span>
+          </button>
+
+          <span class="wa-badge wa-badge-teal">Thought Commons</span>
+          @if ((m.total_interactions || 0) > 0) {
+            <span class="wa-badge wa-badge-gold">⚡ {{ m.total_interactions }} consultations</span>
+          }
+        </div>
+      </div>
+
+      <!-- Avatar & Headline Banner -->
+      <div class="wa-hero-center">
+        <div class="wa-hero-avatar-disc">
+          @if (m.avatar_url) {
+            <img [src]="m.avatar_url" [alt]="m.display_name || m.name || 'Mind'" class="wa-hero-avatar" />
+          } @else {
+            <div class="wa-hero-fallback">
+              {{ (m.display_name || m.name || 'M').charAt(0).toUpperCase() }}
+            </div>
+          }
+        </div>
+
+        <div class="wa-hero-title-section">
+          <div class="wa-hero-name-row">
+            <h1 class="wa-hero-name">{{ m.display_name || m.name }}</h1>
+            <span class="wa-hero-handle">&#64;{{ m.handle }}</span>
+          </div>
+
+          @if (m.headline) {
+            <p class="wa-hero-headline">{{ m.headline }}</p>
+          }
+
+          @if (m.website_url) {
+            <a [href]="m.website_url" target="_blank" rel="noopener noreferrer" class="wa-hero-website-link">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+              </svg>
+              <span>{{ m.website_url }}</span>
+            </a>
+          }
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="wa-hero-tabs">
+        <button
+          type="button"
+          class="wa-hero-tab"
+          [class.active]="activeTab() === 'consultation'"
+          (click)="setTab('consultation')"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+          </svg>
+          <span>Consultation</span>
+        </button>
+
+        <button
+          type="button"
+          class="wa-hero-tab"
+          [class.active]="activeTab() === 'knowledge'"
+          (click)="setTab('knowledge')"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+          </svg>
+          <span>Knowledge & Sources</span>
+          @if (m.sources && m.sources.length > 0) {
+            <span class="wa-tab-counter">{{ m.sources.length }}</span>
+          }
+        </button>
+      </nav>
+    </header>
+
+    <!-- Content Sections based on Active Tab -->
+    @if (activeTab() === 'consultation') {
+      <!-- ========================================================
+           TAB 1: LIVE CONSULTATION CHAT
+           ======================================================== -->
+      <section class="wa-consultation-section">
+        <!-- Message stream container with WhatsApp doodle wallpaper -->
+        <div class="wa-consult-stream wa-wallpaper" #chatContainer>
+          <!-- Mind Grounding Notice Banner -->
+          <div class="wa-grounding-banner">
+            <div class="wa-system-pill">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
+              </svg>
+              <span>Consulting the public AI Mind of {{ m.display_name || m.name || m.handle }}. Responses are synthesized through authored writings and mental models.</span>
+            </div>
+          </div>
+
+          <!-- Message Bubbles Flow -->
+          <div class="wa-messages-flow">
+            @for (msg of messages(); track msg.id) {
+              <div 
+                class="wa-msg-row"
+                [class.outgoing]="msg.sender_type === 'user'"
+                [class.incoming]="msg.sender_type === 'assistant'"
+              >
+                <div class="wa-bubble">
+                  <!-- Tail SVG -->
+                  @if (msg.sender_type === 'user') {
+                    <span class="wa-tail-out">
+                      <svg viewBox="0 0 8 13" width="8" height="13">
+                        <path opacity="1" fill="#005c4b" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z" />
+                      </svg>
+                    </span>
+                  } @else {
+                    <span class="wa-tail-in">
+                      <svg viewBox="0 0 8 13" width="8" height="13">
+                        <path opacity="1" fill="#202c33" d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z" />
+                      </svg>
+                    </span>
+                  }
+
+                  <!-- Message Content: Voice Note or Text -->
+                  @if (msg.message_type === 'voice') {
+                    <div class="wa-voice-bubble" [class.is-playing]="voiceService.currentPlayingMessageId() === msg.id">
+                      <!-- Voice Note Avatar with Mic Disc -->
+                      <div class="wa-vn-avatar-box">
+                        @if (msg.sender_type === 'user') {
+                          <div class="wa-vn-avatar user-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                          </div>
+                        } @else {
+                          @if (m.avatar_url) {
+                            <img [src]="m.avatar_url" class="wa-vn-avatar" alt="Avatar" />
+                          } @else {
+                            <div class="wa-vn-avatar ai-icon">
+                              {{ (m.display_name || m.name || m.handle || 'M').charAt(0).toUpperCase() }}
+                            </div>
+                          }
+                        }
+                        <span class="wa-vn-mic-badge">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                          </svg>
+                        </span>
+                      </div>
+
+                      <!-- Play/Pause Button -->
+                      <button 
+                        type="button" 
+                        class="wa-vn-play-btn" 
+                        (click)="togglePlayVoiceNote(msg)"
+                        [title]="voiceService.currentPlayingMessageId() === msg.id && voiceService.isAudioPlaying() ? 'Pause' : 'Play voice note'"
+                      >
+                        @if (voiceService.currentPlayingMessageId() === msg.id && voiceService.isAudioPlaying()) {
+                          <svg viewBox="0 0 24 24" fill="currentColor" class="wa-vn-btn-icon">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                          </svg>
+                        } @else {
+                          <svg viewBox="0 0 24 24" fill="currentColor" class="wa-vn-btn-icon play-triangle">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        }
+                      </button>
+
+                      <!-- Waveform Track & Scrubber -->
+                      <div class="wa-vn-track-wrap">
+                        <div class="wa-vn-waveform" (click)="onSeekVoiceNote($event, msg)" title="Click to seek">
+                          @for (bar of getWaveformBars(msg.id); track $index) {
+                            <span 
+                              class="wa-vn-bar" 
+                              [style.height.px]="bar.height"
+                              [class.played]="voiceService.currentPlayingMessageId() === msg.id && $index <= (voiceService.currentPlaybackProgress() / 100) * 28"
+                            ></span>
+                          }
+                        </div>
+
+                        <div class="wa-vn-slider-track" (click)="onSeekVoiceNote($event, msg)">
+                          <div 
+                            class="wa-vn-slider-fill"
+                            [style.width.%]="voiceService.currentPlayingMessageId() === msg.id ? voiceService.currentPlaybackProgress() : 0"
+                          >
+                            <span class="wa-vn-slider-thumb"></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Voice Note Meta & Transcript Accordion -->
+                    <div class="wa-vn-footer">
+                      <div class="wa-vn-meta-row">
+                        <span class="wa-vn-duration">
+                          @if (voiceService.currentPlayingMessageId() === msg.id) {
+                            {{ formatSeconds(voiceService.currentPlaybackTime()) }}
+                          } @else {
+                            {{ formatSeconds(msg.duration_seconds || 0) }}
+                          }
+                        </span>
+
+                        <div class="wa-vn-meta-right">
+                          @if (msg.content && msg.content !== '🎤 Voice message' && !msg.content.startsWith('🎤')) {
+                            <button type="button" class="wa-vn-transcript-btn" (click)="toggleTranscript(msg.id)">
+                              <span>{{ expandedTranscripts().has(msg.id) ? 'Hide text' : 'Transcript' }}</span>
+                            </button>
+                          }
+                          <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
+                        </div>
+                      </div>
+
+                      @if (expandedTranscripts().has(msg.id) && msg.content && msg.content !== '🎤 Voice message' && !msg.content.startsWith('🎤')) {
+                        <div class="wa-vn-transcript-box">
+                          <p class="wa-vn-transcript-text">{{ msg.content }}</p>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <!-- Content Text -->
+                    <div class="wa-bubble-content">
+                      <p class="wa-text">{{ msg.content }}</p>
+                      @if (isStreaming() && msg.sender_type === 'assistant' && msg.id === messages()[messages().length - 1].id) {
+                        <span class="wa-streaming-cursor"></span>
+                      }
+                    </div>
+
+                    <!-- Grounding Citations -->
+                    @if (msg.sources && msg.sources.length > 0) {
+                      <div class="wa-cited-sources">
+                        <span class="wa-citations-label">Grounded in:</span>
+                        @for (src of msg.sources; track src.id) {
+                          <span class="wa-citation-chip">📄 {{ src.title }}</span>
+                        }
+                      </div>
+                    }
+
+                    <!-- Timestamp -->
+                    <div class="wa-meta">
+                      <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Consultation Input Bar -->
+        <footer class="wa-consult-input-bar">
+          @if (isRecordingVoiceNote()) {
+            <!-- WhatsApp Recording Bar Mode -->
+            <div class="wa-recording-mode-bar">
+              <button 
+                type="button" 
+                (click)="cancelVoiceNoteRecording()" 
+                class="wa-rec-trash-btn" 
+                title="Delete voice note"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+              </button>
+
+              <div class="wa-rec-info-box">
+                <span class="wa-rec-dot"></span>
+                <span class="wa-rec-time">{{ recordingTimeFormatted() }}</span>
+                <div class="wa-live-waveform-bars">
+                  <span class="rec-bar rb1"></span>
+                  <span class="rec-bar rb2"></span>
+                  <span class="rec-bar rb3"></span>
+                  <span class="rec-bar rb4"></span>
+                  <span class="rec-bar rb5"></span>
+                  <span class="rec-bar rb6"></span>
+                  <span class="rec-bar rb7"></span>
+                  <span class="rec-bar rb8"></span>
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                (click)="sendVoiceNote()" 
+                class="wa-rec-send-btn" 
+                title="Send voice note"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          } @else {
+            <div class="wa-input-pill">
+              <textarea
+                #consultInput
+                [(ngModel)]="userInput"
+                (keydown)="onKeyDown($event)"
+                (input)="onInputResize()"
+                [placeholder]="'Ask ' + (m.display_name || m.name || m.handle) + ' for advice, mental models, or principles...'"
+                rows="1"
+                class="wa-textarea"
+                [disabled]="isStreaming() || isVoiceNoteSending()"
+              ></textarea>
+            </div>
+
+            @if (userInput.trim() || isStreaming() || isVoiceNoteSending()) {
+              <button
+                type="button"
+                (click)="sendConsultation()"
+                class="wa-send-btn"
+                [disabled]="!userInput.trim() || isStreaming() || isVoiceNoteSending()"
+                title="Send Consultation Turn"
+              >
+                @if (isStreaming() || isVoiceNoteSending()) {
+                  <div class="wa-btn-spinner"></div>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                }
+              </button>
+            } @else {
+              <!-- WhatsApp Voice Note Mic Button -->
+              <button 
+                type="button"
+                (click)="startVoiceNoteRecording()" 
+                class="wa-icon-btn wa-mic-btn" 
+                title="Record WhatsApp Voice Note"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                </svg>
+              </button>
+            }
+          }
+        </footer>
+      </section>
+    } @else {
+      <!-- ========================================================
+           TAB 2: KNOWLEDGE & SOURCES SHOWCASE
+           ======================================================== -->
+      <section class="wa-knowledge-section">
+        <!-- Philosophy Doctrine Card -->
+        <div class="wa-knowledge-card">
+          <div class="wa-card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+            <h3>Core Philosophy Statement</h3>
+          </div>
+          <p class="wa-philosophy-body">
+            {{ m.philosophy_statement || m.personality || 'No formal philosophy statement published.' }}
+          </p>
+        </div>
+
+        <!-- Mental Models & Frameworks -->
+        @if (m.mental_models && m.mental_models.length > 0) {
+          <div class="wa-knowledge-card">
+            <div class="wa-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <h3>Core Mental Models</h3>
+            </div>
+            <div class="wa-models-list">
+              @for (model of m.mental_models; track model) {
+                <div class="wa-model-item">
+                  <span class="wa-model-bullet">&bull;</span>
+                  <span>{{ model }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Verified Training Sources -->
+        <div class="wa-knowledge-card">
+          <div class="wa-card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <h3>Ingested Sources & Documentation</h3>
+          </div>
+
+          @if (!m.sources || m.sources.length === 0) {
+            <p class="wa-no-sources">No external sources or documents indexed for this Mind yet.</p>
+          } @else {
+            <div class="wa-sources-table">
+              @for (src of m.sources; track src.id) {
+                <div class="wa-source-row">
+                  <div class="wa-source-icon">
+                    @if (src.source_type === 'url' || src.sourceType === 'url') {
+                      <span>🌐</span>
+                    } @else if (src.source_type === 'pdf' || src.sourceType === 'pdf') {
+                      <span>📕</span>
+                    } @else {
+                      <span>📄</span>
+                    }
+                  </div>
+
+                  <div class="wa-source-info">
+                    <span class="wa-source-title">{{ src.title }}</span>
+                    <span class="wa-source-type-tag">
+                      {{ (src.source_type || src.sourceType) | uppercase }}
+                      @if (src.chunk_count || src.chunkCount) {
+                        &bull; {{ src.chunk_count || src.chunkCount }} indexed chunks
+                      }
+                    </span>
+                  </div>
+
+                  <span class="wa-status-badge" [class]="src.status">
+                    {{ src.status | uppercase }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+}
+
+  <!-- Live Voice Consultation Overlay -->
+  @if (isVoiceCallActive()) {
+    <app-voice-call-overlay
+      [mind]="mind()"
+      (closeCall)="endVoiceCall()"
+      (messageAdded)="onVoiceTurnMessageAdded($event)"
+    ></app-voice-call-overlay>
+  }
+</div>

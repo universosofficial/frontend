@@ -1,0 +1,228 @@
+<section id="paradigms" class="dual-paradigm-section">
+  <div class="section-container">
+    <!-- Header -->
+    <div class="section-header">
+      <div class="section-badge">
+        <span>Dual-Architecture Ecosystem</span>
+      </div>
+      <h2 class="section-title">
+        Two Radical Paradigms. <br />
+        <span class="gradient-text">One Unified Neural Architecture.</span>
+      </h2>
+      <p class="section-subtitle">
+        We solved the two distinct poles of human digital continuity: scaling your public intellectual legacy to thousands, 
+        and holding space for the irreplaceable intimacy of those you cherish most.
+      </p>
+
+      <!-- View Switcher -->
+      <div class="paradigm-switcher">
+        <button 
+          class="switch-btn" 
+          [class.active]="activeTab() === 'all'" 
+          (click)="setActiveTab('all')">
+          Full Ecosystem Comparison
+        </button>
+        <button 
+          class="switch-btn public-mode" 
+          [class.active]="activeTab() === 'public'" 
+          (click)="setActiveTab('public')">
+          1:1 Public Digital Twin
+        </button>
+        <button 
+          class="switch-btn private-mode" 
+          [class.active]="activeTab() === 'private'" 
+          (click)="setActiveTab('private')">
+          1:N Private Companions
+        </button>
+      </div>
+    </div>
+
+    <!-- Comparison Grid -->
+    <div class="paradigm-grid">
+      <!-- PARADIGM 1: PUBLIC AI MIND -->
+      @if (activeTab() === 'all' || activeTab() === 'public') {
+        <div class="paradigm-column public-col">
+          <div class="col-header">
+            <div class="icon-wrap public-glow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+              </svg>
+            </div>
+            <div class="col-meta">
+              <span class="col-tag public-tag">1:1 Digital Twin Architecture</span>
+              <h3 class="col-headline">Share Your Thought Philosophy With the World.</h3>
+            </div>
+          </div>
+
+          <p class="col-description">
+            Feed your personal blog, research PDFs, essays, and non-negotiable mental models. Claim your unique &#64;handle and allow colleagues, students, or curious minds anywhere to consult your autonomous mind 24/7.
+          </p>
+
+          <!-- Feature Stack -->
+          <ul class="feature-stack">
+            <li class="feature-item">
+              <div class="feature-bullet public-bullet">✓</div>
+              <div class="feature-text">
+                <strong>Substack &amp; PDF Ingestion:</strong>
+                <span>Instant RAG ingestion of your written corpus with automatic vector embeddings and semantic graph extraction.</span>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-bullet public-bullet">✓</div>
+              <div class="feature-text">
+                <strong>Autonomous &#64;Handle Commons:</strong>
+                <span>Publish to the global Thought Commons with verified citations, analytics on questions asked, and subscription tokens.</span>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-bullet public-bullet">✓</div>
+              <div class="feature-text">
+                <strong>Socratic Mentorship Pacing:</strong>
+                <span>Refuses to output generic fluff. Employs diagnostic interrogation, citing specific paragraphs of your ingested memos.</span>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-bullet public-bullet">✓</div>
+              <div class="feature-text">
+                <strong>Zero Cognitive Hallucination:</strong>
+                <span>Constrained strictly to your verified worldview and specified intellectual boundaries.</span>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Architecture Visual Widget -->
+          <div class="arch-widget">
+            <div class="arch-label">Pipeline Workflow</div>
+            <div class="arch-flow">
+              <span class="arch-node">Essays &amp; PDFs</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node highlight">Vector Index</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node">Socratic Engine</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node highlight-green">Public Commons</span>
+            </div>
+          </div>
+
+          <div class="col-cta-wrap">
+            <a routerLink="/register" class="col-cta-btn public-btn">
+              <span>Publish Your Public Mind Free</span>
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      }
+
+      <!-- PARADIGM 2: PRIVATE RELATIONAL COMPANION -->
+      @if (activeTab() === 'all' || activeTab() === 'private') {
+        <div class="paradigm-column private-col">
+          <div class="col-header">
+            <div class="icon-wrap private-glow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div class="col-meta">
+              <span class="col-tag private-tag">1:N Sovereign Vault Architecture</span>
+              <h3 class="col-headline">Recreate Authentic Human Bonds.</h3>
+            </div>
+          </div>
+
+          <p class="col-description">
+            Dedicated private sanctuaries for late parents, spouses, siblings, or lifelong mentors. Seeded with real historical life stories, personal nicknames, and speech quirks with 100% privacy and zero public searchability.
+          </p>
+
+          <!-- Feature Stack -->
+          <ul class="feature-stack">
+            <li class="feature-item">
+              <div class="feature-bullet private-bullet">♥</div>
+              <div class="feature-text">
+                <strong>Sensory Anchor Memories:</strong>
+                <span>Preserve intimate real-world stories (fishing trips, Sunday breakfasts, hand-written notes) that anchor conversations naturally.</span>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-bullet private-bullet">♥</div>
+              <div class="feature-text">
+                <strong>Authentic Warmth &amp; Nicknames:</strong>
+                <span>Speaks with heartfelt cadence, using your childhood nickname ("Champ", "Sweetheart") without robotic corporate disclaimers.</span>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-bullet private-bullet">♥</div>
+              <div class="feature-text">
+                <strong>Zero-Knowledge Encryption Vault:</strong>
+                <span>Encrypted client-side. Zero cloud training. Never indexable, never public, and never viewable by any third party.</span>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-bullet private-bullet">♥</div>
+              <div class="feature-text">
+                <strong>Audio Note Cadence &amp; Voice:</strong>
+                <span>Optionally listen to spoken memories with preserved timbre, pacing, pauses, and reassuring tone.</span>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Architecture Visual Widget -->
+          <div class="arch-widget">
+            <div class="arch-label">Sovereign Vault Pipeline</div>
+            <div class="arch-flow">
+              <span class="arch-node">Letters &amp; Memories</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node highlight-rose">AES-256 Vault</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node">Warmth Synth</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node highlight-amber">Private Sanctuary</span>
+            </div>
+          </div>
+
+          <div class="col-cta-wrap">
+            <a routerLink="/register" class="col-cta-btn private-btn">
+              <span>Create A Private Sanctuary</span>
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Quick Comparison Matrix Table -->
+    <div class="matrix-table-wrap">
+      <div class="matrix-title">Key Architectural Differences at a Glance</div>
+      <div class="matrix-table">
+        <div class="matrix-row matrix-header-row">
+          <div class="matrix-cell">Dimension</div>
+          <div class="matrix-cell highlight-public">Public AI Mind</div>
+          <div class="matrix-cell highlight-private">Private Emotional Companion</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell feat-title">Target Relationship</div>
+          <div class="matrix-cell">1-to-Many Public Commons (Followers, Mentees)</div>
+          <div class="matrix-cell">1-to-One Private Kinship (Late Parent, Spouse, Self)</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell feat-title">Tone &amp; Pacing</div>
+          <div class="matrix-cell">Socratic, intellectual, challenging assumptions</div>
+          <div class="matrix-cell">Deeply warm, empathetic, conversational, authentic</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell feat-title">Knowledge Base</div>
+          <div class="matrix-cell">Substack, PDFs, essays, published frameworks</div>
+          <div class="matrix-cell">Personal journal entries, nicknames, sensory memories</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell feat-title">Privacy Level</div>
+          <div class="matrix-cell">Publicly searchable via &#64;handle directory</div>
+          <div class="matrix-cell">End-to-End Encrypted, Zero Cloud Indexing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

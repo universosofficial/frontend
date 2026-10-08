@@ -1,0 +1,94 @@
+<footer class="site-footer">
+  <div class="footer-container">
+    <!-- Ethics & Continuity Statement Card -->
+    <div class="ethics-callout-card">
+      <div class="ethics-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div class="ethics-text-content">
+        <h4 class="ethics-title">Human Continuity &amp; Ethics Charter</h4>
+        <p class="ethics-statement">
+          <strong>Human Continuity &amp; Ethics Statement:</strong> Minds are transparently marked as AI models. Memories and private vaults are encrypted client-side and never sold to third parties. We strictly reject behavioral manipulation, advertising trackers, or synthetic deception.
+        </p>
+      </div>
+      <div class="ethics-badge">
+        <span>AES-256 Sovereign</span>
+      </div>
+    </div>
+
+    <!-- Main Footer Columns -->
+    <div class="footer-columns-grid">
+      <!-- Col 1: Brand & Mission -->
+      <div class="footer-col brand-col">
+        <div class="footer-brand">
+          <div class="brand-logo-disc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <span class="brand-name">Mind Network</span>
+        </div>
+        <p class="brand-bio">
+          The decentralized human mind &amp; companion platform. 
+          Bridge 1:1 public Socratic digital twins and private, deeply cherished emotional sanctuaries.
+        </p>
+        <div class="system-status-indicator">
+          <span class="status-pulse-dot"></span>
+          <span>Inference Engine: 99.98% Socratic Pacing Uptime</span>
+        </div>
+      </div>
+
+      <!-- Col 2: Paradigms & Architecture -->
+      <div class="footer-col">
+        <h5 class="col-title">Architecture</h5>
+        <ul class="footer-nav-list">
+          <li><a routerLink="/" fragment="paradigms">Public Digital Twins</a></li>
+          <li><a routerLink="/" fragment="paradigms">Private Emotional Companions</a></li>
+          <li><a routerLink="/" fragment="socratic">Socratic Pacing Engine</a></li>
+          <li><a routerLink="/" fragment="ingestion">Automated RAG Ingestion</a></li>
+          <li><a routerLink="/" fragment="directory">Knowledge Citation Graph</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Commons & Discovery -->
+      <div class="footer-col">
+        <h5 class="col-title">Thought Commons</h5>
+        <ul class="footer-nav-list">
+          <li><a routerLink="/explore">Minds Directory</a></li>
+          <li><a routerLink="/register">Publish A Digital Twin</a></li>
+          <li><a routerLink="/explore" [queryParams]="{ tag: 'Engineering' }">Engineering Memos</a></li>
+          <li><a routerLink="/explore" [queryParams]="{ tag: 'Philosophy' }">Stoic Philosophical Models</a></li>
+          <li><a routerLink="/explore" [queryParams]="{ tag: 'Founders' }">SaaS &amp; Bootstrapping</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Trust & Legal -->
+      <div class="footer-col">
+        <h5 class="col-title">Trust &amp; Privacy</h5>
+        <ul class="footer-nav-list">
+          <li><a routerLink="/register">Zero-Cloud Training Policy</a></li>
+          <li><a routerLink="/register">Client-Side Vault Encryption</a></li>
+          <li><a routerLink="/register">Data Portability &amp; Export</a></li>
+          <li><a routerLink="/login">Terms of Service</a></li>
+          <li><a routerLink="/login">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom-bar">
+      <div class="copyright-notice">
+        &copy; {{ currentYear }} AI Mind Network &amp; Companions Ecosystem. All rights reserved.
+      </div>
+      <div class="bottom-links">
+        <a routerLink="/login">Sign In</a>
+        <span class="dot-sep">•</span>
+        <a routerLink="/register">Register</a>
+        <span class="dot-sep">•</span>
+        <a routerLink="/explore">Commons Directory</a>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,213 @@
+<div class="wa-explore-container">
+  <!-- Top Hub Header -->
+  <header class="wa-explore-header">
+    <div class="wa-explore-header-left">
+      <a routerLink="/dashboard" class="wa-back-btn" title="Back to Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+      <div class="wa-header-branding">
+        <h1 class="wa-explore-title">Digital Twin Minds Network</h1>
+        <p class="wa-explore-subtitle">Discover, add, and consult public AI Minds grounded in authentic writings, essays, and decision frameworks.</p>
+      </div>
+    </div>
+
+    <div class="wa-explore-header-actions">
+      <a routerLink="/dashboard/characters/new" class="wa-publish-mind-btn" title="Publish an AI Mind">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Publish Your Mind</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="wa-explore-toolbar">
+    <div class="wa-search-pill-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="wa-search-svg">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchInput($any($event.target).value)"
+        placeholder="Search AI Minds (e.g. Elon Musk, Warren Buffett, Startup, Science)..."
+        class="wa-search-input"
+      />
+      @if (searchQuery()) {
+        <button (click)="clearSearch()" class="wa-clear-search">&times;</button>
+      }
+    </div>
+
+    <!-- Category Filter Pills -->
+    <div class="wa-filter-bar">
+      <div class="wa-tag-pills">
+        @for (tag of availableTags; track tag.value) {
+          <button
+            type="button"
+            class="wa-tag-btn"
+            [class.active]="selectedTag() === tag.value"
+            (click)="selectTag(tag.value)"
+          >
+            {{ tag.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Sort Controls -->
+      <div class="wa-sort-controls">
+        <button 
+          type="button" 
+          class="wa-sort-btn" 
+          [class.active]="selectedSort() === 'popular'" 
+          (click)="setSort('popular')"
+          title="Most Consulted"
+        >
+          Popular
+        </button>
+        <button 
+          type="button" 
+          class="wa-sort-btn" 
+          [class.active]="selectedSort() === 'newest'" 
+          (click)="setSort('newest')"
+          title="Recently Published"
+        >
+          Newest
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid Content Area -->
+  <main class="wa-explore-body">
+    @if (isLoading()) {
+      <div class="wa-explore-loading">
+        <div class="wa-spinner"></div>
+        <span>Searching Digital Twin Minds...</span>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="wa-explore-error">
+        <p>{{ errorMessage() }}</p>
+        <button (click)="loadMinds()" class="wa-retry-btn">Try Again</button>
+      </div>
+    } @else if (minds().length === 0) {
+      <div class="wa-explore-empty">
+        <div class="wa-empty-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <h3>No AI Minds found</h3>
+        <p>No published digital twins matched your search criteria. Be the first to build and publish a Mind in this field!</p>
+        <a routerLink="/dashboard/characters/new" class="wa-btn-primary">+ Publish an AI Mind</a>
+      </div>
+    } @else {
+      <!-- Responsive Mind Cards Grid -->
+      <div class="wa-minds-grid">
+        @for (mind of minds(); track mind.id) {
+          <article class="wa-mind-card" (click)="consultMind(mind)">
+            <!-- Card Header: Avatar, Name, Verified Badge, Handle -->
+            <div class="wa-mind-header">
+              <div class="wa-mind-avatar-wrap">
+                @if (mind.avatar_url) {
+                  <img [src]="mind.avatar_url" [alt]="mind.display_name || mind.name || 'Mind'" class="wa-mind-avatar-img" />
+                } @else {
+                  <div class="wa-mind-avatar-fallback">
+                    {{ (mind.display_name || mind.name || 'M').charAt(0).toUpperCase() }}
+                  </div>
+                }
+              </div>
+
+              <div class="wa-mind-identity">
+                <div class="wa-mind-name-row">
+                  <h3 class="wa-mind-name">{{ mind.display_name || mind.name }}</h3>
+                  @if (mind.is_verified) {
+                    <span class="wa-verified-disc" title="Verified Public Mind">
+                      <svg viewBox="0 0 20 20" fill="currentColor" class="wa-verified-icon">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                      </svg>
+                    </span>
+                  }
+                  @if (mind.handle) {
+                    <span class="wa-mind-handle">&#64;{{ mind.handle }}</span>
+                  }
+                </div>
+                @if (mind.headline) {
+                  <p class="wa-mind-headline">{{ mind.headline }}</p>
+                }
+              </div>
+            </div>
+
+            <!-- Philosophy & Worldview Teaser -->
+            @if (mind.philosophy_statement || mind.personality; as statement) {
+              <p class="wa-mind-teaser">
+                "{{ statement | slice:0:140 }}{{ statement.length > 140 ? '...' : '' }}"
+              </p>
+            }
+
+            <!-- Badges: Tags & Frameworks -->
+            <div class="wa-mind-badges">
+              @for (tag of (mind.tags || []).slice(0, 3); track tag) {
+                <span class="wa-badge wa-badge-teal">#{{ tag }}</span>
+              }
+              @for (framework of (mind.decision_frameworks || mind.mental_models || []).slice(0, 2); track framework) {
+                <span class="wa-badge wa-badge-purple">{{ framework }}</span>
+              }
+            </div>
+
+            <!-- Card Metrics: Subscribers & Consultations -->
+            <div class="wa-mind-metrics-bar">
+              <span class="wa-metric-item" title="Subscribers">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                {{ mind.total_subscribers || 0 }} subscribers
+              </span>
+
+              <span class="wa-metric-item" title="Total consultation interactions">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                </svg>
+                {{ mind.total_interactions }} consultations
+              </span>
+            </div>
+
+            <!-- Card Action Footer: Add to My Minds & Consult Now -->
+            <div class="wa-mind-card-footer">
+              <button
+                type="button"
+                class="wa-sub-btn"
+                [class.subscribed]="mind.is_subscribed"
+                [disabled]="subscribingMindId() === mind.id"
+                (click)="toggleSubscription(mind, $event)"
+              >
+                @if (subscribingMindId() === mind.id) {
+                  <span class="wa-sub-spin"></span>
+                } @else if (mind.is_subscribed) {
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="wa-btn-icon">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Added</span>
+                } @else {
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="wa-btn-icon">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Add to My Minds</span>
+                }
+              </button>
+
+              <button type="button" class="wa-consult-btn" (click)="consultMind(mind); $event.stopPropagation()">
+                <span>Consult Now</span>
+                <svg viewBox="0 0 20 20" fill="currentColor" class="wa-btn-icon">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </main>
+</div>

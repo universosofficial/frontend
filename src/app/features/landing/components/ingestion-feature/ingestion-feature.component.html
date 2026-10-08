@@ -1,0 +1,269 @@
+<section id="ingestion" class="ingestion-section">
+  <div class="ingestion-container">
+    <!-- Section Header -->
+    <div class="section-header">
+      <div class="section-badge">
+        <span>Ingestion &amp; RAG Architecture</span>
+      </div>
+      <h2 class="section-title">
+        From Human Thought to Autonomous Mind in 4 Steps
+      </h2>
+      <p class="section-subtitle">
+        Our proprietary ingestion pipeline strips away superficial text, generates semantic knowledge graphs, 
+        and enforces your personal cognitive rules with zero hallucination.
+      </p>
+    </div>
+
+    <!-- Step Navigator Tabs -->
+    <div class="step-nav-grid">
+      <button 
+        class="step-nav-card" 
+        [class.active]="activeStep() === 1" 
+        (click)="setStep(1)">
+        <div class="step-number">01</div>
+        <div class="step-nav-text">
+          <strong>Link Website or Substack</strong>
+          <span>Automatic background scraping &amp; RSS sync</span>
+        </div>
+      </button>
+
+      <button 
+        class="step-nav-card" 
+        [class.active]="activeStep() === 2" 
+        (click)="setStep(2)">
+        <div class="step-number">02</div>
+        <div class="step-nav-text">
+          <strong>Drop Documents &amp; PDFs</strong>
+          <span>Semantic chunking &amp; dense vector graph</span>
+        </div>
+      </button>
+
+      <button 
+        class="step-nav-card" 
+        [class.active]="activeStep() === 3" 
+        (click)="setStep(3)">
+        <div class="step-number">03</div>
+        <div class="step-nav-text">
+          <strong>Set Life Rules</strong>
+          <span>Define non-negotiable mental models &amp; taboos</span>
+        </div>
+      </button>
+
+      <button 
+        class="step-nav-card" 
+        [class.active]="activeStep() === 4" 
+        (click)="setStep(4)">
+        <div class="step-number">04</div>
+        <div class="step-nav-text">
+          <strong>Go Live &amp; Claim &#64;Handle</strong>
+          <span>Publish to the Commons or Sovereign Vault</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Interactive Workbench -->
+    <div class="workbench-card">
+      <!-- STEP 1 WORKBENCH: URL & SUBSTACK SCRAPING -->
+      @if (activeStep() === 1) {
+        <div class="workbench-step step-1-view">
+          <div class="view-header">
+            <div class="view-title-group">
+              <span class="step-indicator">Step 01 of 04</span>
+              <h3>Automated Web &amp; Substack Ingestion</h3>
+            </div>
+            <span class="status-badge live">● Ready to Scrape</span>
+          </div>
+
+          <div class="url-input-strip">
+            <span class="input-label">Source URL:</span>
+            <div class="input-field-wrap">
+              <input type="text" [value]="simulatedUrl()" readonly class="url-input" />
+              <button class="ingest-btn">
+                <span>Resync Feed</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Simulated Crawler Terminal -->
+          <div class="crawler-terminal">
+            <div class="terminal-bar">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+              <span class="terminal-title">Mind Ingestion Engine v2.4 — Crawler Worker #1</span>
+            </div>
+            <div class="terminal-body">
+              <div class="log-line success">✓ [200 OK] Handshake established with Substack RSS endpoint</div>
+              <div class="log-line">→ Parsing 48 published essays &amp; letters...</div>
+              <div class="log-line info">✦ Stripping HTML boilerplate, tracking pixels, and affiliate links</div>
+              <div class="log-line success">✓ Extracted 142,800 clean semantic tokens</div>
+              <div class="log-line highlight">✦ Knowledge Graph Nodes generated: 312 relational entities</div>
+              <div class="log-line success">✓ Background auto-sync scheduled every Sunday at 04:00 UTC</div>
+            </div>
+          </div>
+
+          <div class="step-metrics">
+            <div class="metric-box">
+              <span class="val">48</span>
+              <span class="lbl">Articles Extracted</span>
+            </div>
+            <div class="metric-box">
+              <span class="val">142.8k</span>
+              <span class="lbl">Clean Tokens</span>
+            </div>
+            <div class="metric-box">
+              <span class="val">0.0%</span>
+              <span class="lbl">Boilerplate Retained</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- STEP 2 WORKBENCH: DOCUMENT CHUNKING -->
+      @if (activeStep() === 2) {
+        <div class="workbench-step step-2-view">
+          <div class="view-header">
+            <div class="view-title-group">
+              <span class="step-indicator">Step 02 of 04</span>
+              <h3>Semantic PDF &amp; Markdown Chunking</h3>
+            </div>
+            <span class="status-badge indexed">● 100% Vector Indexed</span>
+          </div>
+
+          <!-- Document Selector Pills -->
+          <div class="doc-selector-row">
+            @for (doc of sampleDocs; track doc.name) {
+              <button 
+                class="doc-pill" 
+                [class.active]="selectedDocIndex() === $index"
+                (click)="selectDoc($index)">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ doc.name }}</span>
+                <span class="doc-size">({{ doc.size }})</span>
+              </button>
+            }
+          </div>
+
+          <!-- Chunk Inspection Box -->
+          <div class="chunk-inspection-box">
+            <div class="chunk-meta">
+              <span class="chunk-title">Sample Ingested Chunk Excerpt:</span>
+              <span class="chunk-stats">{{ sampleDocs[selectedDocIndex()].chunks }} Chunks • {{ sampleDocs[selectedDocIndex()].tokens }} Tokens</span>
+            </div>
+            <div class="chunk-content">
+              <p>{{ sampleDocs[selectedDocIndex()].sampleChunk }}</p>
+            </div>
+            <div class="chunk-footer">
+              <span class="chunk-dim">Embedding: text-embedding-3-large (1536 dim)</span>
+              <span class="chunk-overlap">Chunk Overlap: 12%</span>
+            </div>
+          </div>
+
+          <div class="dropzone-preview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="upload-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+            </svg>
+            <p><strong>Drag &amp; drop PDFs, Markdown, ePubs, or raw notes here</strong></p>
+            <span>Chunks are automatically normalized and vectorized in parallel</span>
+          </div>
+        </div>
+      }
+
+      <!-- STEP 3 WORKBENCH: SET LIFE RULES -->
+      @if (activeStep() === 3) {
+        <div class="workbench-step step-3-view">
+          <div class="view-header">
+            <div class="view-title-group">
+              <span class="step-indicator">Step 03 of 04</span>
+              <h3>Define Non-Negotiable Mental Models &amp; Life Rules</h3>
+            </div>
+            <span class="status-badge rules">● 4 Rules Active</span>
+          </div>
+
+          <p class="rules-hint">
+            Click any rule to toggle its cognitive enforcement. These rules override standard model training 
+            to guarantee your digital twin never compromises your principles.
+          </p>
+
+          <div class="rules-grid">
+            @for (rule of rules(); track rule.id) {
+              <div 
+                class="rule-card" 
+                [class.enabled]="rule.enabled"
+                (click)="toggleRule(rule.id)">
+                <div class="rule-top">
+                  <span class="rule-cat">{{ rule.category }}</span>
+                  <div class="toggle-pill" [class.on]="rule.enabled">
+                    {{ rule.enabled ? 'Active' : 'Muted' }}
+                  </div>
+                </div>
+                <p class="rule-text">“{{ rule.text }}”</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- STEP 4 WORKBENCH: GO LIVE & CLAIM HANDLE -->
+      @if (activeStep() === 4) {
+        <div class="workbench-step step-4-view">
+          <div class="view-header">
+            <div class="view-title-group">
+              <span class="step-indicator">Step 04 of 04</span>
+              <h3>Claim Handle &amp; Deploy to the Commons</h3>
+            </div>
+            <span class="status-badge commons">● Commons Verified</span>
+          </div>
+
+          <div class="handle-claim-box">
+            <div class="claim-input-row">
+              <span class="domain-prefix">minds.network/&#64;</span>
+              <input type="text" [value]="claimedHandle()" readonly class="claim-input" />
+              <span class="avail-badge">✓ Available</span>
+            </div>
+            <p class="claim-explainer">
+              Your public handle acts as your perpetual intellectual portal. Visitors can subscribe, consult your worldview, and verify cited sources.
+            </p>
+
+            <div class="publish-action-row">
+              <button class="publish-btn" (click)="triggerPublish()">
+                @if (isPublished()) {
+                  <span>✓ Deployed to Commons!</span>
+                } @else {
+                  <span>Publish Mind to Thought Commons</span>
+                }
+              </button>
+              <a routerLink="/register" class="register-direct-btn">Claim This Handle Free →</a>
+            </div>
+          </div>
+
+          <div class="commons-card-preview">
+            <div class="preview-badge">Live Public Commons Card Preview</div>
+            <div class="preview-row">
+              <div class="preview-avatar">A</div>
+              <div>
+                <div class="preview-title">Alex's Digital Twin <span class="badge-v">Verified</span></div>
+                <span class="preview-handle">&#64;{{ claimedHandle() }}</span>
+              </div>
+            </div>
+            <p class="preview-bio">
+              "Trained on 48 Substack essays and First-Principles Manufacturing handbook. Specializes in Socratic product audits."
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Bottom CTA Bar -->
+    <div class="workbench-bottom-cta">
+      <a routerLink="/register" class="btn-primary-glow">
+        <span>Start Training Your Digital Twin Now</span>
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>

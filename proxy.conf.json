@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "https://aicompanion-production-12db.up.railway.app",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

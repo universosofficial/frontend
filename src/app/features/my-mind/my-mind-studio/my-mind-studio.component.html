@@ -1,0 +1,467 @@
+<div class="studio-container">
+  @if (isLoading()) {
+    <div class="studio-loading">
+      <div class="spinner"></div>
+      <p>Loading your AI Mind Studio...</p>
+    </div>
+  } @else {
+    <!-- Studio Header -->
+    <header class="studio-header">
+      <div class="header-left">
+        <div class="badge-row">
+          <span class="mind-pill">1:1 Digital Twin</span>
+          @if (isPublished()) {
+            <span class="published-badge">● Published in Commons</span>
+          } @else {
+            <span class="draft-badge">○ Private Draft</span>
+          }
+        </div>
+        <h1>My AI Mind Studio</h1>
+        <p class="subtitle">
+          Configure and train your personal AI Digital Twin. Ground its thought architecture with your real writings and decision frameworks.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button class="preview-btn" (click)="openPreview()" [disabled]="!handle()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Test Consultation
+        </button>
+
+        @if (isPublished() && handle()) {
+          <a [routerLink]="['/minds/@' + handle()]" target="_blank" class="view-public-btn">
+            View Public Mind ↗
+          </a>
+        }
+
+        <button class="save-btn" (click)="saveMindProfile()" [disabled]="isSaving()">
+          @if (isSaving()) {
+            Saving...
+          } @else {
+            Save Changes
+          }
+        </button>
+      </div>
+    </header>
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        {{ successMessage() }}
+      </div>
+    }
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Main Studio Grid -->
+    <div class="studio-grid">
+      <!-- Left Column: Identity & Philosophy -->
+      <section class="card profile-card">
+        <div class="card-header">
+          <h2>1. Mind Identity & Philosophy</h2>
+          <p>Define how your Digital Twin speaks, reasons, and reflects your world view.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Display Name *</label>
+          <input type="text" [(ngModel)]="displayName" placeholder="e.g., Albert Einstein or Jane Doe" class="input-text" />
+        </div>
+
+        <div class="form-group">
+          <label>Claim Handle (&#64;handle) *</label>
+          <div class="handle-input-wrap">
+            <span class="handle-at">&#64;</span>
+            <input type="text" [(ngModel)]="handle" placeholder="unique_handle" class="input-text handle-input" />
+          </div>
+          <span class="hint">Permanent link: /minds/&#64;{{ handle() || 'your_handle' }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Headline / Bio Tagline</label>
+          <input type="text" [(ngModel)]="headline" placeholder="e.g., Theoretical Physicist & Systems Thinker" class="input-text" />
+        </div>
+
+        <!-- Avatar Upload with Cloudinary -->
+        <div class="form-group">
+          <label>Profile Avatar Image (Cloudinary)</label>
+          <div class="avatar-upload-row">
+            <div class="avatar-preview-disc">
+              @if (avatarUrl()) {
+                <img [src]="avatarUrl()" alt="Avatar Preview" class="avatar-img" />
+              } @else {
+                <span class="avatar-initial">{{ (displayName() || 'M').charAt(0).toUpperCase() }}</span>
+              }
+            </div>
+            <div class="avatar-upload-actions">
+              <label class="upload-avatar-btn" [class.loading]="isUploadingAvatar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{{ isUploadingAvatar() ? 'Uploading to Cloudinary...' : 'Upload Image (Cloudinary)' }}</span>
+                <input type="file" (change)="onAvatarFileSelected($event)" accept="image/*" hidden [disabled]="isUploadingAvatar()" />
+              </label>
+              <input type="url" [(ngModel)]="avatarUrl" placeholder="Or paste image URL (https://...)" class="input-text avatar-url-input" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Website or Blog URL</label>
+          <input type="url" [(ngModel)]="websiteUrl" placeholder="https://example.com" class="input-text" />
+        </div>
+
+        <div class="form-group">
+          <label>Core Thought Philosophy</label>
+          <textarea
+            [(ngModel)]="philosophyStatement"
+            rows="4"
+            placeholder="Boil things down to their fundamental truths. Question every premise before jumping to implementation..."
+            class="input-textarea"
+          ></textarea>
+          <span class="hint">Your Mind applies this philosophical lens to every problem visitors bring to it.</span>
+        </div>
+
+        <!-- Decision Frameworks -->
+        <div class="form-group">
+          <label>Decision Frameworks & Mental Models</label>
+          <div class="chip-list">
+            @for (f of decisionFrameworks(); track $index) {
+              <span class="chip">
+                {{ f }}
+                <button type="button" (click)="removeFramework($index)">&times;</button>
+              </span>
+            }
+          </div>
+          <div class="add-chip-row">
+            <input
+              type="text"
+              [(ngModel)]="newFrameworkInput"
+              placeholder="e.g. First Principles Reasoning or The 5-Step Process"
+              (keydown.enter)="$event.preventDefault(); addFramework()"
+              class="input-text"
+            />
+            <button type="button" (click)="addFramework()" class="add-chip-btn">+ Add</button>
+          </div>
+        </div>
+
+        <!-- Domain Tags -->
+        <div class="form-group">
+          <label>Domain Tags</label>
+          <div class="chip-list">
+            @for (t of tags(); track $index) {
+              <span class="chip tag-chip">
+                #{{ t }}
+                <button type="button" (click)="removeTag($index)">&times;</button>
+              </span>
+            }
+          </div>
+          <div class="add-chip-row">
+            <input
+              type="text"
+              [(ngModel)]="newTagInput"
+              placeholder="e.g. Physics, Founders, Engineering"
+              (keydown.enter)="$event.preventDefault(); addTag()"
+              class="input-text"
+            />
+            <button type="button" (click)="addTag()" class="add-chip-btn">+ Tag</button>
+          </div>
+        </div>
+
+        <!-- Voice Presence Configuration -->
+        <div class="form-group voice-group">
+          <label class="group-title">Voice Presence & Audio Profile</label>
+          <p class="group-subtitle">Configure the voice used when strangers consult your Mind over live voice calls.</p>
+
+          <div class="voice-tab-bar">
+            <button
+              type="button"
+              class="v-tab-btn"
+              [class.active]="activeVoiceTab() === 'preset'"
+              (click)="activeVoiceTab.set('preset'); voiceProvider.set('preset')"
+            >
+              Curated Presets
+            </button>
+            <button
+              type="button"
+              class="v-tab-btn"
+              [class.active]="activeVoiceTab() === 'cloned'"
+              (click)="activeVoiceTab.set('cloned'); voiceProvider.set('cloned')"
+            >
+              Clone Voice
+            </button>
+          </div>
+
+          @if (activeVoiceTab() === 'preset') {
+            <div class="mind-voice-grid">
+              @for (p of presets(); track p.id) {
+                <div
+                  class="mind-voice-card"
+                  [class.selected]="voiceId() === p.id"
+                  (click)="selectVoicePreset(p)"
+                >
+                  <div class="voice-card-header">
+                    <div>
+                      <span class="v-name">{{ p.name }}</span>
+                      <span class="v-meta">{{ p.accent }} • {{ p.gender }}</span>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="previewVoice(p, $event)"
+                      class="v-preview-btn"
+                      [class.playing]="previewPlayingVoiceId() === p.id"
+                      title="Preview voice"
+                    >
+                      @if (previewPlayingVoiceId() === p.id) {
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <rect x="6" y="5" width="4" height="14" rx="1" />
+                          <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                      } @else {
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                  <p class="v-desc">{{ p.description }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          @if (activeVoiceTab() === 'cloned') {
+            <div class="mind-clone-box">
+              @if (cloneSuccess()) {
+                <div class="alert alert-success">{{ cloneSuccess() }}</div>
+              }
+              @if (cloneError()) {
+                <div class="alert alert-danger">{{ cloneError() }}</div>
+              }
+              <p class="clone-tip">Upload a 15-60s clear audio sample of your real speaking voice (.mp3, .wav, .m4a):</p>
+              <label class="upload-voice-btn" [class.loading]="isCloningVoice()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span>{{ isCloningVoice() ? 'Cloning audio profile...' : 'Upload Real Voice Sample' }}</span>
+                <input type="file" (change)="onVoiceSampleUpload($event)" accept="audio/*" hidden [disabled]="isCloningVoice()" />
+              </label>
+
+              @if (voiceProvider() === 'cloned' && voiceId()) {
+                <div class="active-clone-chip">
+                  <span>Cloned Voice ID: <strong>{{ voiceId() }}</strong></span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Publication Switch -->
+        <div class="publish-switch-box">
+          <label class="switch-wrap">
+            <input type="checkbox" [(ngModel)]="isPublished" />
+            <span class="slider"></span>
+          </label>
+          <div class="switch-meta">
+            <span class="switch-title">Publish in Thought Commons</span>
+            <span class="switch-desc">Allow visitors to search and consult your Mind using your grounded writings.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Training & Knowledge Ingestion -->
+      <section class="card training-card">
+        <div class="card-header">
+          <h2>2. Knowledge Base & Grounding Center</h2>
+          <p>Train your Mind by linking websites or uploading documents. All texts are chunked and indexed into searchable knowledge nodes.</p>
+        </div>
+
+        <!-- Ingestion Tabs -->
+        <div class="ingest-tabs">
+          <button
+            class="tab-btn"
+            [class.active]="activeIngestTab() === 'upload'"
+            (click)="activeIngestTab.set('upload')"
+          >
+            Upload Document (.pdf, .txt, .md)
+          </button>
+          <button
+            class="tab-btn"
+            [class.active]="activeIngestTab() === 'url'"
+            (click)="activeIngestTab.set('url')"
+          >
+            Link Website / Blog
+          </button>
+          <button
+            class="tab-btn"
+            [class.active]="activeIngestTab() === 'text'"
+            (click)="activeIngestTab.set('text')"
+          >
+            Add Direct Doctrine Note
+          </button>
+        </div>
+
+        @if (ingestSuccess()) {
+          <div class="alert alert-success">{{ ingestSuccess() }}</div>
+        }
+        @if (ingestError()) {
+          <div class="alert alert-error">{{ ingestError() }}</div>
+        }
+
+        <!-- Tab 1: Upload Document -->
+        @if (activeIngestTab() === 'upload') {
+          <div
+            class="dropzone"
+            [class.drag-over]="isDragOver()"
+            (dragover)="$event.preventDefault(); isDragOver.set(true)"
+            (dragleave)="isDragOver.set(false)"
+            (drop)="onFileDrop($event)"
+          >
+            <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="drop-text">Drag & drop your PDF, essay, or Markdown file here, or</p>
+            <label class="browse-btn">
+              Browse Files
+              <input type="file" (change)="onFileChange($event)" accept=".pdf,.txt,.md,.markdown" hidden />
+            </label>
+            @if (selectedFile(); as file) {
+              <div class="selected-file-pill">
+                📄 {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)
+              </div>
+            }
+          </div>
+
+          @if (selectedFile()) {
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Custom Document Title</label>
+              <input type="text" [(ngModel)]="docTitleInput" placeholder="Title of this knowledge source" class="input-text" />
+            </div>
+            <button class="ingest-submit-btn" (click)="submitFile()" [disabled]="isIngesting()">
+              @if (isIngesting()) { Indexing Document... } @else { Index Document Nodes }
+            </button>
+          }
+        }
+
+        <!-- Tab 2: Link URL -->
+        @if (activeIngestTab() === 'url') {
+          <div class="url-ingest-box">
+            <div class="form-group">
+              <label>Article or Website URL *</label>
+              <input type="url" [(ngModel)]="urlInput" placeholder="https://myblog.com/essays/resilient-systems" class="input-text" />
+            </div>
+            <div class="form-group">
+              <label>Custom Source Title (Optional)</label>
+              <input type="text" [(ngModel)]="urlTitleInput" placeholder="e.g. My Systems Manifesto" class="input-text" />
+            </div>
+            <button class="ingest-submit-btn" (click)="submitUrl()" [disabled]="isIngesting() || !urlInput()">
+              @if (isIngesting()) { Scraping & Chunking... } @else { Scrape & Index Knowledge }
+            </button>
+          </div>
+        }
+
+        <!-- Tab 3: Direct Text Note -->
+        @if (activeIngestTab() === 'text') {
+          <div class="text-ingest-box">
+            <div class="form-group">
+              <label>Note Title *</label>
+              <input type="text" [(ngModel)]="manualTextTitle" placeholder="e.g. 5 Rules for Problem Solving" class="input-text" />
+            </div>
+            <div class="form-group">
+              <label>Doctrine & Rules Content *</label>
+              <textarea
+                [(ngModel)]="manualTextContent"
+                rows="6"
+                placeholder="Rule 1: Always verify assumptions before acting. Rule 2: Delete components that do not add measurable value..."
+                class="input-textarea"
+              ></textarea>
+            </div>
+            <button class="ingest-submit-btn" (click)="submitText()" [disabled]="isIngesting() || !manualTextContent()">
+              @if (isIngesting()) { Saving & Indexing... } @else { Save & Index Doctrine }
+            </button>
+          </div>
+        }
+
+        <!-- Active Sources Table -->
+        <div class="sources-section">
+          <h3>Indexed Knowledge Sources ({{ sources().length }})</h3>
+          @if (sources().length === 0) {
+            <p class="empty-sources">No knowledge sources indexed yet. Add a website, document, or text note above to ground your AI Mind.</p>
+          } @else {
+            <div class="sources-list">
+              @for (src of sources(); track src.id) {
+                <div class="source-item">
+                  <div class="source-info">
+                    <span class="source-type-pill">{{ src.source_type }}</span>
+                    <span class="source-title" [title]="src.title">{{ src.title }}</span>
+                  </div>
+                  <div class="source-meta">
+                    <span class="chunk-badge">{{ src.chunk_count || 0 }} chunks</span>
+                    <span class="status-badge" [class.indexed]="src.status === 'indexed'" [class.processing]="src.status === 'processing'" [class.failed]="src.status === 'failed'">
+                      {{ src.status }}
+                    </span>
+                    <button class="delete-source-btn" (click)="onDeleteSource(src)" title="Delete Source">&times;</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  }
+
+  <!-- Test Consultation Preview Modal -->
+  @if (isPreviewOpen()) {
+    <div class="modal-backdrop" (click)="closePreview()">
+      <div class="preview-drawer" (click)="$event.stopPropagation()">
+        <header class="drawer-header">
+          <div class="drawer-meta">
+            <h3>Test Consultation with &#64;{{ handle() || 'my_mind' }}</h3>
+            <span class="drawer-sub">Socratic Mentorship & Grounded Preview</span>
+          </div>
+          <button class="close-drawer-btn" (click)="closePreview()">&times;</button>
+        </header>
+
+        <div class="drawer-body">
+          @for (msg of previewMessages(); track $index) {
+            <div class="preview-bubble" [class.user]="msg.sender_type === 'user'" [class.mind]="msg.sender_type === 'mind'">
+              <div class="bubble-sender">{{ msg.sender_type === 'user' ? 'You' : displayName() || 'AI Mind' }}</div>
+              <div class="bubble-text">{{ msg.content }}</div>
+              @if (msg.sources && msg.sources.length > 0) {
+                <div class="grounding-tags">
+                  <span class="ground-label">Grounded in:</span>
+                  @for (s of msg.sources; track s.id) {
+                    <span class="ground-pill">📄 {{ s.title }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (isPreviewStreaming() && previewMessages()[previewMessages().length - 1].content === '') {
+            <div class="preview-bubble mind thinking">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          }
+        </div>
+
+        <div class="drawer-footer">
+          <input
+            type="text"
+            [(ngModel)]="previewInput"
+            placeholder="Ask a question or present a problem..."
+            (keydown.enter)="$event.preventDefault(); sendPreviewMessage()"
+            [disabled]="isPreviewStreaming()"
+            class="input-text preview-input"
+          />
+          <button class="send-preview-btn" (click)="sendPreviewMessage()" [disabled]="isPreviewStreaming() || !previewInput()">
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

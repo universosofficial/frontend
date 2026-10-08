@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Companion Web</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#111b21">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Google Fonts: Plus Jakarta Sans for clean typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('wa_theme_preference') || 'dark';
+        if (theme === 'light') {
+          document.documentElement.classList.add('wa-theme-light');
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.classList.add('wa-theme-dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ========================================================
+       CLEAN, MINIMALIST WHATSAPP-STYLE PRELOADER
+       ======================================================== */
+    .app-preloader {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #111b21;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      z-index: 99999;
+      user-select: none;
+    }
+
+    html.wa-theme-light .app-preloader,
+    [data-theme="light"] .app-preloader {
+      background-color: #f0f2f5;
+    }
+
+    .app-preloader-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .app-preloader-icon {
+      width: 52px;
+      height: 52px;
+      color: #00a884;
+    }
+
+    html.wa-theme-light .app-preloader-icon,
+    [data-theme="light"] .app-preloader-icon {
+      color: #008069;
+    }
+
+    .app-preloader-track {
+      width: 280px;
+      height: 3px;
+      background-color: #202c33;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    html.wa-theme-light .app-preloader-track,
+    [data-theme="light"] .app-preloader-track {
+      background-color: #e9edef;
+    }
+
+    .app-preloader-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 35%;
+      background-color: #00a884;
+      border-radius: 3px;
+      animation: waSweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    html.wa-theme-light .app-preloader-bar,
+    [data-theme="light"] .app-preloader-bar {
+      background-color: #008069;
+    }
+
+    .app-preloader-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #e9edef;
+      letter-spacing: 0.2px;
+      margin-top: -10px;
+    }
+
+    html.wa-theme-light .app-preloader-name,
+    [data-theme="light"] .app-preloader-name {
+      color: #111b21;
+    }
+
+    .app-preloader-footer {
+      position: absolute;
+      bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #8696a0;
+      letter-spacing: 0.2px;
+    }
+
+    html.wa-theme-light .app-preloader-footer,
+    [data-theme="light"] .app-preloader-footer {
+      color: #667781;
+    }
+
+    .app-preloader-footer svg {
+      width: 13px;
+      height: 13px;
+      color: #8696a0;
+    }
+
+    html.wa-theme-light .app-preloader-footer svg,
+    [data-theme="light"] .app-preloader-footer svg {
+      color: #667781;
+    }
+
+    @keyframes waSweep {
+      0% {
+        left: -35%;
+        width: 35%;
+      }
+      50% {
+        width: 55%;
+      }
+      100% {
+        left: 100%;
+        width: 35%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <app-root>
+    <!-- Simple, sleek WhatsApp-style boot splash -->
+    <div class="app-preloader">
+      <div class="app-preloader-center">
+        <svg class="app-preloader-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm0 18.06c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.03 8.03 0 0 1-1.23-4.29c0-4.46 3.63-8.09 8.09-8.09 2.16 0 4.19.84 5.72 2.37 1.53 1.53 2.37 3.56 2.37 5.72 0 4.46-3.63 8.09-8.09 8.09z"/>
+        </svg>
+
+        <div class="app-preloader-track">
+          <div class="app-preloader-bar"></div>
+        </div>
+
+        <div class="app-preloader-name">AI Companion</div>
+      </div>
+
+      <div class="app-preloader-footer">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+        </svg>
+        <span>End-to-end encrypted</span>
+      </div>
+    </div>
+  </app-root>
+</body>
+</html>

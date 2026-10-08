@@ -1,0 +1,42 @@
+<header class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a routerLink="/dashboard" class="brand-link">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <span class="brand-name">AI Companion</span>
+      </a>
+      <span class="version-badge">v1.0</span>
+    </div>
+
+    <nav class="navbar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+        Dashboard
+      </a>
+    </nav>
+
+    <div class="navbar-user">
+      @if (authService.currentUser(); as user) {
+        <div class="user-info">
+          <div class="user-meta">
+            <span class="user-email">{{ user.email }}</span>
+            <span class="token-limit-badge">{{ user.daily_token_limit | number }} tokens/day</span>
+          </div>
+          <div class="user-avatar" [title]="user.email">
+            {{ user.email.charAt(0).toUpperCase() }}
+          </div>
+        </div>
+
+        <button (click)="onLogout()" class="btn-logout" title="Sign out">
+          <svg class="logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span class="logout-text">Logout</span>
+        </button>
+      }
+    </div>
+  </div>
+</header>
