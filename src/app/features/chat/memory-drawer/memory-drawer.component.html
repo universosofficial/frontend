@@ -34,6 +34,152 @@
               <span class="wa-badge wa-badge-teal">Official Persona</span>
             }
           </div>
+
+          <!-- Feature #5: Quick Edit Persona Shortcut -->
+          @if (!char.is_system) {
+            <a [routerLink]="['/dashboard/characters', char.id, 'edit']" class="wa-edit-persona-link" (click)="onClose()">
+              <span>✏️ Edit Persona &amp; Voice</span>
+            </a>
+          }
+        </div>
+
+        <!-- PROACTIVE CHARACTER ENGAGEMENT & PUSH NOTIFICATIONS -->
+        <div class="wa-drawer-section wa-proactive-card">
+          <div class="wa-proactive-head">
+            <div class="wa-proactive-title-group">
+              <span class="wa-proactive-icon">🔔</span>
+              <div>
+                <h4 class="wa-proactive-title">Proactive Check-Ins</h4>
+                <p class="wa-proactive-desc">Allow {{ char.name }} to initiate chats &amp; send check-in texts</p>
+              </div>
+            </div>
+            <!-- Switch toggle -->
+            <label class="wa-toggle-switch" title="Allow this character to initiate chats">
+              <input
+                type="checkbox"
+                [checked]="char.allow_proactive_checkins !== false"
+                (change)="onToggleProactive($event, char.id)"
+              />
+              <span class="wa-toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Web Push Subscription Status / Permission Banner -->
+          <div class="wa-push-status-box">
+            @if (!pushService.isSupported()) {
+              <span class="wa-push-muted">Web Push not supported in this browser</span>
+            } @else if (pushService.isSubscribed()) {
+              <div class="wa-push-active-row">
+                <span class="wa-push-active-badge">🟢 Push Notifications Active</span>
+                <button
+                  type="button"
+                  class="wa-test-ping-btn"
+                  (click)="onSendTestPing(char.id)"
+                  [disabled]="pushService.isLoading()"
+                  title="Send immediate test push notification"
+                >
+                  🔔 Test Ping
+                </button>
+              </div>
+            } @else {
+              <div class="wa-push-cta-row">
+                <span class="wa-push-cta-text">Get notified when {{ char.name }} texts you</span>
+                <button
+                  type="button"
+                  class="wa-enable-push-btn"
+                  (click)="onEnablePush()"
+                  [disabled]="pushService.isLoading()"
+                >
+                  @if (pushService.isLoading()) {
+                    <span>Enabling...</span>
+                  } @else {
+                    <span>Enable Push 📲</span>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- FEATURE #8: EVOLVING RELATIONSHIP BOND & MILESTONES -->
+        @if (getBondInfo(); as bond) {
+          <div class="wa-drawer-section wa-bond-card">
+            <div class="wa-bond-header">
+              <div class="wa-bond-title-group">
+                <span class="wa-bond-icon">{{ bond.icon }}</span>
+                <div>
+                  <span class="wa-bond-level-tag">Lv. {{ bond.level }} Relationship Bond</span>
+                  <h4 class="wa-bond-title">{{ bond.title }}</h4>
+                </div>
+              </div>
+              <span class="wa-bond-pct">{{ bond.progressPercent }}%</span>
+            </div>
+
+            <div class="wa-bond-bar-track">
+              <div class="wa-bond-bar-fill" [style.width.%]="bond.progressPercent"></div>
+            </div>
+
+            <div class="wa-bond-milestones-row">
+              <span class="wa-milestone-pill">💬 {{ bond.messagesCount }} turns</span>
+              <span class="wa-milestone-pill">🧠 {{ bond.memoriesCount }} memories</span>
+              <span class="wa-milestone-pill">🎯 {{ bond.completedGoalsCount }} goals done</span>
+            </div>
+            <p class="wa-bond-hint">{{ bond.nextMilestoneHint }}</p>
+          </div>
+        }
+
+        <!-- FEATURE #7: SHARED GOALS & ACCOUNTABILITY CHECK-IN TRACKER -->
+        <div class="wa-drawer-section">
+          <div class="wa-memories-header">
+            <span class="wa-section-label">🎯 Shared Goals &amp; Check-Ins</span>
+            <span class="wa-badge wa-badge-teal">{{ sharedGoals().length }} active</span>
+          </div>
+
+          <div class="wa-goal-add-row">
+            <input
+              type="text"
+              [(ngModel)]="newGoalInput"
+              (keyup.enter)="addSharedGoal()"
+              placeholder="Add a goal or promise (e.g. Finish pitch deck)..."
+              class="wa-goal-input"
+            />
+            <button type="button" class="wa-goal-add-btn" [disabled]="!newGoalInput.trim()" (click)="addSharedGoal()">
+              + Add
+            </button>
+          </div>
+
+          @if (sharedGoals().length > 0) {
+            <div class="wa-goals-list">
+              @for (g of sharedGoals(); track g.id) {
+                <div class="wa-goal-item" [class.done]="g.completed">
+                  <label class="wa-goal-check-wrap">
+                    <input type="checkbox" [checked]="g.completed" (change)="toggleGoalCompleted(g.id)" />
+                    <span class="wa-goal-text">{{ g.title }}</span>
+                  </label>
+                  <div class="wa-goal-actions">
+                    <button
+                      type="button"
+                      class="wa-goal-checkin-btn"
+                      (click)="onCheckInGoal(g)"
+                      title="Discuss progress with companion"
+                    >
+                      💬 Check In
+                    </button>
+                    <button
+                      type="button"
+                      class="wa-forget-btn"
+                      (click)="removeSharedGoal(g.id)"
+                      title="Remove goal"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="wa-goals-empty">Share a goal with {{ char.name }} and click "Check In" anytime for accountability.</p>
+          }
         </div>
 
         <!-- Relational Persona Grounding -->
@@ -100,12 +246,72 @@
         </div>
       }
 
-      <!-- Neural Recall Bank / Memories Section -->
+      <!-- Feature #4: Pinned Insights / Personal Playbook -->
+      @if (pinnedTakeaways().length > 0) {
+        <div class="wa-drawer-section">
+          <div class="wa-memories-header">
+            <span class="wa-section-label">📌 Pinned Insights</span>
+            <span class="wa-badge wa-badge-teal">{{ pinnedTakeaways().length }} pinned</span>
+          </div>
+          <div class="wa-memories-list">
+            @for (item of pinnedTakeaways(); track item.id) {
+              <div class="wa-memory-item">
+                <div class="wa-memory-meta-row">
+                  <span class="wa-category-tag">Takeaway</span>
+                  <button (click)="removePinnedTakeaway(item.id)" class="wa-forget-btn" title="Unpin">
+                    Remove
+                  </button>
+                </div>
+                <p class="wa-memory-text">{{ item.content }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Neural Recall Bank / Memories Section (With Feature #5: Direct "+ Teach Memory" & Inline Edit) -->
       <div class="wa-drawer-section">
         <div class="wa-memories-header">
           <span class="wa-section-label">Neural Memories</span>
-          <span class="wa-badge wa-badge-teal">{{ memoryService.memories().length }} saved</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="wa-badge wa-badge-teal">{{ memoryService.memories().length }} saved</span>
+            <button
+              type="button"
+              class="wa-teach-mem-toggle-btn"
+              (click)="showTeachMemoryForm.set(!showTeachMemoryForm())"
+            >
+              {{ showTeachMemoryForm() ? 'Cancel' : '+ Teach Fact' }}
+            </button>
+          </div>
         </div>
+
+        @if (showTeachMemoryForm()) {
+          <div class="wa-teach-mem-box">
+            <textarea
+              rows="2"
+              [(ngModel)]="newMemoryInput"
+              placeholder="Teach something important (e.g. 'My sister Maya lives in Manchester' or 'I am training for a marathon in November')..."
+              class="wa-teach-mem-textarea"
+            ></textarea>
+            <div class="wa-teach-mem-controls">
+              <select [(ngModel)]="newMemoryCategory" class="wa-teach-mem-select">
+                <option value="fact">📌 Personal Fact</option>
+                <option value="preference">❤️ Preference</option>
+                <option value="goal">🎯 Life Goal</option>
+                <option value="relationship">🤝 Shared Anchor</option>
+                <option value="event">📅 Milestone / Event</option>
+              </select>
+              <button
+                type="button"
+                class="wa-teach-mem-save-btn"
+                [disabled]="!newMemoryInput.trim() || isSavingMemory()"
+                (click)="onTeachMemory()"
+              >
+                {{ isSavingMemory() ? 'Saving...' : 'Save to Memory' }}
+              </button>
+            </div>
+          </div>
+        }
 
         @if (memoryService.isLoading() && memoryService.memories().length === 0) {
           <div class="wa-drawer-loading">
@@ -116,7 +322,7 @@
           <div class="wa-drawer-empty">
             <span class="wa-empty-icon">🧠</span>
             <h4>No Memories Formed Yet</h4>
-            <p>During conversations, important facts, goals, and preferences are automatically remembered.</p>
+            <p>During conversations, important facts, goals, and preferences are automatically remembered—or click "+ Teach Fact" above.</p>
           </div>
         } @else {
           <div class="wa-memories-list">
@@ -137,13 +343,26 @@
                     <span class="wa-stars" title="Relevance Score">
                       ★ {{ mem.importance_score }}/5
                     </span>
+                    <button (click)="startEditMemory(mem, $event)" class="wa-edit-mem-btn" title="Edit memory">
+                      Edit
+                    </button>
                     <button (click)="onDelete(mem, $event)" class="wa-forget-btn" title="Forget fact">
                       Forget
                     </button>
                   </div>
                 </div>
 
-                <p class="wa-memory-text">{{ mem.content }}</p>
+                @if (editingMemoryId() === mem.id) {
+                  <div class="wa-inline-mem-edit">
+                    <textarea rows="2" [(ngModel)]="editingMemoryContent" class="wa-teach-mem-textarea"></textarea>
+                    <div class="wa-inline-edit-actions">
+                      <button type="button" class="wa-forget-btn" (click)="cancelEditMemory()">Cancel</button>
+                      <button type="button" class="wa-teach-mem-save-btn" (click)="saveEditMemory(mem)">Save</button>
+                    </div>
+                  </div>
+                } @else {
+                  <p class="wa-memory-text">{{ mem.content }}</p>
+                }
 
                 <div class="wa-memory-footer-row">
                   <div class="wa-memory-time-group">

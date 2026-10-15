@@ -30,6 +30,38 @@ export class MemoryService {
   }
 
   /**
+   * Directly teach / add a memory item for a companion
+   */
+  createMemory(
+    characterId: number,
+    payload: { content: string; category?: string; memoryType?: string; importanceScore?: number }
+  ): Observable<ApiResponse<Memory>> {
+    return this.http.post<ApiResponse<Memory>>(`${this.API_URL}/${characterId}`, payload).pipe(
+      tap((res) => {
+        if (res.data) {
+          this.memories.update((prev) => [res.data!, ...prev]);
+        }
+      })
+    );
+  }
+
+  /**
+   * Edit / update an existing memory item
+   */
+  updateMemory(
+    id: number,
+    payload: { content?: string; category?: string; importanceScore?: number }
+  ): Observable<ApiResponse<Memory>> {
+    return this.http.put<ApiResponse<Memory>>(`${this.API_URL}/${id}`, payload).pipe(
+      tap((res) => {
+        if (res.data) {
+          this.memories.update((prev) => prev.map((m) => (m.id === id ? res.data! : m)));
+        }
+      })
+    );
+  }
+
+  /**
    * Forget / delete a specific memory item
    */
   deleteMemory(id: number): Observable<ApiResponse<void>> {

@@ -7,12 +7,14 @@ import { AuthService } from '../../../core/services/auth.service';
 import { CharacterService } from '../../../core/services/character.service';
 import { ChatService } from '../../../core/services/chat.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { TourGuideService } from '../../../core/services/tour-guide.service';
+import { TourGuideComponent } from '../../../shared/components/tour-guide/tour-guide.component';
 import { Character } from '../../../core/models/character.model';
 
 @Component({
   selector: 'app-dashboard-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, FormsModule],
+  imports: [CommonModule, RouterOutlet, FormsModule, TourGuideComponent],
   templateUrl: './dashboard-shell.component.html',
   styleUrl: './dashboard-shell.component.scss',
 })
@@ -21,15 +23,18 @@ export class DashboardShellComponent implements OnInit {
   characterService = inject(CharacterService);
   chatService = inject(ChatService);
   themeService = inject(ThemeService);
+  tourService = inject(TourGuideService);
   private router = inject(Router);
 
   searchQuery = signal<string>('');
   activeTab = signal<'all' | 'official' | 'custom'>('all');
   activeCharacterId = signal<number | null>(null);
+  activeMindHandle = signal<string | null>(null);
   isChatRoute = signal<boolean>(false);
   isFormRoute = signal<boolean>(false);
   isSettingsOpen = signal<boolean>(false);
-  activeMobileTab = signal<'chats' | 'personas'>('chats');
+  activeMobileTab = signal<('chats' | 'personas')>('chats');
+  readChatKeys = signal<Set<string>>(new Set());
 
   // Filtered characters list for WhatsApp sidebar
   filteredCharacters = computed(() => {
@@ -54,8 +59,13 @@ export class DashboardShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadReadCheckIns();
+
     // Load characters on startup
     this.characterService.getCharacters().subscribe();
+
+    // Check for first-time user tour guide
+    this.tourService.initAutoTour();
 
     // Track active chat from router events
     this.syncActiveRoute(this.router.url);
@@ -66,34 +76,84 @@ export class DashboardShellComponent implements OnInit {
       });
   }
 
+  private loadReadCheckIns(): void {
+    try {
+      const raw = localStorage.getItem('lumina_read_checkins_v1');
+      if (raw) {
+        this.readChatKeys.set(new Set(JSON.parse(raw)));
+      }
+    } catch (_) {}
+  }
+
+  private markChatKeyRead(key: string): void {
+    this.readChatKeys.update((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      try {
+        localStorage.setItem('lumina_read_checkins_v1', JSON.stringify(Array.from(next)));
+      } catch (_) {}
+      return next;
+    });
+  }
+
+  getChatKey(char: Character): string {
+    return char.handle ? `mind_${char.handle.replace(/^@/, '')}` : `char_${char.id}`;
+  }
+
+  hasProactiveCheckIn(char: Character, index: number): boolean {
+    const key = this.getChatKey(char);
+    if (char.handle && this.activeMindHandle() === char.handle.replace(/^@/, '')) return false;
+    if (!char.handle && this.activeCharacterId() === char.id) return false;
+    if (this.readChatKeys().has(key)) return false;
+    return index < 2;
+  }
+
   private syncActiveRoute(url: string): void {
     const chatMatch = url.match(/\/dashboard\/chat\/(\d+)/);
     const mindMatch = url.match(/\/dashboard\/minds\/([^\/]+)/) || url.match(/\/dashboard\/consult\/([^\/]+)/);
     const formMatch = url.includes('/dashboard/characters/new') || url.includes('/edit');
 
     if (chatMatch && chatMatch[1]) {
-      this.activeCharacterId.set(parseInt(chatMatch[1], 10));
+      const id = parseInt(chatMatch[1], 10);
+      this.activeCharacterId.set(id);
+      this.activeMindHandle.set(null);
       this.isChatRoute.set(true);
       this.isFormRoute.set(false);
-    } else if (mindMatch) {
+      this.markChatKeyRead(`char_${id}`);
+    } else if (mindMatch && mindMatch[1]) {
+      const handle = mindMatch[1].replace(/^@/, '');
+      this.activeMindHandle.set(handle);
       this.activeCharacterId.set(null);
       this.isChatRoute.set(true);
       this.isFormRoute.set(false);
+      this.markChatKeyRead(`mind_${handle}`);
     } else if (formMatch) {
       this.activeCharacterId.set(null);
+      this.activeMindHandle.set(null);
       this.isChatRoute.set(false);
       this.isFormRoute.set(true);
     } else {
       this.activeCharacterId.set(null);
+      this.activeMindHandle.set(null);
       this.isChatRoute.set(false);
       this.isFormRoute.set(false);
     }
   }
 
   onSelectCharacter(char: Character): void {
-    this.activeCharacterId.set(char.id);
-    this.isSettingsOpen.set(false);
-    this.router.navigate(['/dashboard/chat', char.id]);
+    this.markChatKeyRead(this.getChatKey(char));
+    if (char.is_mind || char.handle) {
+      const handle = (char.handle || String(char.id)).replace(/^@/, '');
+      this.activeMindHandle.set(handle);
+      this.activeCharacterId.set(null);
+      this.isSettingsOpen.set(false);
+      this.router.navigate(['/dashboard/minds', handle]);
+    } else {
+      this.activeMindHandle.set(null);
+      this.activeCharacterId.set(char.id);
+      this.isSettingsOpen.set(false);
+      this.router.navigate(['/dashboard/chat', char.id]);
+    }
   }
 
   onNewPersona(): void {

@@ -5,18 +5,22 @@ import { Router, RouterLink } from '@angular/router';
 import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { MindService } from '../../../core/services/mind.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { PublicMind } from '../../../core/models/mind.model';
+import { CharacterService } from '../../../core/services/character.service';
+import { PublicMind, CouncilResult } from '../../../core/models/mind.model';
+
+import { ShareMindModalComponent } from '../share-mind-modal/share-mind-modal.component';
 
 @Component({
   selector: 'app-mind-explore',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ShareMindModalComponent],
   templateUrl: './mind-explore.component.html',
   styleUrl: './mind-explore.component.scss',
 })
 export class MindExploreComponent implements OnInit, OnDestroy {
   private mindService = inject(MindService);
   private authService = inject(AuthService);
+  private characterService = inject(CharacterService);
   private router = inject(Router);
 
   searchQuery = signal<string>('');
@@ -27,6 +31,16 @@ export class MindExploreComponent implements OnInit, OnDestroy {
   minds = signal<PublicMind[]>([]);
   totalMinds = signal<number>(0);
   errorMessage = signal<string | null>(null);
+  selectedMindToShare = signal<PublicMind | null>(null);
+  isShareModalOpen = signal<boolean>(false);
+
+  // Feature #6: Boardroom / Council Mode (Ask 2-3 Minds at Once)
+  isCouncilModalOpen = signal<boolean>(false);
+  selectedCouncilHandles = signal<string[]>([]);
+  councilQuestion = signal<string>('');
+  isConsultingCouncil = signal<boolean>(false);
+  councilError = signal<string | null>(null);
+  councilResult = signal<CouncilResult | null>(null);
 
   private searchSubject = new Subject<string>();
   private searchSub?: Subscription;
@@ -106,7 +120,8 @@ export class MindExploreComponent implements OnInit, OnDestroy {
 
   consultMind(mind: PublicMind): void {
     const handle = (mind.handle || String(mind.id)).replace(/^@/, '');
-    if (this.router.url.startsWith('/dashboard')) {
+    if (this.authService.isAuthenticated()) {
+      this.characterService.getCharacters().subscribe();
       this.router.navigate(['/dashboard/minds', handle]);
     } else {
       this.router.navigate(['/minds', handle]);
@@ -126,6 +141,7 @@ export class MindExploreComponent implements OnInit, OnDestroy {
     if (mind.is_subscribed) {
       this.mindService.unsubscribeMind(mind.id).subscribe({
         next: () => {
+          this.characterService.getCharacters().subscribe();
           this.minds.update((list) =>
             list.map((m) =>
               m.id === mind.id
@@ -144,6 +160,7 @@ export class MindExploreComponent implements OnInit, OnDestroy {
     } else {
       this.mindService.subscribeMind(mind.id).subscribe({
         next: () => {
+          this.characterService.getCharacters().subscribe();
           this.minds.update((list) =>
             list.map((m) =>
               m.id === mind.id
@@ -160,5 +177,82 @@ export class MindExploreComponent implements OnInit, OnDestroy {
         error: () => this.subscribingMindId.set(null),
       });
     }
+  }
+
+  openShareMind(mind: PublicMind, event: Event): void {
+    event.stopPropagation();
+    this.selectedMindToShare.set(mind);
+    this.isShareModalOpen.set(true);
+  }
+
+  closeShareModal(): void {
+    this.isShareModalOpen.set(false);
+    this.selectedMindToShare.set(null);
+  }
+
+  // Feature #6: Boardroom / Council Mode Methods
+  openCouncilModal(): void {
+    this.councilError.set(null);
+    if (this.selectedCouncilHandles().length < 2 && this.minds().length >= 2) {
+      this.selectedCouncilHandles.set(
+        this.minds()
+          .slice(0, Math.min(3, this.minds().length))
+          .map((m) => m.handle)
+      );
+    }
+    this.isCouncilModalOpen.set(true);
+  }
+
+  closeCouncilModal(): void {
+    this.isCouncilModalOpen.set(false);
+  }
+
+  isMindInCouncil(handle: string): boolean {
+    return this.selectedCouncilHandles().includes(handle);
+  }
+
+  toggleCouncilMind(handle: string): void {
+    const current = this.selectedCouncilHandles();
+    if (current.includes(handle)) {
+      this.selectedCouncilHandles.set(current.filter((h) => h !== handle));
+    } else {
+      if (current.length >= 3) {
+        this.selectedCouncilHandles.set([...current.slice(1), handle]);
+      } else {
+        this.selectedCouncilHandles.set([...current, handle]);
+      }
+    }
+  }
+
+  setCouncilSampleQuestion(q: string): void {
+    this.councilQuestion.set(q);
+  }
+
+  submitCouncilConsultation(): void {
+    const handles = this.selectedCouncilHandles();
+    const q = this.councilQuestion().trim();
+    if (handles.length < 2) {
+      this.councilError.set('Please select at least 2 AI Minds to convene a Council.');
+      return;
+    }
+    if (!q) {
+      this.councilError.set('Please enter a question or dilemma for the Council to debate.');
+      return;
+    }
+
+    this.isConsultingCouncil.set(true);
+    this.councilError.set(null);
+    this.councilResult.set(null);
+
+    this.mindService.consultCouncil(handles, q).subscribe({
+      next: (res) => {
+        this.councilResult.set(res);
+        this.isConsultingCouncil.set(false);
+      },
+      error: (err) => {
+        this.isConsultingCouncil.set(false);
+        this.councilError.set(err.error?.message || 'Failed to convene Council. Please try again.');
+      },
+    });
   }
 }

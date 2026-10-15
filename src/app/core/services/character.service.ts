@@ -95,4 +95,21 @@ export class CharacterService {
       })
     );
   }
+
+  /**
+   * Feature #1: 1-Sentence Magic Persona Generator
+   */
+  generateMagicPersona(prompt: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/generate-magic`, { prompt });
+  }
+
+  /**
+   * Feature #2: "Test Their Vibe" Live Sample Preview inside Creation Form
+   */
+  previewPersonaVibe(personaDraft: any, sampleUserPrompt?: string): Observable<ApiResponse<{ userPrompt: string; reply: string }>> {
+    return this.http.post<ApiResponse<{ userPrompt: string; reply: string }>>(`${this.API_URL}/preview-vibe`, {
+      personaDraft,
+      sampleUserPrompt,
+    });
+  }
 }

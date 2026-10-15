@@ -1,0 +1,119 @@
+@if (tourService.isTourActive()) {
+  @if (tourService.currentStep(); as step) {
+    <div class="wa-tour-overlay" (click)="tourService.skipTour()">
+      <!-- Ambient Backdrop -->
+      <div class="wa-tour-backdrop"></div>
+
+      <!-- Spotlight Cutout & Glowing Halo around target element -->
+      @if (spotlightRect(); as spot) {
+        <div 
+          class="wa-tour-spotlight-box"
+          [style.top.px]="spot.top"
+          [style.left.px]="spot.left"
+          [style.width.px]="spot.width"
+          [style.height.px]="spot.height"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="wa-spotlight-halo"></div>
+        </div>
+      }
+
+      <!-- Interactive Tour Card (Positioned or Centered) -->
+      <div 
+        class="wa-tour-card-wrap"
+        [class.is-centered]="!cardPosition()"
+        [style.top.px]="cardPosition()?.top"
+        [style.left.px]="cardPosition()?.left"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="wa-tour-card">
+          <!-- Card Header -->
+          <div class="wa-tour-header">
+            <div class="wa-tour-header-left">
+              <div class="wa-tour-icon-disc">
+                <span>{{ step.icon }}</span>
+              </div>
+              <div class="wa-tour-meta">
+                <span class="wa-tour-badge">{{ step.badge }}</span>
+                <span class="wa-tour-counter">Step {{ tourService.currentStepIndex() + 1 }} of {{ tourService.totalSteps() }}</span>
+              </div>
+            </div>
+
+            <button type="button" (click)="tourService.skipTour()" class="wa-tour-close-btn" title="Exit Tour (Esc)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Card Content -->
+          <div class="wa-tour-body">
+            <h3 class="wa-tour-title">{{ step.title }}</h3>
+            <p class="wa-tour-desc">{{ step.description }}</p>
+
+            @if (step.actionHint) {
+              <div class="wa-tour-hint">
+                <span class="wa-hint-bulb">💡</span>
+                <span class="wa-hint-text">{{ step.actionHint }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Progress Bar Line -->
+          <div class="wa-tour-progress-track">
+            <div class="wa-tour-progress-bar" [style.width.%]="tourService.progressPercent()"></div>
+          </div>
+
+          <!-- Card Footer (Step Navigation & Shortcuts) -->
+          <div class="wa-tour-footer">
+            <!-- Step Navigation Dots -->
+            <div class="wa-tour-dots">
+              @for (s of tourService.steps; track s.id; let idx = $index) {
+                <button 
+                  type="button" 
+                  class="wa-tour-dot" 
+                  [class.active]="tourService.currentStepIndex() === idx"
+                  [class.visited]="idx < tourService.currentStepIndex()"
+                  (click)="tourService.goToStep(idx)"
+                  [title]="'Go to step ' + (idx + 1) + ': ' + s.title"
+                ></button>
+              }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="wa-tour-actions">
+              @if (!tourService.isFirstStep()) {
+                <button type="button" (click)="tourService.prevStep()" class="wa-tour-btn-prev">
+                  &larr; Back
+                </button>
+              }
+
+              @if (!tourService.isLastStep()) {
+                <button type="button" (click)="tourService.skipTour()" class="wa-tour-btn-skip">
+                  Skip
+                </button>
+              }
+
+              <button 
+                type="button" 
+                (click)="tourService.nextStep()" 
+                class="wa-tour-btn-next"
+              >
+                @if (tourService.isLastStep()) {
+                  <span>Start Exploring ✨</span>
+                } @else {
+                  <span>Next &rarr;</span>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Subtle Keyboard Hint -->
+          <div class="wa-tour-keyboard-hint">
+            <span>Press <kbd>Esc</kbd> to exit &bull; <kbd>&rarr;</kbd> to advance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}

@@ -1,108 +1,127 @@
 /* ==========================================================================
-   WHATSAPP DARK & LIGHT THEME DESIGN SYSTEM (WHATSAPP WEB SPECIFICATION)
+   LUMINA & HAVEN WARM AMBIENT DESIGN SYSTEM
+   Proprietary, radiant, human-centered UI language for AI Companions & Minds
    ========================================================================== */
 
 /* Dark Mode Tokens (Default) */
 :root, [data-theme="dark"], .wa-theme-dark {
-  --wa-teal: #00a884;
-  --wa-teal-hover: #029072;
-  --wa-teal-light: #25d366;
-  --wa-teal-glow: rgba(0, 168, 132, 0.25);
+  /* Solar Amber & Sunset Coral Core Accents */
+  --wa-teal: #f97316;             /* Solar Amber/Coral Primary */
+  --wa-teal-hover: #ea580c;       /* Deep Ember Hover */
+  --wa-teal-light: #fb923c;       /* Radiant Tangerine Light */
+  --wa-teal-glow: rgba(249, 115, 22, 0.35);
 
-  --wa-bg-app: #0c1317;
-  --wa-bg-panel: #111b21;
-  --wa-bg-header: #202c33;
-  --wa-bg-active: #2a3942;
-  --wa-bg-hover: #202c33;
-  --wa-bg-input: #2a3942;
-  --wa-bg-search: #202c33;
-  --wa-bg-modal: #182229;
+  /* Secondary Vibrancy */
+  --lum-rose: #fb7185;
+  --lum-amber: #f59e0b;
+  --lum-violet: #8b5cf6;
+  --lum-cyan: #38bdf8;
 
-  --wa-border: #222d34;
-  --wa-border-light: rgba(134, 150, 160, 0.15);
+  /* Atmospheric Twilight Obsidian Canvas */
+  --wa-bg-app: #090d16;           /* Twilight Abyss */
+  --wa-bg-panel: rgba(14, 19, 31, 0.92);
+  --wa-bg-header: rgba(18, 24, 38, 0.88);
+  --wa-bg-active: rgba(249, 115, 22, 0.12);
+  --wa-bg-hover: rgba(255, 255, 255, 0.05);
+  --wa-bg-input: rgba(20, 27, 44, 0.9);
+  --wa-bg-search: rgba(18, 24, 38, 0.75);
+  --wa-bg-modal: #121826;
 
-  --wa-bubble-out: #005c4b;
-  --wa-bubble-out-text: #e9edef;
-  --wa-bubble-out-time: rgba(255, 255, 255, 0.6);
+  /* Frosted Glass Borders with Warm Sheen */
+  --wa-border: rgba(255, 255, 255, 0.09);
+  --wa-border-light: rgba(255, 255, 255, 0.05);
 
-  --wa-bubble-in: #202c33;
-  --wa-bubble-in-text: #e9edef;
-  --wa-bubble-in-time: #8696a0;
+  /* Thought Stream - Outgoing Bubble (Warm Radiant Amber Capsule) */
+  --wa-bubble-out: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  --wa-bubble-out-text: #ffffff;
+  --wa-bubble-out-time: rgba(255, 255, 255, 0.75);
 
-  --wa-bubble-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.25);
+  /* Thought Stream - Incoming Bubble (Obsidian Glass Capsule with Warm Rim) */
+  --wa-bubble-in: rgba(22, 30, 48, 0.88);
+  --wa-bubble-in-text: #f1f5f9;
+  --wa-bubble-in-time: #94a3b8;
 
-  --wa-text-primary: #e9edef;
-  --wa-text-secondary: #8696a0;
-  --wa-text-muted: #667781;
-  --wa-text-link: #53bdeb;
-  --wa-blue-ticks: #53bdeb;
+  --wa-bubble-shadow: 0 4px 18px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.15);
 
-  --wa-system-pill-bg: #182229;
-  --wa-system-pill-text: #ffd279;
-  --wa-date-pill-bg: #182229;
-  --wa-date-pill-text: #8696a0;
+  /* Typographic Harmony */
+  --wa-text-primary: #f8fafc;
+  --wa-text-secondary: #94a3b8;
+  --wa-text-muted: #64748b;
+  --wa-text-link: #38bdf8;
+  --wa-blue-ticks: #38bdf8;
 
-  --wa-wallpaper-bg: #0b141a;
-  --wa-scrollbar-thumb: rgba(134, 150, 160, 0.2);
-  --wa-scrollbar-hover: rgba(134, 150, 160, 0.35);
+  /* Luminous Indicators */
+  --wa-system-pill-bg: rgba(249, 115, 22, 0.12);
+  --wa-system-pill-text: #fed7aa;
+  --wa-date-pill-bg: rgba(255, 255, 255, 0.07);
+  --wa-date-pill-text: #cbd5e1;
 
-  --wa-danger: #ea4335;
-  --wa-danger-bg: rgba(234, 67, 53, 0.15);
+  --wa-wallpaper-bg: #090d16;
+  --wa-scrollbar-thumb: rgba(148, 163, 184, 0.2);
+  --wa-scrollbar-hover: rgba(249, 115, 22, 0.35);
 
-  --wa-radius-sm: 4px;
-  --wa-radius-md: 8px;
-  --wa-radius-lg: 16px;
+  --wa-danger: #f43f5e;
+  --wa-danger-bg: rgba(244, 63, 94, 0.15);
+
+  --wa-radius-sm: 8px;
+  --wa-radius-md: 14px;
+  --wa-radius-lg: 20px;
   --wa-radius-full: 9999px;
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Light Mode Tokens */
+/* Light Mode Tokens (Warm Porcelain Linen & Terracotta Sunset) */
 [data-theme="light"], .wa-theme-light {
-  --wa-teal: #008069;
-  --wa-teal-hover: #00705a;
-  --wa-teal-light: #25d366;
-  --wa-teal-glow: rgba(0, 168, 132, 0.25);
+  --wa-teal: #ea580c;             /* Rich Terracotta Primary */
+  --wa-teal-hover: #c2410c;
+  --wa-teal-light: #f97316;
+  --wa-teal-glow: rgba(234, 88, 12, 0.25);
 
-  --wa-bg-app: #eae6df;
+  --lum-rose: #e11d48;
+  --lum-amber: #d97706;
+  --lum-violet: #7c3aed;
+  --lum-cyan: #0284c7;
+
+  --wa-bg-app: #faf8f5;           /* Warm Sand & Linen */
   --wa-bg-panel: #ffffff;
-  --wa-bg-header: #f0f2f5;
-  --wa-bg-active: #ebebeb;
-  --wa-bg-hover: #f5f6f6;
+  --wa-bg-header: rgba(255, 255, 255, 0.92);
+  --wa-bg-active: rgba(234, 88, 12, 0.08);
+  --wa-bg-hover: #f5f1ea;
   --wa-bg-input: #ffffff;
-  --wa-bg-search: #f0f2f5;
+  --wa-bg-search: #f5f1ea;
   --wa-bg-modal: #ffffff;
 
-  --wa-border: #e9edef;
-  --wa-border-light: rgba(11, 20, 26, 0.08);
+  --wa-border: rgba(180, 83, 9, 0.1);
+  --wa-border-light: rgba(0, 0, 0, 0.05);
 
-  --wa-bubble-out: #d9fdd3;
-  --wa-bubble-out-text: #111b21;
-  --wa-bubble-out-time: #667781;
+  --wa-bubble-out: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  --wa-bubble-out-text: #ffffff;
+  --wa-bubble-out-time: rgba(255, 255, 255, 0.8);
 
   --wa-bubble-in: #ffffff;
-  --wa-bubble-in-text: #111b21;
-  --wa-bubble-in-time: #667781;
+  --wa-bubble-in-text: #1e293b;
+  --wa-bubble-in-time: #64748b;
 
-  --wa-bubble-shadow: 0 1px 2px rgba(11, 20, 26, 0.12);
+  --wa-bubble-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 
-  --wa-text-primary: #111b21;
-  --wa-text-secondary: #667781;
-  --wa-text-muted: #8696a0;
-  --wa-text-link: #027eb5;
-  --wa-blue-ticks: #53bdeb;
+  --wa-text-primary: #1e293b;
+  --wa-text-secondary: #64748b;
+  --wa-text-muted: #94a3b8;
+  --wa-text-link: #0284c7;
+  --wa-blue-ticks: #0284c7;
 
-  --wa-system-pill-bg: #ffffff;
-  --wa-system-pill-text: #54656f;
-  --wa-date-pill-bg: #ffffff;
-  --wa-date-pill-text: #54656f;
+  --wa-system-pill-bg: #fff7ed;
+  --wa-system-pill-text: #c2410c;
+  --wa-date-pill-bg: #f1f5f9;
+  --wa-date-pill-text: #475569;
 
-  --wa-wallpaper-bg: #efeae2;
-  --wa-scrollbar-thumb: rgba(11, 20, 26, 0.2);
-  --wa-scrollbar-hover: rgba(11, 20, 26, 0.35);
+  --wa-wallpaper-bg: #faf8f5;
+  --wa-scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --wa-scrollbar-hover: rgba(234, 88, 12, 0.3);
 
-  --wa-danger: #ea4335;
-  --wa-danger-bg: rgba(234, 67, 53, 0.1);
+  --wa-danger: #e11d48;
+  --wa-danger-bg: rgba(225, 29, 72, 0.1);
 }
 
 *, *::before, *::after {
@@ -124,14 +143,14 @@ html, body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Custom WhatsApp Scrollbar */
+/* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--wa-scrollbar-thumb);
-  border-radius: 4px;
+  border-radius: 6px;
   transition: background-color 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -169,31 +188,28 @@ input, textarea, select {
   outline: none;
 }
 
-/* WhatsApp Doodle Wallpaper */
+/* Atmospheric Ambient Celestial Wallpaper Mesh */
 .wa-wallpaper {
   background-color: var(--wa-wallpaper-bg);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(134, 150, 160, 0.07) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 80% 80%, rgba(134, 150, 160, 0.07) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 40% 60%, rgba(0, 168, 132, 0.05) 2.5px, transparent 2.5px),
-    radial-gradient(circle at 90% 15%, rgba(0, 168, 132, 0.04) 2px, transparent 2px);
-  background-size: 36px 36px, 36px 36px, 52px 52px, 64px 64px;
+    radial-gradient(ellipse 65% 50% at 85% 15%, rgba(249, 115, 22, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 55% at 15% 85%, rgba(139, 92, 246, 0.07) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(251, 113, 133, 0.03) 0%, transparent 60%);
+  background-attachment: fixed;
   transition: background-color 0.25s ease;
 }
 
-/* Dynamic SVG Tail Fills */
-.wa-tail-out svg path {
-  fill: var(--wa-bubble-out) !important;
-}
-.wa-tail-in svg path {
-  fill: var(--wa-bubble-in) !important;
+/* Modern Organic Thought Stream - Hide Legacy WhatsApp Pointy Tails */
+.wa-tail-out,
+.wa-tail-in {
+  display: none !important;
 }
 
-/* Common WhatsApp Pill Badges with Vibrant Glows */
+/* Radiant Pill Badges */
 .wa-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2.5px 9px;
+  padding: 3px 10px;
   border-radius: var(--wa-radius-full);
   font-size: 11px;
   font-weight: 600;
@@ -201,67 +217,62 @@ input, textarea, select {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 
   &.wa-badge-teal {
-    background: rgba(0, 168, 132, 0.16);
-    color: var(--wa-teal);
-    border: 1px solid rgba(0, 168, 132, 0.35);
-    box-shadow: 0 0 8px rgba(0, 168, 132, 0.12);
+    background: rgba(249, 115, 22, 0.16);
+    color: var(--wa-teal-light);
+    border: 1px solid rgba(249, 115, 22, 0.35);
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.15);
   }
 
   &.wa-badge-gold {
-    background: rgba(255, 210, 121, 0.16);
-    color: #ffd279;
-    border: 1px solid rgba(255, 210, 121, 0.35);
-    box-shadow: 0 0 8px rgba(255, 210, 121, 0.12);
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
   }
 
   &.wa-badge-purple {
-    background: rgba(168, 85, 247, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: #c084fc;
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    box-shadow: 0 0 8px rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
   }
 
   &.wa-badge-blue {
-    background: rgba(59, 130, 246, 0.16);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.35);
-    box-shadow: 0 0 8px rgba(59, 130, 246, 0.12);
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
   }
 
   &.wa-badge-rose {
-    background: rgba(244, 63, 94, 0.16);
+    background: rgba(251, 113, 133, 0.16);
     color: #fb7185;
-    border: 1px solid rgba(244, 63, 94, 0.35);
-    box-shadow: 0 0 8px rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(251, 113, 133, 0.35);
+    box-shadow: 0 0 10px rgba(251, 113, 133, 0.15);
   }
 }
 
-/* Status Pulsing Dot with Radiant Ring */
+/* Static Presence Indicator */
 .wa-online-dot {
-  width: 10px;
-  height: 10px;
-  background-color: var(--wa-teal-light);
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
   border-radius: 50%;
-  border: 2px solid var(--wa-bg-header);
-  box-shadow: 0 0 8px var(--wa-teal-light);
+  border: 1.5px solid var(--wa-bg-header);
   position: relative;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    border: 1.5px solid var(--wa-teal-light);
-    animation: dotPulseHalo 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+/* Breathing Resonance Ring for Active Companions */
+@keyframes luminaHaloBreath {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0);
   }
 }
 
-@keyframes dotPulseHalo {
-  0% { transform: scale(0.9); opacity: 0.8; }
-  100% { transform: scale(1.8); opacity: 0; }
-}
-
-/* WhatsApp Icon Button with Micro-Interaction */
+/* Ambient Icon Button with Glass Micro-Interaction */
 .wa-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -278,14 +289,13 @@ input, textarea, select {
   }
 
   &:hover {
-    background-color: rgba(134, 150, 160, 0.16);
+    background-color: rgba(255, 255, 255, 0.08);
     color: var(--wa-text-primary);
     transform: scale(1.06);
   }
 
   &:active {
-    background-color: rgba(134, 150, 160, 0.28);
+    background-color: rgba(255, 255, 255, 0.14);
     transform: scale(0.94);
   }
 }
-

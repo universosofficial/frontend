@@ -5,6 +5,7 @@ export interface StreamChatParams {
   conversationId: number;
   characterId: number;
   content: string;
+  conversationMode?: string;
   onChunk: (chunk: string) => void;
   onDone: (result: any) => void;
   onError?: (error: any) => void;
@@ -24,6 +25,7 @@ export class StreamService {
     conversationId,
     characterId,
     content,
+    conversationMode,
     onChunk,
     onDone,
     onError,
@@ -42,6 +44,7 @@ export class StreamService {
           conversationId,
           characterId,
           content,
+          conversationMode: conversationMode || 'default',
         }),
         signal,
       });

@@ -102,6 +102,37 @@ export class ChatService {
   }
 
   /**
+   * Edit a user message's content
+   */
+  editMessage(messageId: number, content: string): Observable<ApiResponse<Message>> {
+    return this.http.patch<ApiResponse<Message>>(`${this.API_URL}/messages/${messageId}`, { content }).pipe(
+      tap((res) => {
+        if (res.data) {
+          const updated = res.data;
+          this.messages.update((prev) =>
+            prev.map((m) => (m.id === messageId ? { ...m, ...updated, is_edited: true } : m))
+          );
+        }
+      })
+    );
+  }
+
+  /**
+   * Delete a message by ID from conversation
+   */
+  deleteMessage(messageId: number): Observable<ApiResponse<{ id: number; conversationId: number; deleted: boolean }>> {
+    return this.http.delete<ApiResponse<{ id: number; conversationId: number; deleted: boolean }>>(
+      `${this.API_URL}/messages/${messageId}`
+    ).pipe(
+      tap((res) => {
+        if (res.data?.deleted) {
+          this.messages.update((prev) => prev.filter((m) => m.id !== messageId));
+        }
+      })
+    );
+  }
+
+  /**
    * Reset active chat state
    */
   clearChat(): void {

@@ -8,28 +8,13 @@
     <!-- Studio Header -->
     <header class="studio-header">
       <div class="header-left">
-        <div class="badge-row">
-          <span class="mind-pill">1:1 Digital Twin</span>
-          @if (isPublished()) {
-            <span class="published-badge">● Published in Commons</span>
-          } @else {
-            <span class="draft-badge">○ Private Draft</span>
-          }
-        </div>
         <h1>My AI Mind Studio</h1>
         <p class="subtitle">
-          Configure and train your personal AI Digital Twin. Ground its thought architecture with your real writings and decision frameworks.
+          Configure and train your personal AI Digital Twin.
         </p>
       </div>
 
       <div class="header-actions">
-        <button class="preview-btn" (click)="openPreview()" [disabled]="!handle()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          Test Consultation
-        </button>
-
         @if (isPublished() && handle()) {
           <a [routerLink]="['/minds/@' + handle()]" target="_blank" class="view-public-btn">
             View Public Mind ↗
@@ -57,37 +42,65 @@
       </div>
     }
 
-    <!-- Main Studio Grid -->
+    <!-- Live Social Share Banner -->
+    @if (handle()) {
+      <div class="mind-share-banner">
+        <div class="share-banner-left">
+          <div class="share-badge-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </div>
+          <div class="share-banner-text">
+            <span class="share-banner-title">Your Public AI Mind Link is Live</span>
+            <span class="share-banner-url">{{ getShareUrl() }}</span>
+          </div>
+        </div>
+        <div class="share-banner-actions">
+          <button type="button" class="btn-banner-share" (click)="openShareModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            <span>Share on Social Media</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Main Studio Grid: Clean 2-Column Experience -->
     <div class="studio-grid">
-      <!-- Left Column: Identity & Philosophy -->
+      <!-- Left Column: 7 Essential Fields (Zero Cognitive Overload) -->
       <section class="card profile-card">
         <div class="card-header">
-          <h2>1. Mind Identity & Philosophy</h2>
-          <p>Define how your Digital Twin speaks, reasons, and reflects your world view.</p>
+          <h2>1. Mind Profile & Identity</h2>
+          <p>The core identity visitors will encounter when consulting your Digital Twin.</p>
         </div>
 
+        <!-- Field 1: Display Name -->
         <div class="form-group">
-          <label>Display Name *</label>
-          <input type="text" [(ngModel)]="displayName" placeholder="e.g., Albert Einstein or Jane Doe" class="input-text" />
+          <label>1. Display Name *</label>
+          <input type="text" [(ngModel)]="displayName" placeholder="e.g. Albert Einstein or Jane Doe" class="input-text" />
         </div>
 
+        <!-- Field 2: Claim Handle -->
         <div class="form-group">
-          <label>Claim Handle (&#64;handle) *</label>
+          <label>2. Unique Handle (&#64;handle) *</label>
           <div class="handle-input-wrap">
             <span class="handle-at">&#64;</span>
             <input type="text" [(ngModel)]="handle" placeholder="unique_handle" class="input-text handle-input" />
           </div>
-          <span class="hint">Permanent link: /minds/&#64;{{ handle() || 'your_handle' }}</span>
+          <span class="hint">Your permanent social link: /minds/&#64;{{ handle() || 'your_handle' }}</span>
         </div>
 
+        <!-- Field 3: Headline / Bio Tagline -->
         <div class="form-group">
-          <label>Headline / Bio Tagline</label>
+          <label>3. Headline / Bio</label>
           <input type="text" [(ngModel)]="headline" placeholder="e.g., Theoretical Physicist & Systems Thinker" class="input-text" />
         </div>
 
-        <!-- Avatar Upload with Cloudinary -->
+        <!-- Field 4: Avatar Photo -->
         <div class="form-group">
-          <label>Profile Avatar Image (Cloudinary)</label>
+          <label>4. Profile Avatar</label>
           <div class="avatar-upload-row">
             <div class="avatar-preview-disc">
               @if (avatarUrl()) {
@@ -101,192 +114,196 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span>{{ isUploadingAvatar() ? 'Uploading to Cloudinary...' : 'Upload Image (Cloudinary)' }}</span>
+                <span>{{ isUploadingAvatar() ? 'Uploading...' : 'Upload Photo' }}</span>
                 <input type="file" (change)="onAvatarFileSelected($event)" accept="image/*" hidden [disabled]="isUploadingAvatar()" />
               </label>
-              <input type="url" [(ngModel)]="avatarUrl" placeholder="Or paste image URL (https://...)" class="input-text avatar-url-input" />
+              <input type="url" [(ngModel)]="avatarUrl" placeholder="Or paste direct image URL (https://...)" class="input-text avatar-url-input" />
             </div>
           </div>
         </div>
 
+        <!-- Field 5: Core Thought Philosophy -->
         <div class="form-group">
-          <label>Website or Blog URL</label>
-          <input type="url" [(ngModel)]="websiteUrl" placeholder="https://example.com" class="input-text" />
-        </div>
-
-        <div class="form-group">
-          <label>Core Thought Philosophy</label>
+          <label>5. Core Thought Philosophy</label>
           <textarea
             [(ngModel)]="philosophyStatement"
-            rows="4"
-            placeholder="Boil things down to their fundamental truths. Question every premise before jumping to implementation..."
+            rows="3"
+            placeholder="Boil things down to fundamental truths. Question premises before jumping to solutions..."
             class="input-textarea"
           ></textarea>
-          <span class="hint">Your Mind applies this philosophical lens to every problem visitors bring to it.</span>
+          <span class="hint">The lens your Mind uses to analyze questions from visitors.</span>
         </div>
 
-        <!-- Decision Frameworks -->
-        <div class="form-group">
-          <label>Decision Frameworks & Mental Models</label>
-          <div class="chip-list">
-            @for (f of decisionFrameworks(); track $index) {
-              <span class="chip">
-                {{ f }}
-                <button type="button" (click)="removeFramework($index)">&times;</button>
-              </span>
-            }
-          </div>
-          <div class="add-chip-row">
-            <input
-              type="text"
-              [(ngModel)]="newFrameworkInput"
-              placeholder="e.g. First Principles Reasoning or The 5-Step Process"
-              (keydown.enter)="$event.preventDefault(); addFramework()"
-              class="input-text"
-            />
-            <button type="button" (click)="addFramework()" class="add-chip-btn">+ Add</button>
-          </div>
-        </div>
-
-        <!-- Domain Tags -->
-        <div class="form-group">
-          <label>Domain Tags</label>
-          <div class="chip-list">
-            @for (t of tags(); track $index) {
-              <span class="chip tag-chip">
-                #{{ t }}
-                <button type="button" (click)="removeTag($index)">&times;</button>
-              </span>
-            }
-          </div>
-          <div class="add-chip-row">
-            <input
-              type="text"
-              [(ngModel)]="newTagInput"
-              placeholder="e.g. Physics, Founders, Engineering"
-              (keydown.enter)="$event.preventDefault(); addTag()"
-              class="input-text"
-            />
-            <button type="button" (click)="addTag()" class="add-chip-btn">+ Tag</button>
-          </div>
-        </div>
-
-        <!-- Voice Presence Configuration -->
+        <!-- Field 6: Voice Archetype -->
         <div class="form-group voice-group">
-          <label class="group-title">Voice Presence & Audio Profile</label>
-          <p class="group-subtitle">Configure the voice used when strangers consult your Mind over live voice calls.</p>
-
-          <div class="voice-tab-bar">
-            <button
-              type="button"
-              class="v-tab-btn"
-              [class.active]="activeVoiceTab() === 'preset'"
-              (click)="activeVoiceTab.set('preset'); voiceProvider.set('preset')"
-            >
-              Curated Presets
-            </button>
-            <button
-              type="button"
-              class="v-tab-btn"
-              [class.active]="activeVoiceTab() === 'cloned'"
-              (click)="activeVoiceTab.set('cloned'); voiceProvider.set('cloned')"
-            >
-              Clone Voice
-            </button>
-          </div>
-
-          @if (activeVoiceTab() === 'preset') {
-            <div class="mind-voice-grid">
-              @for (p of presets(); track p.id) {
-                <div
-                  class="mind-voice-card"
-                  [class.selected]="voiceId() === p.id"
-                  (click)="selectVoicePreset(p)"
-                >
-                  <div class="voice-card-header">
-                    <div>
-                      <span class="v-name">{{ p.name }}</span>
-                      <span class="v-meta">{{ p.accent }} • {{ p.gender }}</span>
-                    </div>
-                    <button
-                      type="button"
-                      (click)="previewVoice(p, $event)"
-                      class="v-preview-btn"
-                      [class.playing]="previewPlayingVoiceId() === p.id"
-                      title="Preview voice"
-                    >
-                      @if (previewPlayingVoiceId() === p.id) {
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <rect x="6" y="5" width="4" height="14" rx="1" />
-                          <rect x="14" y="5" width="4" height="14" rx="1" />
-                        </svg>
-                      } @else {
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      }
-                    </button>
+          <label>6. Voice Presence</label>
+          <div class="mind-voice-grid">
+            @for (p of presets(); track p.id) {
+              <div
+                class="mind-voice-card"
+                [class.selected]="voiceId() === p.id"
+                (click)="selectVoicePreset(p)"
+              >
+                <div class="voice-card-header">
+                  <div>
+                    <span class="v-name">{{ p.name }}</span>
+                    <span class="v-meta">{{ p.accent }} • {{ p.gender }}</span>
                   </div>
-                  <p class="v-desc">{{ p.description }}</p>
+                  <button
+                    type="button"
+                    (click)="previewVoice(p, $event)"
+                    class="v-preview-btn"
+                    [class.playing]="previewPlayingVoiceId() === p.id"
+                    title="Preview voice"
+                  >
+                    @if (previewPlayingVoiceId() === p.id) {
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="5" width="4" height="14" rx="1" />
+                        <rect x="14" y="5" width="4" height="14" rx="1" />
+                      </svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    }
+                  </button>
                 </div>
-              }
-            </div>
-          }
-
-          @if (activeVoiceTab() === 'cloned') {
-            <div class="mind-clone-box">
-              @if (cloneSuccess()) {
-                <div class="alert alert-success">{{ cloneSuccess() }}</div>
-              }
-              @if (cloneError()) {
-                <div class="alert alert-danger">{{ cloneError() }}</div>
-              }
-              <p class="clone-tip">Upload a 15-60s clear audio sample of your real speaking voice (.mp3, .wav, .m4a):</p>
-              <label class="upload-voice-btn" [class.loading]="isCloningVoice()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <span>{{ isCloningVoice() ? 'Cloning audio profile...' : 'Upload Real Voice Sample' }}</span>
-                <input type="file" (change)="onVoiceSampleUpload($event)" accept="audio/*" hidden [disabled]="isCloningVoice()" />
-              </label>
-
-              @if (voiceProvider() === 'cloned' && voiceId()) {
-                <div class="active-clone-chip">
-                  <span>Cloned Voice ID: <strong>{{ voiceId() }}</strong></span>
-                </div>
-              }
-            </div>
-          }
+              </div>
+            }
+          </div>
         </div>
 
-        <!-- Publication Switch -->
+        <!-- Field 7: Publish to Commons Toggle -->
         <div class="publish-switch-box">
           <label class="switch-wrap">
             <input type="checkbox" [(ngModel)]="isPublished" />
             <span class="slider"></span>
           </label>
           <div class="switch-meta">
-            <span class="switch-title">Publish in Thought Commons</span>
-            <span class="switch-desc">Allow visitors to search and consult your Mind using your grounded writings.</span>
+            <span class="switch-title">7. Publish in Thought Commons</span>
+            <span class="switch-desc">Allow visitors to consult your Mind and share its link on social media.</span>
           </div>
+        </div>
+
+        <!-- Field 8: Paid AI-to-Human Direct Escalation Settings -->
+        <div class="human-access-settings-box">
+          <div class="human-access-top">
+            <label class="switch-wrap">
+              <input type="checkbox" [(ngModel)]="directChatEnabled" />
+              <span class="slider"></span>
+            </label>
+            <div class="switch-meta">
+              <span class="switch-title">8. Paid Direct Human Escalation</span>
+              <span class="switch-desc">Let visitors unlock a direct paid conversation with the real you inside the same chat thread.</span>
+            </div>
+          </div>
+
+          @if (directChatEnabled()) {
+            <div class="human-access-grid">
+              <div class="form-group">
+                <label>Per-Session Unlock Price (USD)</label>
+                <div class="price-input-wrap">
+                  <span class="currency-prefix">$</span>
+                  <input type="number" min="1" step="1" [(ngModel)]="directChatPrice" class="input-text price-input" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Response Expectation / SLA</label>
+                <input
+                  type="text"
+                  [(ngModel)]="directChatSla"
+                  placeholder="Replies personally within a few hours"
+                  class="input-text"
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Optional Collapsed Advanced Options (Zero Cognitive Load) -->
+        <div class="advanced-accordion">
+          <button type="button" class="btn-toggle-advanced" (click)="showAdvancedDetails.set(!showAdvancedDetails())">
+            <span>⚙️ Optional Details (Website, Frameworks & Tags)</span>
+            <span class="arrow">{{ showAdvancedDetails() ? '▲' : '▼' }}</span>
+          </button>
+
+          @if (showAdvancedDetails()) {
+            <div class="advanced-fields-box">
+              <div class="form-group">
+                <label>Website or Blog Link</label>
+                <input type="url" [(ngModel)]="websiteUrl" placeholder="https://example.com" class="input-text" />
+              </div>
+
+              <div class="form-group">
+                <label>Decision Frameworks (Optional)</label>
+                <div class="chip-list">
+                  @for (f of decisionFrameworks(); track $index) {
+                    <span class="chip">
+                      {{ f }}
+                      <button type="button" (click)="removeFramework($index)">&times;</button>
+                    </span>
+                  }
+                </div>
+                <div class="add-chip-row">
+                  <input
+                    type="text"
+                    [(ngModel)]="newFrameworkInput"
+                    placeholder="e.g. First Principles Reasoning"
+                    (keydown.enter)="$event.preventDefault(); addFramework()"
+                    class="input-text"
+                  />
+                  <button type="button" (click)="addFramework()" class="add-chip-btn">+ Add</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Topic Tags (Optional)</label>
+                <div class="chip-list">
+                  @for (t of tags(); track $index) {
+                    <span class="chip tag-chip">
+                      #{{ t }}
+                      <button type="button" (click)="removeTag($index)">&times;</button>
+                    </span>
+                  }
+                </div>
+                <div class="add-chip-row">
+                  <input
+                    type="text"
+                    [(ngModel)]="newTagInput"
+                    placeholder="e.g. Physics, Engineering"
+                    (keydown.enter)="$event.preventDefault(); addTag()"
+                    class="input-text"
+                  />
+                  <button type="button" (click)="addTag()" class="add-chip-btn">+ Tag</button>
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </section>
 
-      <!-- Right Column: Training & Knowledge Ingestion -->
+      <!-- Right Column: Knowledge Base & Grounding Center -->
       <section class="card training-card">
         <div class="card-header">
-          <h2>2. Knowledge Base & Grounding Center</h2>
-          <p>Train your Mind by linking websites or uploading documents. All texts are chunked and indexed into searchable knowledge nodes.</p>
+          <h2>2. Knowledge Grounding Center</h2>
+          <p>Train your Mind by linking websites or uploading documents. Content is parsed into searchable intelligence.</p>
         </div>
 
         <!-- Ingestion Tabs -->
         <div class="ingest-tabs">
           <button
             class="tab-btn"
+            [class.active]="activeIngestTab() === 'interview'"
+            (click)="activeIngestTab.set('interview')"
+          >
+            🎙️ Interview Me (Quick Train)
+          </button>
+          <button
+            class="tab-btn"
             [class.active]="activeIngestTab() === 'upload'"
             (click)="activeIngestTab.set('upload')"
           >
-            Upload Document (.pdf, .txt, .md)
+            Upload File (.pdf, .txt, .md)
           </button>
           <button
             class="tab-btn"
@@ -300,7 +317,7 @@
             [class.active]="activeIngestTab() === 'text'"
             (click)="activeIngestTab.set('text')"
           >
-            Add Direct Doctrine Note
+            Direct Text Note
           </button>
         </div>
 
@@ -311,51 +328,116 @@
           <div class="alert alert-error">{{ ingestError() }}</div>
         }
 
+        <!-- Feature #2: Tab 0 - Interactive 3-Question Brain Interview -->
+        @if (activeIngestTab() === 'interview') {
+          <div class="interview-ingest-box">
+            <div class="interview-banner">
+              <span class="interview-icon">🎙️</span>
+              <div>
+                <strong>Don't have PDFs or essays ready?</strong>
+                <p>Answer 3 quick questions (type or dictate with your voice) and we'll automatically extract your philosophy, frameworks, and knowledge base.</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="interview-q-header">
+                <label>Q1. What is your #1 core philosophy or contrarian belief that guides your work?</label>
+                <button type="button" class="dictate-btn" [class.active]="dictatingQuestionIdx() === 1" (click)="toggleDictateQuestion(1)">
+                  {{ dictatingQuestionIdx() === 1 ? '🔴 Listening...' : '🎤 Dictate' }}
+                </button>
+              </div>
+              <textarea
+                [(ngModel)]="interviewQ1"
+                rows="2"
+                placeholder="e.g. Most people optimize for speed before clarity. I believe in eliminating 80% of noise first..."
+                class="input-textarea"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <div class="interview-q-header">
+                <label>Q2. What is your step-by-step mental model for making a hard decision?</label>
+                <button type="button" class="dictate-btn" [class.active]="dictatingQuestionIdx() === 2" (click)="toggleDictateQuestion(2)">
+                  {{ dictatingQuestionIdx() === 2 ? '🔴 Listening...' : '🎤 Dictate' }}
+                </button>
+              </div>
+              <textarea
+                [(ngModel)]="interviewQ2"
+                rows="2"
+                placeholder="e.g. Step 1: Define the worst-case downside. Step 2: Check if the decision is reversible..."
+                class="input-textarea"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <div class="interview-q-header">
+                <label>Q3. What is the most common mistake people make in your field, and your rule to avoid it?</label>
+                <button type="button" class="dictate-btn" [class.active]="dictatingQuestionIdx() === 3" (click)="toggleDictateQuestion(3)">
+                  {{ dictatingQuestionIdx() === 3 ? '🔴 Listening...' : '🎤 Dictate' }}
+                </button>
+              </div>
+              <textarea
+                [(ngModel)]="interviewQ3"
+                rows="2"
+                placeholder="e.g. Beginners chase tactics instead of fundamentals. My rule: master one core channel for 90 days..."
+                class="input-textarea"
+              ></textarea>
+            </div>
+
+            <button class="ingest-submit-btn" (click)="submitBrainInterview()" [disabled]="isIngesting()">
+              @if (isIngesting()) { Extracting & Indexing Your Brain... } @else { ✨ Extract & Train My Mind }
+            </button>
+          </div>
+        }
+
         <!-- Tab 1: Upload Document -->
         @if (activeIngestTab() === 'upload') {
-          <div
-            class="dropzone"
-            [class.drag-over]="isDragOver()"
-            (dragover)="$event.preventDefault(); isDragOver.set(true)"
-            (dragleave)="isDragOver.set(false)"
-            (drop)="onFileDrop($event)"
-          >
-            <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            <p class="drop-text">Drag & drop your PDF, essay, or Markdown file here, or</p>
-            <label class="browse-btn">
-              Browse Files
-              <input type="file" (change)="onFileChange($event)" accept=".pdf,.txt,.md,.markdown" hidden />
-            </label>
-            @if (selectedFile(); as file) {
-              <div class="selected-file-pill">
-                📄 {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)
+          <div class="upload-ingest-box">
+            <div
+              class="dropzone drop-zone"
+              [class.drag-over]="isDragOver()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onFileDrop($event)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="drop-icon" style="width: 40px; height: 40px; max-width: 40px; max-height: 40px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+              <p class="drop-main">Drag and drop documents here, or</p>
+              <label class="drop-browse-btn">
+                Browse Files
+                <input type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.md" hidden />
+              </label>
+              <span class="drop-sub">Supported formats: PDF, TXT, Markdown (Max 25MB)</span>
+            </div>
+
+            @if (selectedFile()) {
+              <div class="selected-file-row">
+                <div class="file-meta">
+                  <span class="file-name">📄 {{ selectedFile()?.name }}</span>
+                  <span class="file-size">{{ (selectedFile()?.size || 0) / 1024 | number:'1.0-0' }} KB</span>
+                </div>
+                <div class="form-group" style="margin-top: 8px;">
+                  <input type="text" [(ngModel)]="docTitleInput" placeholder="Knowledge source title (optional)" class="input-text" />
+                </div>
+                <button class="ingest-submit-btn" (click)="submitFile()" [disabled]="isIngesting()">
+                  @if (isIngesting()) { Indexing Knowledge... } @else { Index Document }
+                </button>
               </div>
             }
           </div>
-
-          @if (selectedFile()) {
-            <div class="form-group" style="margin-top: 1rem;">
-              <label>Custom Document Title</label>
-              <input type="text" [(ngModel)]="docTitleInput" placeholder="Title of this knowledge source" class="input-text" />
-            </div>
-            <button class="ingest-submit-btn" (click)="submitFile()" [disabled]="isIngesting()">
-              @if (isIngesting()) { Indexing Document... } @else { Index Document Nodes }
-            </button>
-          }
         }
 
-        <!-- Tab 2: Link URL -->
+        <!-- Tab 2: Link Website -->
         @if (activeIngestTab() === 'url') {
           <div class="url-ingest-box">
             <div class="form-group">
               <label>Article or Website URL *</label>
-              <input type="url" [(ngModel)]="urlInput" placeholder="https://myblog.com/essays/resilient-systems" class="input-text" />
+              <input type="url" [(ngModel)]="urlInput" placeholder="https://myblog.com/essays/deep-work" class="input-text" />
             </div>
             <div class="form-group">
               <label>Custom Source Title (Optional)</label>
-              <input type="text" [(ngModel)]="urlTitleInput" placeholder="e.g. My Systems Manifesto" class="input-text" />
+              <input type="text" [(ngModel)]="urlTitleInput" placeholder="e.g. Deep Work Manifesto" class="input-text" />
             </div>
             <button class="ingest-submit-btn" (click)="submitUrl()" [disabled]="isIngesting() || !urlInput()">
               @if (isIngesting()) { Scraping & Chunking... } @else { Scrape & Index Knowledge }
@@ -368,14 +450,14 @@
           <div class="text-ingest-box">
             <div class="form-group">
               <label>Note Title *</label>
-              <input type="text" [(ngModel)]="manualTextTitle" placeholder="e.g. 5 Rules for Problem Solving" class="input-text" />
+              <input type="text" [(ngModel)]="manualTextTitle" placeholder="e.g. 5 Rules for Decision Making" class="input-text" />
             </div>
             <div class="form-group">
-              <label>Doctrine & Rules Content *</label>
+              <label>Doctrine Content *</label>
               <textarea
                 [(ngModel)]="manualTextContent"
-                rows="6"
-                placeholder="Rule 1: Always verify assumptions before acting. Rule 2: Delete components that do not add measurable value..."
+                rows="4"
+                placeholder="Rule 1: Always verify assumptions before acting..."
                 class="input-textarea"
               ></textarea>
             </div>
@@ -389,7 +471,7 @@
         <div class="sources-section">
           <h3>Indexed Knowledge Sources ({{ sources().length }})</h3>
           @if (sources().length === 0) {
-            <p class="empty-sources">No knowledge sources indexed yet. Add a website, document, or text note above to ground your AI Mind.</p>
+            <p class="empty-sources">No knowledge sources indexed yet. Use "🎙️ Interview Me" or upload a document above to ground your AI Mind.</p>
           } @else {
             <div class="sources-list">
               @for (src of sources(); track src.id) {
@@ -404,6 +486,197 @@
                       {{ src.status }}
                     </span>
                     <button class="delete-source-btn" (click)="onDeleteSource(src)" title="Delete Source">&times;</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Feature #3: Audience Questions & Knowledge Gaps (1-Click Teach My Mind) -->
+        <div class="sources-section audience-qa-section">
+          <div class="qa-section-header">
+            <div>
+              <h3>💬 Audience Questions & Knowledge Gaps</h3>
+              <p class="qa-sub">See real questions visitors asked your AI Mind and teach canonical answers in 1 click.</p>
+            </div>
+            <button
+              type="button"
+              class="btn-teach-custom"
+              (click)="openTeachQuestion('__custom__')"
+            >
+              + Teach Custom Q&A
+            </button>
+          </div>
+
+          @if (activeTeachQuestion() === '__custom__') {
+            <div class="teach-qa-inline-box">
+              <input
+                type="text"
+                [(ngModel)]="customTeachQuestion"
+                placeholder="Visitor question (e.g. How do you evaluate early-stage startups?)"
+                class="input-text"
+              />
+              <textarea
+                [(ngModel)]="teachAnswerInput"
+                rows="3"
+                placeholder="Your canonical answer that your AI Mind should always give..."
+                class="input-textarea"
+              ></textarea>
+              <div class="teach-qa-actions">
+                <button type="button" class="btn-cancel-qa" (click)="cancelTeachQuestion()">Cancel</button>
+                <button
+                  type="button"
+                  class="btn-save-qa"
+                  [disabled]="isTeachingQA() || !customTeachQuestion().trim() || !teachAnswerInput().trim()"
+                  (click)="submitTeachQuestion(customTeachQuestion())"
+                >
+                  {{ isTeachingQA() ? 'Indexing...' : '🎓 Save & Train Mind' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (audienceQuestions().length === 0) {
+            <p class="empty-sources">No visitor questions logged yet. Share your Mind link or click "+ Teach Custom Q&A" to pre-train answers.</p>
+          } @else {
+            <div class="audience-qa-list">
+              @for (item of audienceQuestions(); track item.id) {
+                <div class="audience-qa-card" [class.trained]="item.is_trained">
+                  <div class="qa-top-row">
+                    <span class="qa-question-text">"{{ item.question }}"</span>
+                    @if (item.is_trained) {
+                      <span class="qa-trained-badge">✓ Trained</span>
+                    } @else {
+                      <button type="button" class="btn-teach-mind" (click)="openTeachQuestion(item.question)">
+                        🎓 Teach My Mind
+                      </button>
+                    }
+                  </div>
+                  @if (item.ai_answer) {
+                    <p class="qa-ai-reply"><strong>Mind replied:</strong> {{ item.ai_answer }}</p>
+                  }
+
+                  @if (activeTeachQuestion() === item.question) {
+                    <div class="teach-qa-inline-box">
+                      <textarea
+                        [(ngModel)]="teachAnswerInput"
+                        rows="2"
+                        placeholder="Write your canonical answer to override/ground future replies..."
+                        class="input-textarea"
+                      ></textarea>
+                      <div class="teach-qa-actions">
+                        <button type="button" class="btn-cancel-qa" (click)="cancelTeachQuestion()">Cancel</button>
+                        <button
+                          type="button"
+                          class="btn-save-qa"
+                          [disabled]="isTeachingQA() || !teachAnswerInput().trim()"
+                          (click)="submitTeachQuestion(item.question)"
+                        >
+                          {{ isTeachingQA() ? 'Training...' : '🎓 Save Canonical Answer' }}
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- VIP Paid Direct Inbox (AI-to-Human Handoffs) -->
+        <div class="sources-section vip-inbox-section">
+          <div class="qa-section-header">
+            <div>
+              <h3>👤 VIP Paid Direct Inbox ({{ paidSessions().length }})</h3>
+              <p class="qa-sub">Visitors who unlocked a paid direct conversation with the real you, complete with an AI Context Handoff Brief.</p>
+            </div>
+            <button type="button" class="btn-teach-custom" (click)="refreshPaidSessions()">
+              ↻ Refresh Inbox
+            </button>
+          </div>
+
+          @if (paidSessions().length === 0) {
+            <p class="empty-sources">
+              No paid human escalations yet. When a visitor clicks "👤 Talk to Real {{ displayName() || 'You' }} · ${{ directChatPrice() || 25 }}", their thread and AI Context Brief will appear right here.
+            </p>
+          } @else {
+            <div class="vip-inbox-layout">
+              <!-- Visitor Thread Selector -->
+              <div class="vip-session-tabs">
+                @for (sess of paidSessions(); track sess.id) {
+                  <button
+                    type="button"
+                    class="vip-session-tab"
+                    [class.active]="activePaidSessionId() === sess.id"
+                    (click)="selectPaidSession(sess.id)"
+                  >
+                    <div class="vip-tab-top">
+                      <strong>{{ sess.visitor_name }}</strong>
+                      <span class="vip-paid-pill">${{ sess.paid_amount || directChatPrice() }}</span>
+                    </div>
+                    <div class="vip-tab-sub">
+                      <span>{{ sess.chat_mode === 'human_direct' ? '🟢 Human Direct' : '🧠 AI Mode' }}</span>
+                      @if (sess.unread_for_creator > 0) {
+                        <span class="vip-unread-badge">{{ sess.unread_for_creator }} new</span>
+                      }
+                    </div>
+                  </button>
+                }
+              </div>
+
+              <!-- Active Paid Thread & Context Handoff Brief -->
+              @if (getActivePaidSession(); as activeSess) {
+                <div class="vip-thread-panel">
+                  @if (activeSess.handoff_summary) {
+                    <div class="vip-handoff-brief-box">
+                      <span class="vip-brief-label">✨ AI Context Handoff Brief</span>
+                      <p>{{ activeSess.handoff_summary }}</p>
+                    </div>
+                  }
+
+                  <div class="vip-messages-scroll">
+                    @for (m of activeSess.messages; track m.id) {
+                      @if (m.sender_type === 'system') {
+                        <div class="vip-system-msg">{{ m.content }}</div>
+                      } @else {
+                        <div
+                          class="vip-msg-item"
+                          [class.visitor]="m.sender_type === 'user'"
+                          [class.ai]="m.sender_type === 'mind'"
+                          [class.creator]="m.sender_type === 'creator'"
+                        >
+                          <div class="vip-msg-sender">
+                            @if (m.sender_type === 'user') {
+                              <span>👤 {{ activeSess.visitor_name }}</span>
+                            } @else if (m.sender_type === 'creator') {
+                              <span>✅ You (Verified Human)</span>
+                            } @else {
+                              <span>🧠 Your AI Mind</span>
+                            }
+                            <span class="vip-msg-time">{{ m.created_at | date:'shortTime' }}</span>
+                          </div>
+                          <p class="vip-msg-text">{{ m.content }}</p>
+                        </div>
+                      }
+                    }
+                  </div>
+
+                  <div class="vip-reply-composer">
+                    <textarea
+                      [(ngModel)]="creatorReplyInput"
+                      rows="2"
+                      [placeholder]="'Reply personally as ' + (displayName() || 'Verified Human') + ' to ' + activeSess.visitor_name + '...'"
+                      class="input-textarea"
+                    ></textarea>
+                    <button
+                      type="button"
+                      class="vip-send-reply-btn"
+                      [disabled]="isSendingCreatorReply() || !creatorReplyInput().trim()"
+                      (click)="sendCreatorReply(activeSess)"
+                    >
+                      {{ isSendingCreatorReply() ? 'Sending...' : '👤 Send Verified Human Reply' }}
+                    </button>
                   </div>
                 </div>
               }
@@ -464,4 +737,15 @@
       </div>
     </div>
   }
+
+  <!-- Social Media Share Modal -->
+  <app-share-mind-modal
+    [isOpen]="isShareModalOpen()"
+    [mindName]="displayName()"
+    [handle]="handle()"
+    [headline]="headline()"
+    [avatarUrl]="avatarUrl()"
+    [isPublished]="isPublished()"
+    (close)="closeShareModal()"
+  ></app-share-mind-modal>
 </div>

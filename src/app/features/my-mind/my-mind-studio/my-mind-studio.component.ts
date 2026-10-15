@@ -5,13 +5,15 @@ import { Router, RouterLink } from '@angular/router';
 import { MindService } from '../../../core/services/mind.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { VoiceService } from '../../../core/services/voice.service';
-import { UserMind, MindSource } from '../../../core/models/mind.model';
+import { UserMind, MindSource, AudienceQuestion, PaidHumanSession } from '../../../core/models/mind.model';
 import { VoicePreset } from '../../../core/models/voice.model';
+
+import { ShareMindModalComponent } from '../../minds/share-mind-modal/share-mind-modal.component';
 
 @Component({
   selector: 'app-my-mind-studio',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ShareMindModalComponent],
   templateUrl: './my-mind-studio.component.html',
   styleUrl: './my-mind-studio.component.scss',
 })
@@ -26,6 +28,7 @@ export class MyMindStudioComponent implements OnInit {
   isSaving = signal<boolean>(false);
   isUploadingAvatar = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+  isShareModalOpen = signal<boolean>(false);
 
   // Voice Presence state
   voiceProvider = signal<'preset' | 'cloned' | 'none'>('preset');
@@ -48,6 +51,16 @@ export class MyMindStudioComponent implements OnInit {
   bio = signal<string>('');
   philosophyStatement = signal<string>('');
   isPublished = signal<boolean>(false);
+  showAdvancedDetails = signal<boolean>(false);
+
+  // Paid Direct Human Access Settings & VIP Inbox
+  directChatEnabled = signal<boolean>(true);
+  directChatPrice = signal<number>(25);
+  directChatSla = signal<string>('Replies personally within a few hours');
+  paidSessions = signal<PaidHumanSession[]>([]);
+  activePaidSessionId = signal<number | null>(null);
+  creatorReplyInput = signal<string>('');
+  isSendingCreatorReply = signal<boolean>(false);
 
   // Frameworks & Tags
   decisionFrameworks = signal<string[]>([]);
@@ -56,11 +69,25 @@ export class MyMindStudioComponent implements OnInit {
   newTagInput = signal<string>('');
 
   // Knowledge Ingestion
-  activeIngestTab = signal<'upload' | 'url' | 'text'>('upload');
+  activeIngestTab = signal<'upload' | 'url' | 'text' | 'interview'>('upload');
   sources = signal<MindSource[]>([]);
   isIngesting = signal<boolean>(false);
   ingestError = signal<string | null>(null);
   ingestSuccess = signal<string | null>(null);
+
+  // Feature #2: 3-Question Brain Interview State
+  interviewQ1 = signal<string>('');
+  interviewQ2 = signal<string>('');
+  interviewQ3 = signal<string>('');
+  dictatingQuestionIdx = signal<number | null>(null);
+  private speechRecognition: any = null;
+
+  // Feature #3: Audience Questions & 1-Click Teach My Mind State
+  audienceQuestions = signal<AudienceQuestion[]>([]);
+  activeTeachQuestion = signal<string | null>(null);
+  customTeachQuestion = signal<string>('');
+  teachAnswerInput = signal<string>('');
+  isTeachingQA = signal<boolean>(false);
 
   // Inputs
   urlInput = signal<string>('');
@@ -162,6 +189,13 @@ export class MyMindStudioComponent implements OnInit {
         this.decisionFrameworks.set(m.decision_frameworks || []);
         this.tags.set(m.tags || []);
         this.isPublished.set(m.is_published || false);
+        this.directChatEnabled.set(m.direct_chat_enabled !== undefined ? Boolean(m.direct_chat_enabled) : true);
+        this.directChatPrice.set(m.direct_chat_price !== undefined ? Number(m.direct_chat_price) : 25);
+        this.directChatSla.set(m.direct_chat_sla || 'Replies personally within a few hours');
+        this.paidSessions.set(m.paid_sessions || []);
+        if (m.paid_sessions && m.paid_sessions.length > 0 && !this.activePaidSessionId()) {
+          this.activePaidSessionId.set(m.paid_sessions[0].id);
+        }
         this.voiceProvider.set((m as any).voice_provider || 'preset');
         this.voiceId.set((m as any).voice_id || 'echo');
         this.voiceSampleUrl.set((m as any).voice_sample_url || null);
@@ -169,11 +203,54 @@ export class MyMindStudioComponent implements OnInit {
           this.activeVoiceTab.set('cloned');
         }
         this.sources.set(m.sources || []);
+        this.audienceQuestions.set(m.audience_questions || []);
         this.isLoading.set(false);
       },
       error: (err) => {
         this.errorMessage.set(err.error?.message || 'Failed to load your AI Mind.');
         this.isLoading.set(false);
+      },
+    });
+  }
+
+  selectPaidSession(sessionId: number): void {
+    this.activePaidSessionId.set(sessionId);
+    this.creatorReplyInput.set('');
+  }
+
+  getActivePaidSession(): PaidHumanSession | null {
+    const id = this.activePaidSessionId();
+    return this.paidSessions().find((s) => s.id === id) || null;
+  }
+
+  refreshPaidSessions(): void {
+    this.mindService.getPaidSessions().subscribe({
+      next: (sessions) => {
+        this.paidSessions.set(sessions || []);
+        if (sessions.length > 0 && !this.activePaidSessionId()) {
+          this.activePaidSessionId.set(sessions[0].id);
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  sendCreatorReply(session: PaidHumanSession): void {
+    const text = this.creatorReplyInput().trim();
+    if (!text || this.isSendingCreatorReply()) return;
+
+    this.isSendingCreatorReply.set(true);
+    this.mindService.replyToPaidSession(session.id, text).subscribe({
+      next: (sessions) => {
+        this.paidSessions.set(sessions || []);
+        this.creatorReplyInput.set('');
+        this.isSendingCreatorReply.set(false);
+        this.successMessage.set(`Verified Human reply sent directly to ${session.visitor_name}'s chat thread!`);
+        setTimeout(() => this.successMessage.set(null), 4000);
+      },
+      error: (err) => {
+        this.isSendingCreatorReply.set(false);
+        this.errorMessage.set(err.error?.message || 'Failed to send personal reply.');
       },
     });
   }
@@ -202,6 +279,9 @@ export class MyMindStudioComponent implements OnInit {
         decision_frameworks: this.decisionFrameworks(),
         tags: this.tags(),
         is_published: this.isPublished(),
+        direct_chat_enabled: this.directChatEnabled(),
+        direct_chat_price: Number(this.directChatPrice()) || 25,
+        direct_chat_sla: this.directChatSla().trim() || 'Replies personally within a few hours',
         voice_provider: this.voiceProvider(),
         voice_id: this.voiceId(),
         voice_sample_url: this.voiceSampleUrl(),
@@ -210,6 +290,12 @@ export class MyMindStudioComponent implements OnInit {
         next: (updated) => {
           this.mind.set(updated);
           this.sources.set(updated.sources || []);
+          if (updated.audience_questions) {
+            this.audienceQuestions.set(updated.audience_questions);
+          }
+          if (updated.paid_sessions) {
+            this.paidSessions.set(updated.paid_sessions);
+          }
           this.isSaving.set(false);
           this.successMessage.set(
             updated.is_published
@@ -223,6 +309,20 @@ export class MyMindStudioComponent implements OnInit {
           this.errorMessage.set(err.error?.message || 'Failed to update Mind profile.');
         },
       });
+  }
+
+  openShareModal(): void {
+    this.isShareModalOpen.set(true);
+  }
+
+  closeShareModal(): void {
+    this.isShareModalOpen.set(false);
+  }
+
+  getShareUrl(): string {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4200';
+    const clean = (this.handle() || '').replace(/^@/, '').trim();
+    return `${origin}/minds/@${clean}`;
   }
 
   // Frameworks Management
@@ -277,6 +377,16 @@ export class MyMindStudioComponent implements OnInit {
   }
 
   // Knowledge Ingestion: File
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver.set(false);
+  }
+
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragOver.set(false);
@@ -290,6 +400,10 @@ export class MyMindStudioComponent implements OnInit {
     if (input.files?.length) {
       this.handleFileSelected(input.files[0]);
     }
+  }
+
+  onFileSelected(event: Event): void {
+    this.onFileChange(event);
   }
 
   private handleFileSelected(file: File): void {
@@ -356,6 +470,145 @@ export class MyMindStudioComponent implements OnInit {
           this.ingestError.set(err.error?.message || 'Failed to save text note.');
         },
       });
+  }
+
+  // Feature #2: 3-Question Interactive Brain Interview
+  toggleDictateQuestion(questionIdx: number): void {
+    if (this.dictatingQuestionIdx() === questionIdx) {
+      if (this.speechRecognition) {
+        this.speechRecognition.stop();
+      }
+      this.dictatingQuestionIdx.set(null);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      this.ingestError.set('Browser speech dictation is not supported on this device. You can type your response directly.');
+      return;
+    }
+
+    if (this.speechRecognition) {
+      this.speechRecognition.stop();
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results?.[0]?.[0]?.transcript || '';
+      if (transcript) {
+        if (questionIdx === 1) {
+          this.interviewQ1.update((v) => (v ? `${v} ${transcript}` : transcript));
+        } else if (questionIdx === 2) {
+          this.interviewQ2.update((v) => (v ? `${v} ${transcript}` : transcript));
+        } else if (questionIdx === 3) {
+          this.interviewQ3.update((v) => (v ? `${v} ${transcript}` : transcript));
+        }
+      }
+    };
+
+    recognition.onend = () => {
+      this.dictatingQuestionIdx.set(null);
+    };
+
+    recognition.onerror = () => {
+      this.dictatingQuestionIdx.set(null);
+    };
+
+    this.speechRecognition = recognition;
+    this.dictatingQuestionIdx.set(questionIdx);
+    recognition.start();
+  }
+
+  submitBrainInterview(): void {
+    const q1 = this.interviewQ1().trim();
+    const q2 = this.interviewQ2().trim();
+    const q3 = this.interviewQ3().trim();
+
+    if (!q1 && !q2 && !q3) {
+      this.ingestError.set('Please answer at least one interview question to train your AI Mind.');
+      return;
+    }
+
+    this.isIngesting.set(true);
+    this.ingestError.set(null);
+    this.ingestSuccess.set(null);
+
+    const answers = [
+      {
+        question: 'What is your #1 core philosophy or contrarian belief that guides your work?',
+        answer: q1,
+      },
+      {
+        question: 'What is your step-by-step mental model for making a hard decision in your domain?',
+        answer: q2,
+      },
+      {
+        question: 'What is the most common mistake beginners make, and what is your rule to avoid it?',
+        answer: q3,
+      },
+    ].filter((a) => a.answer.length > 0);
+
+    this.mindService.submitInterview(answers).subscribe({
+      next: (updatedMind) => {
+        this.mind.set(updatedMind);
+        this.sources.set(updatedMind.sources || []);
+        if (updatedMind.philosophy_statement) {
+          this.philosophyStatement.set(updatedMind.philosophy_statement);
+        }
+        if (updatedMind.decision_frameworks) {
+          this.decisionFrameworks.set(updatedMind.decision_frameworks);
+        }
+        this.interviewQ1.set('');
+        this.interviewQ2.set('');
+        this.interviewQ3.set('');
+        this.isIngesting.set(false);
+        this.ingestSuccess.set('Brain Interview extracted! Indexed into your knowledge base & updated your philosophy.');
+        setTimeout(() => this.ingestSuccess.set(null), 5000);
+      },
+      error: (err) => {
+        this.isIngesting.set(false);
+        this.ingestError.set(err.error?.message || 'Failed to submit brain interview.');
+      },
+    });
+  }
+
+  // Feature #3: Audience Questions & 1-Click Teach My Mind
+  openTeachQuestion(questionText: string): void {
+    this.activeTeachQuestion.set(questionText);
+    this.teachAnswerInput.set('');
+  }
+
+  cancelTeachQuestion(): void {
+    this.activeTeachQuestion.set(null);
+    this.teachAnswerInput.set('');
+  }
+
+  submitTeachQuestion(questionText?: string): void {
+    const q = (questionText || this.activeTeachQuestion() || this.customTeachQuestion()).trim();
+    const a = this.teachAnswerInput().trim();
+    if (!q || !a) return;
+
+    this.isTeachingQA.set(true);
+    this.mindService.teachQuestionAnswer(q, a).subscribe({
+      next: (res) => {
+        this.sources.set(res.sources || []);
+        this.audienceQuestions.set(res.audience_questions || []);
+        this.activeTeachQuestion.set(null);
+        this.customTeachQuestion.set('');
+        this.teachAnswerInput.set('');
+        this.isTeachingQA.set(false);
+        this.ingestSuccess.set(`Canonical Q&A trained! Your Mind will now use this exact answer when asked.`);
+        setTimeout(() => this.ingestSuccess.set(null), 5000);
+      },
+      error: (err) => {
+        this.isTeachingQA.set(false);
+        this.ingestError.set(err.error?.message || 'Failed to save Q&A training.');
+      },
+    });
   }
 
   // Delete Source

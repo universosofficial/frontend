@@ -1,8 +1,8 @@
-<div class="wa-profile-container">
+<div class="wa-chat-container">
   @if (isLoadingMind()) {
-    <div class="wa-profile-loading">
+    <div class="wa-chat-loading">
       <div class="wa-spinner"></div>
-      <span>Calibrating mind connection with &#64;{{ handle() }}...</span>
+      <span>Calibrating neural mind connection with &#64;{{ handle() }}...</span>
     </div>
   } @else if (errorMessage()) {
     <div class="wa-profile-error">
@@ -14,139 +14,252 @@
         </svg>
       </div>
       <h2>Mind Unavailable</h2>
+      <p class="wa-error-msg">{{ errorMessage() }}</p>
       <button type="button" (click)="goBack()" class="wa-btn-primary">&larr; Return to Thought Commons</button>
     </div>
   } @else {
     @if (mind(); as m) {
-    <!-- Mind Profile Header / Hero Card -->
-    <header class="wa-mind-profile-hero">
-      <div class="wa-hero-top-row">
-        <button type="button" (click)="goBack()" class="wa-back-btn" title="Back to Explore">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        <div class="wa-hero-meta-badges">
-          <!-- Voice Call Button -->
-          <button type="button" (click)="startVoiceCall()" class="wa-btn-voice-call" title="Start Live Voice Consultation">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-2.2 2.2a15.053 15.053 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-.99-1.12z" />
+      <!-- ========================================================
+           LUMINA CHAT APP BAR (Top Header)
+           ======================================================== -->
+      <header class="wa-chat-header">
+        <div class="wa-header-left">
+          <!-- Mobile Back Button -->
+          <button type="button" (click)="goBack()" class="wa-btn-back" title="Back to Explore">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            <span>Voice Call</span>
           </button>
 
-          <span class="wa-badge wa-badge-teal">Thought Commons</span>
-          @if ((m.total_interactions || 0) > 0) {
-            <span class="wa-badge wa-badge-gold">⚡ {{ m.total_interactions }} consultations</span>
-          }
-        </div>
-      </div>
-
-      <!-- Avatar & Headline Banner -->
-      <div class="wa-hero-center">
-        <div class="wa-hero-avatar-disc">
-          @if (m.avatar_url) {
-            <img [src]="m.avatar_url" [alt]="m.display_name || m.name || 'Mind'" class="wa-hero-avatar" />
-          } @else {
-            <div class="wa-hero-fallback">
-              {{ (m.display_name || m.name || 'M').charAt(0).toUpperCase() }}
-            </div>
-          }
-        </div>
-
-        <div class="wa-hero-title-section">
-          <div class="wa-hero-name-row">
-            <h1 class="wa-hero-name">{{ m.display_name || m.name }}</h1>
-            <span class="wa-hero-handle">&#64;{{ m.handle }}</span>
+          <!-- Avatar with Warm Halo Ring & Online Dot -->
+          <div class="wa-header-avatar-wrap" (click)="toggleKnowledgeDrawer()" title="View Mind Info & Knowledge">
+            @if (m.avatar_url) {
+              <img [src]="m.avatar_url" [alt]="m.display_name || m.name || m.handle" class="wa-header-avatar" />
+            } @else {
+              <div class="wa-header-fallback official">
+                {{ (m.display_name || m.name || m.handle || 'M').charAt(0).toUpperCase() }}
+              </div>
+            }
+            <span class="wa-online-dot"></span>
           </div>
 
-          @if (m.headline) {
-            <p class="wa-hero-headline">{{ m.headline }}</p>
-          }
+          <!-- Title & Live Status -->
+          <div class="wa-header-info" (click)="toggleKnowledgeDrawer()">
+            <div class="wa-header-title-row">
+              <h2 class="wa-header-name">{{ m.display_name || m.name || m.handle }}</h2>
+              <span class="wa-verified-disc" title="Verified Public Mind">
+                <svg viewBox="0 0 20 20" fill="currentColor" class="wa-verified-icon">
+                  <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              </span>
+              <span class="wa-mind-handle-pill">&#64;{{ m.handle }}</span>
+            </div>
 
-          @if (m.website_url) {
-            <a [href]="m.website_url" target="_blank" rel="noopener noreferrer" class="wa-hero-website-link">
-              <svg viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-              </svg>
-              <span>{{ m.website_url }}</span>
-            </a>
-          }
+            <p class="wa-header-status">
+              @if (isStreaming()) {
+                <span class="wa-status-typing">
+                  synthesizing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+                </span>
+              } @else if (isVoiceNoteSending()) {
+                <span class="wa-status-typing">
+                  recording audio<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+                </span>
+              } @else if (sessionMeta()?.chat_mode === 'human_direct') {
+                <span class="wa-status-human-direct">
+                  👤 Direct Human Channel &bull; {{ m.direct_chat_sla || 'Replies personally within a few hours' }}
+                </span>
+              } @else {
+                <span class="wa-status-online">online &bull; AI Digital Twin</span>
+              }
+            </p>
+          </div>
         </div>
-      </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="wa-hero-tabs">
-        <button
-          type="button"
-          class="wa-hero-tab"
-          [class.active]="activeTab() === 'consultation'"
-          (click)="setTab('consultation')"
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
-          </svg>
-          <span>Consultation</span>
-        </button>
-
-        <button
-          type="button"
-          class="wa-hero-tab"
-          [class.active]="activeTab() === 'knowledge'"
-          (click)="setTab('knowledge')"
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-          </svg>
-          <span>Knowledge & Sources</span>
-          @if (m.sources && m.sources.length > 0) {
-            <span class="wa-tab-counter">{{ m.sources.length }}</span>
+        <!-- Header Right Action Icons (Clean Lumina Design + Direct Human Escalation) -->
+        <div class="wa-header-right">
+          @if (sessionMeta()?.is_paid_unlocked) {
+            <!-- Seamless Mode Switcher once Paid Direct Chat is Unlocked -->
+            <div class="wa-mode-switcher-pill" title="Switch between 24/7 AI Mind and Direct Human Conversation">
+              <button
+                type="button"
+                class="wa-mode-seg-btn"
+                [class.active]="sessionMeta()?.chat_mode !== 'human_direct'"
+                (click)="switchThreadMode('ai')"
+              >
+                <span>🧠 AI Mind</span>
+              </button>
+              <button
+                type="button"
+                class="wa-mode-seg-btn human"
+                [class.active]="sessionMeta()?.chat_mode === 'human_direct'"
+                (click)="switchThreadMode('human_direct')"
+              >
+                <span>👤 Direct Human</span>
+              </button>
+            </div>
+          } @else if (m.direct_chat_enabled !== false) {
+            <!-- Paid Escalation CTA to Talk to the Real Person -->
+            <button
+              type="button"
+              (click)="openEscalateModal()"
+              class="wa-header-human-cta-btn"
+              title="Transition from AI Mind to a direct paid chat with the real person"
+            >
+              <span class="wa-human-cta-dot"></span>
+              <span>👤 Talk to Real {{ m.display_name || m.name || m.handle }}</span>
+              <span class="wa-human-price-tag">${{ m.direct_chat_price || 25 }}</span>
+            </button>
           }
-        </button>
-      </nav>
-    </header>
 
-    <!-- Content Sections based on Active Tab -->
-    @if (activeTab() === 'consultation') {
+          <!-- Knowledge & Doctrine Button (styled like Memories button with orange count badge) -->
+          <button 
+            type="button" 
+            (click)="toggleKnowledgeDrawer()" 
+            class="wa-header-memory-btn" 
+            [class.active]="isKnowledgeDrawerOpen()"
+            title="Mind Knowledge & Verified Sources"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+            </svg>
+            <span>Knowledge</span>
+            @if (m.sources && m.sources.length > 0) {
+              <span class="wa-memory-counter">{{ m.sources.length }}</span>
+            }
+          </button>
+
+          <!-- More Menu / Contact Info -->
+          <button type="button" (click)="toggleKnowledgeDrawer()" class="wa-icon-btn" title="Mind Info & Actions">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
       <!-- ========================================================
-           TAB 1: LIVE CONSULTATION CHAT
+           CHAT BODY & MESSAGES STREAM
            ======================================================== -->
-      <section class="wa-consultation-section">
-        <!-- Message stream container with WhatsApp doodle wallpaper -->
-        <div class="wa-consult-stream wa-wallpaper" #chatContainer>
-          <!-- Mind Grounding Notice Banner -->
-          <div class="wa-grounding-banner">
+      <div class="wa-chat-body" #chatContainer>
+        <!-- System Grounding / Neural Doctrine Banner -->
+        <div class="wa-system-banner">
+          @if (sessionMeta()?.chat_mode === 'human_direct') {
+            <div class="wa-system-pill human-active">
+              <span>👤 <strong>VIP Direct Human Channel Active:</strong> Your messages now go directly to {{ m.display_name || m.name || m.handle }}'s personal inbox with an AI Context Handoff Brief.</span>
+            </div>
+          } @else {
             <div class="wa-system-pill">
               <svg viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
               </svg>
-              <span>Consulting the public AI Mind of {{ m.display_name || m.name || m.handle }}. Responses are synthesized through authored writings and mental models.</span>
+              <span>Consulting the public AI Mind of {{ m.display_name || m.name || m.handle }}. Responses are synthesized through authored writings, mental models, and principles.</span>
             </div>
-          </div>
+          }
+        </div>
 
-          <!-- Message Bubbles Flow -->
-          <div class="wa-messages-flow">
-            @for (msg of messages(); track msg.id) {
+        <!-- AI Context Handoff Brief Card (when Paid Human Chat is unlocked) -->
+        @if (sessionMeta()?.is_paid_unlocked && sessionMeta()?.handoff_summary) {
+          <div class="wa-handoff-brief-card">
+            <div class="wa-handoff-brief-header" (click)="toggleHandoffBrief()">
+              <div class="wa-handoff-title-left">
+                <span class="wa-handoff-badge">✨ AI Context Handoff Brief</span>
+                <span class="wa-handoff-sub">Prepared automatically for {{ m.display_name || m.name }}</span>
+              </div>
+              <button type="button" class="wa-handoff-toggle-btn">
+                {{ showHandoffBrief() ? 'Hide' : 'Show Brief' }}
+              </button>
+            </div>
+            @if (showHandoffBrief()) {
+              <p class="wa-handoff-brief-body">{{ sessionMeta()?.handoff_summary }}</p>
+            }
+          </div>
+        }
+
+        <!-- Date Divider Pill -->
+        <div class="wa-date-divider">
+          <span class="wa-date-pill">TODAY</span>
+        </div>
+
+        <!-- Empty Hero Greeting Card (when conversation is new or has only initial greeting) -->
+        @if (messages().length <= 1) {
+          <div class="wa-chat-empty-hero">
+            <div class="wa-hero-avatar-disc">
+              @if (m.avatar_url) {
+                <img [src]="m.avatar_url" [alt]="m.display_name || m.name || m.handle" class="wa-hero-avatar-img" />
+              } @else {
+                <div class="wa-hero-avatar-fallback official">
+                  {{ (m.display_name || m.name || m.handle || 'M').charAt(0).toUpperCase() }}
+                </div>
+              }
+            </div>
+
+            <h3 class="wa-hero-name">{{ m.display_name || m.name || m.handle }}</h3>
+            @if (m.headline) {
+              <p class="wa-hero-headline-sub">{{ m.headline }}</p>
+            }
+
+            @if (m.greeting || m.philosophy_statement) {
+              <div class="wa-hero-greeting-box">
+                <svg class="wa-quote-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                </svg>
+                <p class="wa-hero-greeting-text">"{{ m.greeting || m.philosophy_statement }}"</p>
+              </div>
+            }
+
+            <div class="wa-hero-starters">
+              <p class="wa-starters-label">Tap to consult on a topic:</p>
+              <div class="wa-prompt-chips">
+                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('What are your core principles for making hard decisions?')">
+                  <span>💡</span>
+                  <span>Core Principles</span>
+                </button>
+                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Walk me through your key mental models and frameworks.')">
+                  <span>🧠</span>
+                  <span>Mental Models</span>
+                </button>
+                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('I need your perspective on solving a tough challenge...')">
+                  <span>⚡</span>
+                  <span>Decision Advice</span>
+                </button>
+              </div>
+            </div>
+
+            @if (m.website_url) {
+              <a [href]="m.website_url" target="_blank" rel="noopener noreferrer" class="wa-creator-cta-btn">
+                <span>🔗</span>
+                <span>Visit Creator Resource / Book 1:1</span>
+                <svg viewBox="0 0 20 20" fill="currentColor" class="wa-cta-arrow">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </a>
+            }
+          </div>
+        }
+
+        <!-- Message Bubbles Stream -->
+        <div class="wa-messages-flow">
+          @for (msg of messages(); track msg.id) {
+            @if (msg.sender_type === 'system') {
+              <div class="wa-system-milestone-row">
+                <div class="wa-system-milestone-pill">
+                  <span>{{ msg.content }}</span>
+                </div>
+              </div>
+            } @else {
               <div 
-                class="wa-msg-row"
+                class="wa-msg-row" 
                 [class.outgoing]="msg.sender_type === 'user'"
-                [class.incoming]="msg.sender_type === 'assistant'"
+                [class.incoming]="msg.sender_type === 'assistant' || msg.sender_type === 'creator'"
+                [class.creator-human]="msg.sender_type === 'creator'"
               >
                 <div class="wa-bubble">
-                  <!-- Tail SVG -->
-                  @if (msg.sender_type === 'user') {
-                    <span class="wa-tail-out">
-                      <svg viewBox="0 0 8 13" width="8" height="13">
-                        <path opacity="1" fill="#005c4b" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z" />
-                      </svg>
-                    </span>
-                  } @else {
-                    <span class="wa-tail-in">
-                      <svg viewBox="0 0 8 13" width="8" height="13">
-                        <path opacity="1" fill="#202c33" d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z" />
-                      </svg>
-                    </span>
+                  <!-- Verified Human Author Badge when the real person replies -->
+                  @if (msg.sender_type === 'creator') {
+                    <div class="wa-human-author-badge">
+                      <span class="wa-human-badge-dot"></span>
+                      <span>👤 Verified Human &bull; {{ m.display_name || m.name || m.handle }}</span>
+                    </div>
                   }
 
                   <!-- Message Content: Voice Note or Text -->
@@ -235,6 +348,13 @@
                             </button>
                           }
                           <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
+                          @if (msg.sender_type === 'user') {
+                            <span class="wa-ticks">
+                              <svg viewBox="0 0 16 15" width="16" height="15">
+                                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z" />
+                              </svg>
+                            </span>
+                          }
                         </div>
                       </div>
 
@@ -245,7 +365,7 @@
                       }
                     </div>
                   } @else {
-                    <!-- Content Text -->
+                    <!-- Standard Text Content -->
                     <div class="wa-bubble-content">
                       <p class="wa-text">{{ msg.content }}</p>
                       @if (isStreaming() && msg.sender_type === 'assistant' && msg.id === messages()[messages().length - 1].id) {
@@ -253,200 +373,478 @@
                       }
                     </div>
 
-                    <!-- Grounding Citations -->
+                    <!-- Grounding Sources Chips (Feature #7: Interactive Citation Preview on Click) -->
                     @if (msg.sources && msg.sources.length > 0) {
                       <div class="wa-cited-sources">
-                        <span class="wa-citations-label">Grounded in:</span>
+                        <span class="wa-citations-label">Grounded in (tap to verify):</span>
                         @for (src of msg.sources; track src.id) {
-                          <span class="wa-citation-chip">📄 {{ src.title }}</span>
+                          <button
+                            type="button"
+                            class="wa-citation-chip clickable"
+                            (click)="openCitationPreview(src)"
+                            title="Click to inspect exact source excerpt"
+                          >
+                            <span>📄 {{ src.title }}</span>
+                          </button>
                         }
                       </div>
                     }
 
-                    <!-- Timestamp -->
+                    <!-- Message Timestamp, Pin Takeaway & Read Ticks -->
                     <div class="wa-meta">
+                      @if ((msg.sender_type === 'assistant' || msg.sender_type === 'creator') && msg.content) {
+                        <button
+                          type="button"
+                          class="wa-save-takeaway-btn"
+                          [class.saved]="isTakeawaySaved(msg.id)"
+                          (click)="toggleSaveTakeaway(msg)"
+                          [title]="isTakeawaySaved(msg.id) ? 'Saved to Personal Playbook' : 'Save Insight to Personal Playbook'"
+                        >
+                          <span>📌</span>
+                          <span>{{ isTakeawaySaved(msg.id) ? 'Saved' : 'Save' }}</span>
+                        </button>
+                      }
                       <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
+                      @if (msg.sender_type === 'user') {
+                        <span class="wa-ticks" title="Delivered">
+                          <svg viewBox="0 0 16 15" width="16" height="15">
+                            <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z" />
+                          </svg>
+                        </span>
+                      }
                     </div>
                   }
                 </div>
               </div>
             }
-          </div>
+          }
         </div>
 
-        <!-- Consultation Input Bar -->
-        <footer class="wa-consult-input-bar">
-          @if (isRecordingVoiceNote()) {
-            <!-- WhatsApp Recording Bar Mode -->
-            <div class="wa-recording-mode-bar">
-              <button 
-                type="button" 
-                (click)="cancelVoiceNoteRecording()" 
-                class="wa-rec-trash-btn" 
-                title="Delete voice note"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                </svg>
-              </button>
+        <!-- Grounded Knowledge Indicator Banner -->
+        @if (lastGroundedInfo(); as info) {
+          @if (info.count > 0) {
+            <div class="wa-grounded-pill-banner" title="Response synthesized from verified authored knowledge sources">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="wa-grounded-svg">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span class="wa-grounded-text">
+                Grounded Knowledge: synthesized from {{ info.count }} verified source excerpt(s)
+              </span>
+            </div>
+          }
+        }
+      </div>
 
-              <div class="wa-rec-info-box">
-                <span class="wa-rec-dot"></span>
-                <span class="wa-rec-time">{{ recordingTimeFormatted() }}</span>
-                <div class="wa-live-waveform-bars">
-                  <span class="rec-bar rb1"></span>
-                  <span class="rec-bar rb2"></span>
-                  <span class="rec-bar rb3"></span>
-                  <span class="rec-bar rb4"></span>
-                  <span class="rec-bar rb5"></span>
-                  <span class="rec-bar rb6"></span>
-                  <span class="rec-bar rb7"></span>
-                  <span class="rec-bar rb8"></span>
+      <!-- Feature #1: Contextual Follow-Up Chips (Smart Replies) -->
+      @if (!isStreaming() && messages().length > 1 && smartFollowUps().length > 0) {
+        <div class="wa-smart-followups-row">
+          <span class="wa-followups-label">✨ Go deeper:</span>
+          @for (prompt of smartFollowUps(); track prompt) {
+            <button type="button" class="wa-followup-chip" (click)="onSelectQuickPrompt(prompt)">
+              {{ prompt }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- ========================================================
+           FLOATING FROSTED ISLAND DOCK (Input Bar)
+           ======================================================== -->
+      <footer class="wa-chat-input-bar" [class.human-direct-mode]="sessionMeta()?.chat_mode === 'human_direct'">
+        @if (isRecordingVoiceNote()) {
+          <!-- WhatsApp Recording Mode Bar -->
+          <div class="wa-recording-mode-bar">
+            <!-- Trash / Cancel Button -->
+            <button 
+              type="button" 
+              (click)="cancelVoiceNoteRecording()" 
+              class="wa-rec-trash-btn" 
+              title="Delete voice note"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
+
+            <!-- Recording Dot, Timer & Animated Waveform Bars -->
+            <div class="wa-rec-info-box">
+              <span class="wa-rec-dot"></span>
+              <span class="wa-rec-time">{{ recordingTimeFormatted() }}</span>
+              <div class="wa-live-waveform-bars">
+                <span class="rec-bar rb1"></span>
+                <span class="rec-bar rb2"></span>
+                <span class="rec-bar rb3"></span>
+                <span class="rec-bar rb4"></span>
+                <span class="rec-bar rb5"></span>
+                <span class="rec-bar rb6"></span>
+                <span class="rec-bar rb7"></span>
+                <span class="rec-bar rb8"></span>
+              </div>
+            </div>
+
+            <!-- Send Voice Note Button -->
+            <button 
+              type="button" 
+              (click)="sendVoiceNote()" 
+              class="wa-rec-send-btn" 
+              title="Send voice note"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        } @else {
+          <!-- Emoji Button -->
+          <button type="button" class="wa-icon-btn" title="Emoji">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-3.5-9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+            </svg>
+          </button>
+
+          <!-- Attachment Paperclip Button -->
+          <button type="button" class="wa-icon-btn" title="Attach">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 015 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3 3 0 006 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
+            </svg>
+          </button>
+
+          <!-- Input Pill with Textarea -->
+          <div class="wa-input-pill">
+            <textarea
+              #consultInput
+              [(ngModel)]="userInput"
+              (keydown)="onKeyDown($event)"
+              (input)="onInputResize()"
+              [placeholder]="sessionMeta()?.chat_mode === 'human_direct' ? 'Message the real ' + (m.display_name || m.name || m.handle) + ' directly (VIP Human Channel)...' : 'Share a thought, ask anything, or explore ideas...'"
+              rows="1"
+              class="wa-textarea"
+              [disabled]="isStreaming() || isVoiceNoteSending()"
+            ></textarea>
+          </div>
+
+          <!-- Send Button (when text typed) or Mic Button (when empty) -->
+          @if (userInput.trim() || isStreaming() || isVoiceNoteSending()) {
+            <button
+              type="button"
+              (click)="sendConsultation()"
+              class="wa-send-btn"
+              [disabled]="!userInput.trim() || isStreaming() || isVoiceNoteSending()"
+              title="Send Message"
+            >
+              @if (isStreaming() || isVoiceNoteSending()) {
+                <div class="wa-btn-spinner"></div>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              }
+            </button>
+          } @else {
+            <button 
+              type="button"
+              (click)="startVoiceNoteRecording()" 
+              class="wa-icon-btn wa-mic-btn" 
+              title="Record Voice Note"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+              </svg>
+            </button>
+          }
+        }
+      </footer>
+
+      <!-- ========================================================
+           SLIDE-OVER DRAWER: MIND DOCTRINE, KNOWLEDGE & ACTIONS
+           ======================================================== -->
+      @if (isKnowledgeDrawerOpen()) {
+        <aside class="wa-drawer-container">
+          <!-- Drawer Header -->
+          <header class="wa-drawer-header">
+            <button type="button" (click)="toggleKnowledgeDrawer()" class="wa-drawer-close-btn" title="Close">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 class="wa-drawer-title">Mind info & Knowledge</h3>
+          </header>
+
+          <div class="wa-drawer-body">
+            <!-- Feature #7: Interactive Citation Preview Card -->
+            @if (selectedCitation(); as cit) {
+              <div class="wa-drawer-section wa-citation-preview-card">
+                <div class="wa-citation-preview-header">
+                  <span class="wa-citation-badge">🔍 Verified Source Excerpt</span>
+                  <button type="button" class="wa-citation-close" (click)="closeCitationPreview()">&times;</button>
                 </div>
+                <h4 class="wa-citation-doc-title">📄 {{ cit.title }}</h4>
+                <blockquote class="wa-citation-excerpt">
+                  "{{ cit.excerpt || 'Verified passage indexed inside this AI Mind’s canonical knowledge base.' }}"
+                </blockquote>
+              </div>
+            }
+
+            <!-- Profile Hero Section -->
+            <div class="wa-drawer-section wa-profile-hero">
+              <div class="wa-drawer-avatar-wrap">
+                @if (m.avatar_url) {
+                  <img [src]="m.avatar_url" [alt]="m.display_name || m.name || m.handle" class="wa-drawer-avatar-img" />
+                } @else {
+                  <div class="wa-drawer-avatar-fallback official">
+                    {{ (m.display_name || m.name || m.handle || 'M').charAt(0).toUpperCase() }}
+                  </div>
+                }
               </div>
 
-              <button 
-                type="button" 
-                (click)="sendVoiceNote()" 
-                class="wa-rec-send-btn" 
-                title="Send voice note"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-              </button>
-            </div>
-          } @else {
-            <div class="wa-input-pill">
-              <textarea
-                #consultInput
-                [(ngModel)]="userInput"
-                (keydown)="onKeyDown($event)"
-                (input)="onInputResize()"
-                [placeholder]="'Ask ' + (m.display_name || m.name || m.handle) + ' for advice, mental models, or principles...'"
-                rows="1"
-                class="wa-textarea"
-                [disabled]="isStreaming() || isVoiceNoteSending()"
-              ></textarea>
-            </div>
+              <h2 class="wa-drawer-name">{{ m.display_name || m.name || m.handle }}</h2>
+              <span class="wa-drawer-handle">&#64;{{ m.handle }}</span>
 
-            @if (userInput.trim() || isStreaming() || isVoiceNoteSending()) {
-              <button
-                type="button"
-                (click)="sendConsultation()"
-                class="wa-send-btn"
-                [disabled]="!userInput.trim() || isStreaming() || isVoiceNoteSending()"
-                title="Send Consultation Turn"
-              >
-                @if (isStreaming() || isVoiceNoteSending()) {
-                  <div class="wa-btn-spinner"></div>
-                } @else {
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
+              <div class="wa-hero-badges">
+                <span class="wa-badge wa-badge-teal">Thought Commons</span>
+                @if ((m.total_interactions || 0) > 0) {
+                  <span class="wa-badge wa-badge-gold">⚡ {{ m.total_interactions }} consultations</span>
                 }
-              </button>
-            } @else {
-              <!-- WhatsApp Voice Note Mic Button -->
-              <button 
-                type="button"
-                (click)="startVoiceNoteRecording()" 
-                class="wa-icon-btn wa-mic-btn" 
-                title="Record WhatsApp Voice Note"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                </svg>
-              </button>
+              </div>
+
+              <!-- Quick Action Buttons in Drawer: Voice Call & Share -->
+              <div class="wa-drawer-actions-row">
+                <button type="button" (click)="startVoiceCall()" class="wa-drawer-voice-btn" title="Start Live Voice Consultation">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-2.2 2.2a15.053 15.053 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-.99-1.12z" />
+                  </svg>
+                  <span>Voice Call</span>
+                </button>
+
+                <button type="button" (click)="openShareModal()" class="wa-drawer-action-share-btn" title="Share AI Mind">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  <span>Share</span>
+                </button>
+              </div>
+
+              @if (!sessionMeta()?.is_paid_unlocked && m.direct_chat_enabled !== false) {
+                <button type="button" (click)="openEscalateModal()" class="wa-creator-cta-btn full-width">
+                  <span>👤</span>
+                  <span>Talk to Real {{ m.display_name || m.name }} &bull; ${{ m.direct_chat_price || 25 }}</span>
+                </button>
+              }
+
+              <!-- Feature #8: Creator Call-to-Action Button -->
+              @if (m.website_url) {
+                <a [href]="m.website_url" target="_blank" rel="noopener noreferrer" class="wa-creator-cta-btn full-width">
+                  <span>🔗</span>
+                  <span>Visit Creator Resource / Book 1:1</span>
+                </a>
+              }
+            </div>
+
+            <!-- Feature #4: Saved Takeaways (Personal Playbook) -->
+            <div class="wa-drawer-section">
+              <div class="wa-section-label-row">
+                <span class="wa-section-label">📌 Saved Takeaways</span>
+                @if (savedTakeaways().length > 0) {
+                  <span class="wa-sources-badge">{{ savedTakeaways().length }} saved</span>
+                }
+              </div>
+
+              @if (savedTakeaways().length === 0) {
+                <p class="wa-no-sources">Tap "📌 Save" on any insight in chat to build your personal playbook.</p>
+              } @else {
+                <div class="wa-takeaways-list">
+                  @for (item of savedTakeaways(); track item.id) {
+                    <div class="wa-takeaway-card">
+                      <p class="wa-takeaway-text">{{ item.content }}</p>
+                      <div class="wa-takeaway-actions">
+                        <span class="wa-takeaway-date">{{ item.saved_at | date:'shortDate' }}</span>
+                        <div class="wa-takeaway-btns">
+                          <button type="button" class="wa-takeaway-btn" (click)="copyTakeaway(item)">
+                            {{ copiedTakeawayId() === item.id ? '✓ Copied' : '📋 Copy' }}
+                          </button>
+                          <button type="button" class="wa-takeaway-btn remove" (click)="removeSavedTakeaway(item.id)">
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Headline / Bio -->
+            @if (m.headline) {
+              <div class="wa-drawer-section">
+                <span class="wa-section-label">Headline</span>
+                <p class="wa-section-desc">{{ m.headline }}</p>
+              </div>
             }
-          }
-        </footer>
-      </section>
-    } @else {
-      <!-- ========================================================
-           TAB 2: KNOWLEDGE & SOURCES SHOWCASE
-           ======================================================== -->
-      <section class="wa-knowledge-section">
-        <!-- Philosophy Doctrine Card -->
-        <div class="wa-knowledge-card">
-          <div class="wa-card-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
-            <h3>Core Philosophy Statement</h3>
-          </div>
-          <p class="wa-philosophy-body">
-            {{ m.philosophy_statement || m.personality || 'No formal philosophy statement published.' }}
-          </p>
-        </div>
 
-        <!-- Mental Models & Frameworks -->
-        @if (m.mental_models && m.mental_models.length > 0) {
-          <div class="wa-knowledge-card">
-            <div class="wa-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-              <h3>Core Mental Models</h3>
+            <!-- Core Philosophy Statement -->
+            <div class="wa-drawer-section">
+              <span class="wa-section-label">Core Philosophy</span>
+              <p class="wa-section-desc">{{ m.philosophy_statement || m.personality || 'No formal philosophy statement published.' }}</p>
             </div>
-            <div class="wa-models-list">
-              @for (model of m.mental_models; track model) {
-                <div class="wa-model-item">
-                  <span class="wa-model-bullet">&bull;</span>
-                  <span>{{ model }}</span>
+
+            <!-- Mental Models & Frameworks -->
+            @if (m.mental_models && m.mental_models.length > 0) {
+              <div class="wa-drawer-section">
+                <span class="wa-section-label">Core Mental Models</span>
+                <div class="wa-models-list">
+                  @for (model of m.mental_models; track model) {
+                    <div class="wa-model-item">
+                      <span class="wa-model-bullet">&bull;</span>
+                      <span>{{ model }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Verified Ingested Knowledge Sources -->
+            <div class="wa-drawer-section">
+              <div class="wa-section-label-row">
+                <span class="wa-section-label">Verified Ingested Sources</span>
+                @if (m.sources && m.sources.length > 0) {
+                  <span class="wa-sources-badge">{{ m.sources.length }} indexed</span>
+                }
+              </div>
+
+              @if (!m.sources || m.sources.length === 0) {
+                <p class="wa-no-sources">No external sources or documents indexed for this Mind yet.</p>
+              } @else {
+                <div class="wa-sources-table">
+                  @for (src of m.sources; track src.id) {
+                    <div class="wa-source-row">
+                      <div class="wa-source-icon">
+                        @if (src.source_type === 'url' || src.sourceType === 'url') {
+                          <span>🌐</span>
+                        } @else if (src.source_type === 'pdf' || src.sourceType === 'pdf') {
+                          <span>📕</span>
+                        } @else {
+                          <span>📄</span>
+                        }
+                      </div>
+
+                      <div class="wa-source-info">
+                        <span class="wa-source-title">{{ src.title }}</span>
+                        <span class="wa-source-type-tag">
+                          {{ (src.source_type || src.sourceType) | uppercase }}
+                          @if (src.chunk_count || src.chunkCount) {
+                            &bull; {{ src.chunk_count || src.chunkCount }} chunks
+                          }
+                        </span>
+                      </div>
+
+                      <span class="wa-status-badge" [class]="src.status">
+                        {{ src.status | uppercase }}
+                      </span>
+                    </div>
+                  }
                 </div>
               }
             </div>
           </div>
-        }
-
-        <!-- Verified Training Sources -->
-        <div class="wa-knowledge-card">
-          <div class="wa-card-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <h3>Ingested Sources & Documentation</h3>
-          </div>
-
-          @if (!m.sources || m.sources.length === 0) {
-            <p class="wa-no-sources">No external sources or documents indexed for this Mind yet.</p>
-          } @else {
-            <div class="wa-sources-table">
-              @for (src of m.sources; track src.id) {
-                <div class="wa-source-row">
-                  <div class="wa-source-icon">
-                    @if (src.source_type === 'url' || src.sourceType === 'url') {
-                      <span>🌐</span>
-                    } @else if (src.source_type === 'pdf' || src.sourceType === 'pdf') {
-                      <span>📕</span>
-                    } @else {
-                      <span>📄</span>
-                    }
-                  </div>
-
-                  <div class="wa-source-info">
-                    <span class="wa-source-title">{{ src.title }}</span>
-                    <span class="wa-source-type-tag">
-                      {{ (src.source_type || src.sourceType) | uppercase }}
-                      @if (src.chunk_count || src.chunkCount) {
-                        &bull; {{ src.chunk_count || src.chunkCount }} indexed chunks
-                      }
-                    </span>
-                  </div>
-
-                  <span class="wa-status-badge" [class]="src.status">
-                    {{ src.status | uppercase }}
-                  </span>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      </section>
+        </aside>
+      }
     }
   }
-}
+
+  <!-- ========================================================
+       PAID AI-TO-HUMAN ESCALATION MODAL
+       ======================================================== -->
+  @if (isEscalateModalOpen() && mind(); as m) {
+    <div class="wa-escalate-backdrop" (click)="closeEscalateModal()">
+      <div class="wa-escalate-modal" (click)="$event.stopPropagation()">
+        <div class="wa-escalate-header">
+          <div class="wa-escalate-title-wrap">
+            <span class="wa-escalate-kicker">VIP Direct Human Access</span>
+            <h3>Talk Directly with {{ m.display_name || m.name || m.handle }}</h3>
+          </div>
+          <button type="button" class="wa-escalate-close" (click)="closeEscalateModal()">&times;</button>
+        </div>
+
+        <div class="wa-escalate-body">
+          <div class="wa-escalate-creator-row">
+            @if (m.avatar_url) {
+              <img [src]="m.avatar_url" class="wa-escalate-avatar" [alt]="m.display_name || m.name" />
+            } @else {
+              <div class="wa-escalate-avatar fallback">
+                {{ (m.display_name || m.name || m.handle || 'M').charAt(0).toUpperCase() }}
+              </div>
+            }
+            <div class="wa-escalate-creator-meta">
+              <div class="wa-escalate-name-row">
+                <strong>{{ m.display_name || m.name || m.handle }}</strong>
+                <span class="wa-escalate-verified-pill">👤 Verified Human</span>
+              </div>
+              <span class="wa-escalate-sla">{{ m.direct_chat_sla || 'Replies personally within a few hours' }}</span>
+            </div>
+            <div class="wa-escalate-price-box">
+              <span class="wa-price-amount">${{ m.direct_chat_price || 25 }}</span>
+              <span class="wa-price-unit">per session</span>
+            </div>
+          </div>
+
+          <div class="wa-escalate-benefits">
+            <div class="wa-benefit-item">
+              <span class="wa-benefit-icon">✨</span>
+              <div>
+                <strong>Automatic AI Context Handoff Brief</strong>
+                <p>We summarize your AI Mind conversation so {{ m.display_name || m.name }} gets your full context without you repeating yourself.</p>
+              </div>
+            </div>
+            <div class="wa-benefit-item">
+              <span class="wa-benefit-icon">💬</span>
+              <div>
+                <strong>Seamless In-Thread Personal Replies</strong>
+                <p>Stay right inside this thread. {{ m.display_name || m.name }}'s personal replies appear with a Verified Human badge.</p>
+              </div>
+            </div>
+            <div class="wa-benefit-item">
+              <span class="wa-benefit-icon">🔄</span>
+              <div>
+                <strong>Switch Between AI &amp; Human Anytime</strong>
+                <p>Once unlocked, toggle freely between the 24/7 AI Digital Twin and Direct Human mode in this conversation.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="wa-escalate-note-field">
+            <label>Add a priority question or note for {{ m.display_name || m.name }} (Optional)</label>
+            <textarea
+              [(ngModel)]="escalationNoteInput"
+              rows="3"
+              placeholder="e.g., I'd love your personal take on the pricing decision we just discussed..."
+            ></textarea>
+          </div>
+
+          @if (escalateError()) {
+            <div class="wa-escalate-error">{{ escalateError() }}</div>
+          }
+        </div>
+
+        <div class="wa-escalate-footer">
+          <button type="button" class="wa-escalate-cancel-btn" (click)="closeEscalateModal()">
+            Continue with AI Mind
+          </button>
+          <button
+            type="button"
+            class="wa-escalate-confirm-btn"
+            [disabled]="isEscalating()"
+            (click)="confirmHumanEscalation()"
+          >
+            @if (isEscalating()) {
+              <span>Preparing Context Brief &amp; Unlocking...</span>
+            } @else {
+              <span>Unlock Direct Human Chat &bull; ${{ m.direct_chat_price || 25 }}</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- Live Voice Consultation Overlay -->
   @if (isVoiceCallActive()) {
@@ -455,5 +853,18 @@
       (closeCall)="endVoiceCall()"
       (messageAdded)="onVoiceTurnMessageAdded($event)"
     ></app-voice-call-overlay>
+  }
+
+  <!-- Social Media Share Modal -->
+  @if (mind()) {
+    <app-share-mind-modal
+      [isOpen]="isShareModalOpen()"
+      [mindName]="mind()?.display_name || mind()?.name || mind()?.handle || 'AI Mind'"
+      [handle]="mind()?.handle || ''"
+      [headline]="mind()?.headline || ''"
+      [avatarUrl]="mind()?.avatar_url || ''"
+      [isPublished]="true"
+      (close)="closeShareModal()"
+    ></app-share-mind-modal>
   }
 </div>

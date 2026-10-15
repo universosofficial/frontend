@@ -55,48 +55,427 @@ export class CharacterFormComponent implements OnInit {
   studioSuccess = signal<string | null>(null);
   studioError = signal<string | null>(null);
 
-  relationshipOptions: { value: string; label: string }[] = [
-    { value: 'father', label: 'Father / Dad' },
-    { value: 'mother', label: 'Mother / Mom' },
-    { value: 'spouse', label: 'Spouse / Husband / Wife' },
-    { value: 'partner', label: 'Partner / Girlfriend / Boyfriend' },
-    { value: 'friend', label: 'Close Friend / Companion' },
-    { value: 'mentor', label: 'Life Mentor / Guide' },
-    { value: 'sibling', label: 'Sibling / Brother / Sister' },
-    { value: 'custom', label: 'Custom Relationship' },
+  showAdvancedAccordion = signal<boolean>(false);
+
+  // Feature #1: 1-Sentence Magic Persona Generator & Starter Blueprints
+  magicPromptInput = '';
+  isGeneratingMagic = signal<boolean>(false);
+  magicSuccessBanner = signal<string | null>(null);
+  isDictatingMagic = signal<boolean>(false);
+  private speechRecognition: any = null;
+
+  starterBlueprints = [
+    {
+      label: 'Master Teacher & Tutor',
+      name: 'Professor Maya',
+      relationship_type: 'teacher',
+      voice_id: 'shimmer',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=MayaTeacher&backgroundColor=b6e3f4',
+      tone: 'Encouraging, Clear & Socratic',
+      personality: 'Warm, brilliant, and patient master teacher. Specializes in explaining complex concepts with real-world intuition, solving calculations step-by-step with clear arithmetic and the why behind every move, and coaching you through mistakes with unwavering encouragement.',
+      greeting: 'Hello there! I\'m Professor Maya, your personal teacher and step-by-step study mentor. Whether we\'re tackling a tough calculation, breaking down a new concept with real-world examples, or prepping for an exam—what are we learning today?',
+      nicknames_for_user: 'Curious Mind, Scholar, My friend',
+      catchphrases: 'Let\'s break this down step by step, Intuition first, symbols second, Every mistake is just a clue',
+      speech_quirks: 'Explains intuition and real-life analogies first, lays out calculations in crystal-clear steps with the arithmetic and reasoning, and checks in with a warm Socratic question.',
+      shared_memories_seed: 'Always in your corner to make hard concepts click, master calculations step by step, and build unshakable academic confidence.',
+    },
+    {
+      label: 'Stoic Accountability Coach',
+      name: 'Marcus',
+      relationship_type: 'mentor',
+      voice_id: 'onyx',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=Marcus&backgroundColor=c0aede',
+      tone: 'Direct & Action-Oriented',
+      personality: 'No-nonsense, deeply encouraging Stoic accountability coach. Cuts through procrastination, checks in on your daily top 3 priorities, and keeps you focused on what is within your control.',
+      greeting: 'Morning. What is the single most important commitment you are executing today—and what excuse are we leaving behind?',
+      nicknames_for_user: 'Builder, Partner',
+      catchphrases: 'Action cures anxiety, Focus on what you control',
+      speech_quirks: 'Crisp, punchy sentences that end with a clear accountability check.',
+      shared_memories_seed: 'We teamed up to build unbreakable daily discipline and turn ambitious goals into finished work.',
+    },
+    {
+      label: 'Late-Night Confidant',
+      name: 'Nova',
+      relationship_type: 'friend',
+      voice_id: 'nova',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=Nova&backgroundColor=ffdfbf',
+      tone: 'Warm & Empathetic',
+      personality: 'Soulful, non-judgmental late-night best friend. Listens deeply when your mind is racing, validates your feelings without lecturing, and brings calm warmth.',
+      greeting: 'Hey you. Take a slow breath—you don\'t have to carry the whole day on your shoulders anymore. What\'s on your mind tonight?',
+      nicknames_for_user: 'My friend',
+      catchphrases: 'I am right here with you, One breath at a time',
+      speech_quirks: 'Gentle, unhurried cadence that makes you feel immediately safe and heard.',
+      shared_memories_seed: 'Countless late-night talks untangling life, overthinking, and big dreams together.',
+    },
+    {
+      label: 'Strategic Co-Founder',
+      name: 'Atlas',
+      relationship_type: 'thinker',
+      voice_id: 'echo',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=Atlas&backgroundColor=b6e3f4',
+      tone: 'Wise & Thought-Provoking',
+      personality: 'Sharp, first-principles strategic sparring partner. Stress-tests your ideas, exposes blind spots before they cost you, and helps you make high-conviction decisions.',
+      greeting: 'Pitch me what you\'re thinking—and don\'t hold back. Let\'s find the weakest assumption in the plan and make it bulletproof.',
+      nicknames_for_user: 'Partner, Founder',
+      catchphrases: 'What if the opposite is true?, Invert the problem',
+      speech_quirks: 'Uses Socratic questions and mental models to pressure-test every premise.',
+      shared_memories_seed: 'Whiteboarding high-stakes strategy and dissecting complex decisions from first principles.',
+    },
+    {
+      label: 'Creative Co-Writer',
+      name: 'Clara',
+      relationship_type: 'creative',
+      voice_id: 'shimmer',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=Clara&backgroundColor=ffd5dc',
+      tone: 'Witty & Humorous',
+      personality: 'Imaginative, witty creative partner and story architect. Helps you brainstorm wild plot twists, vivid dialogue, essays, and original concepts with infectious energy.',
+      greeting: 'Hey! I\'ve got fresh coffee and a blank canvas ready. What story, concept, or world are we bringing to life today?',
+      nicknames_for_user: 'Co-Creator',
+      catchphrases: 'Follow the tension, Let\'s make it unforgettable',
+      speech_quirks: 'Playful, vivid imagery with enthusiastic creative riffs.',
+      shared_memories_seed: 'Brainstorming stories, characters, and wild creative projects late into the evening.',
+    },
+    {
+      label: 'Grounded Mentor',
+      name: 'Arthur',
+      relationship_type: 'father',
+      voice_id: 'onyx',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=Arthur&backgroundColor=d1d4f9',
+      tone: 'Warm & Empathetic',
+      personality: 'Steady, proud, and protective mentor figure. Offers unconditional support, practical life wisdom, gentle humor, and a safe harbor whenever life feels overwhelming.',
+      greeting: 'So glad you dropped by. Pull up a chair and tell me how things are really going with you.',
+      nicknames_for_user: 'My friend',
+      catchphrases: 'We will figure it out together, Steady does it',
+      speech_quirks: 'Warm, reassuring cadence with steady life perspective.',
+      shared_memories_seed: 'Always being in your corner through every season and milestone of life.',
+    },
+    {
+      label: 'Match Forecaster',
+      name: 'Leo',
+      relationship_type: 'sports',
+      voice_id: 'echo',
+      avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=Viktor&backgroundColor=b6e3f4',
+      tone: 'Direct & Action-Oriented',
+      personality: 'Sharp, collaborative football match forecaster and betting options sparring partner. Breaks down how a match will actually play out in plain English, grills your betting options to spot hidden traps, and helps you lock in the smartest play.',
+      greeting: 'Hey mate! Which match are we looking at today, and what options are you considering? Drop the teams or your picks and let\'s grill them together.',
+      nicknames_for_user: 'Gaffer, Mate',
+      catchphrases: 'Let\'s grill that option, Protect the ticket',
+      speech_quirks: 'Plain football talk—tactical, honest, zero confusing math jargon.',
+      shared_memories_seed: 'Putting heads together every matchday to forecast games, stress-test betting options, and dodge obvious traps.',
+      is_sports_analyst: true,
+    },
   ];
+
+  // Feature #3: 1-Click Expressive Avatar Gallery
+  curatedAvatars = [
+    { name: 'Maya', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=MayaTeacher&backgroundColor=b6e3f4' },
+    { name: 'Nova', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Nova&backgroundColor=ffdfbf' },
+    { name: 'Marcus', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Marcus&backgroundColor=c0aede' },
+    { name: 'Elena', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Elena&backgroundColor=ffd5dc' },
+    { name: 'Atlas', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Atlas&backgroundColor=b6e3f4' },
+    { name: 'Clara', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Clara&backgroundColor=ffdfbf' },
+    { name: 'Arthur', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Arthur&backgroundColor=d1d4f9' },
+    { name: 'Grace', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Grace&backgroundColor=ffd5dc' },
+    { name: 'Viktor', url: 'https://api.dicebear.com/9.x/notionists/svg?seed=Viktor&backgroundColor=b6e3f4' },
+  ];
+
+  // Feature #2: "Test Their Vibe" Sample Preview State
+  vibePreviewPrompt = 'I had a really exhausting day and my head is spinning with too many things at once.';
+  vibeScenarioPills = [
+    'I had a really exhausting day and my head is spinning.',
+    'I keep procrastinating on a big goal I care about.',
+    'Give me your honest take—how do we tackle a hard decision?',
+  ];
+  isPreviewingVibe = signal<boolean>(false);
+  vibePreviewResult = signal<{ userPrompt: string; reply: string } | null>(null);
+  isPlayingVibeAudio = signal<boolean>(false);
+
+  applyStarterBlueprint(bp: any): void {
+    this.selectedPresetId.set(bp.voice_id || 'alloy');
+    this.characterForm.patchValue({
+      name: bp.name,
+      relationship_type: bp.relationship_type,
+      avatarUrl: bp.avatarUrl,
+      voice_provider: 'preset',
+      voice_id: bp.voice_id || 'alloy',
+      tone: bp.tone,
+      personality: bp.personality,
+      greeting: bp.greeting,
+      nicknames_for_user: bp.nicknames_for_user,
+      catchphrases: bp.catchphrases,
+      speech_quirks: bp.speech_quirks,
+      shared_memories_seed: bp.shared_memories_seed,
+      is_sports_analyst: Boolean(bp.is_sports_analyst),
+    });
+    this.magicSuccessBanner.set(`Loaded "${bp.label}" blueprint! You can customize any detail or click Create Companion.`);
+    this.vibePreviewResult.set(null);
+  }
+
+  selectCuratedAvatar(url: string): void {
+    this.characterForm.patchValue({ avatarUrl: url });
+  }
+
+  generateExpressiveAvatar(): void {
+    const rawName = (this.characterForm.get('name')?.value || '').trim();
+    const role = this.characterForm.get('relationship_type')?.value || 'friend';
+    const randomSuffix = Math.floor(100 + Math.random() * 900);
+    const seed = encodeURIComponent(rawName ? `${rawName}-${randomSuffix}` : `${role}-${randomSuffix}`);
+    const url = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=ffdfbf,ffd5dc,c0aede,b6e3f4,d1d4f9`;
+    this.characterForm.patchValue({ avatarUrl: url });
+  }
+
+  toggleMagicVoiceDictation(): void {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      this.errorMessage = 'Voice dictation is not supported in this browser. Please type your description.';
+      return;
+    }
+
+    if (this.isDictatingMagic()) {
+      this.speechRecognition?.stop();
+      this.isDictatingMagic.set(false);
+      return;
+    }
+
+    this.speechRecognition = new SpeechRecognition();
+    this.speechRecognition.lang = 'en-US';
+    this.speechRecognition.interimResults = false;
+    this.speechRecognition.continuous = false;
+
+    this.speechRecognition.onstart = () => {
+      this.isDictatingMagic.set(true);
+    };
+
+    this.speechRecognition.onresult = (event: any) => {
+      const transcript = event.results?.[0]?.[0]?.transcript || '';
+      if (transcript) {
+        this.magicPromptInput = (this.magicPromptInput ? this.magicPromptInput + ' ' : '') + transcript;
+      }
+    };
+
+    this.speechRecognition.onerror = () => {
+      this.isDictatingMagic.set(false);
+    };
+
+    this.speechRecognition.onend = () => {
+      this.isDictatingMagic.set(false);
+    };
+
+    this.speechRecognition.start();
+  }
+
+  onGenerateMagicPersona(): void {
+    const prompt = this.magicPromptInput.trim();
+    if (!prompt || this.isGeneratingMagic()) return;
+
+    this.isGeneratingMagic.set(true);
+    this.errorMessage = null;
+    this.magicSuccessBanner.set(null);
+
+    this.characterService.generateMagicPersona(prompt).subscribe({
+      next: (res) => {
+        this.isGeneratingMagic.set(false);
+        if (res.data) {
+          const d = res.data;
+          this.selectedPresetId.set(d.voice_id || 'nova');
+          this.characterForm.patchValue({
+            name: d.name || 'Nova',
+            relationship_type: d.relationship_type || 'friend',
+            avatarUrl: d.avatarUrl || '',
+            voice_provider: 'preset',
+            voice_id: d.voice_id || 'nova',
+            tone: d.tone || 'Warm & Empathetic',
+            personality: d.personality || '',
+            greeting: d.greeting || '',
+            nicknames_for_user: d.nicknames_for_user || '',
+            catchphrases: d.catchphrases || '',
+            speech_quirks: d.speech_quirks || '',
+            shared_memories_seed: d.shared_memories_seed || '',
+            backstory: d.backstory || '',
+            is_sports_analyst: Boolean(d.is_sports_analyst),
+          });
+          this.magicSuccessBanner.set(`✨ Auto-built "${d.name}" from your description! Review or test their vibe below.`);
+          this.vibePreviewResult.set(null);
+        }
+      },
+      error: (err) => {
+        this.isGeneratingMagic.set(false);
+        this.errorMessage = err.error?.error?.message || 'Could not auto-generate persona. Please try again.';
+      },
+    });
+  }
+
+  onPreviewPersonaVibe(customPrompt?: string): void {
+    if (customPrompt) {
+      this.vibePreviewPrompt = customPrompt;
+    }
+    if (this.isPreviewingVibe()) return;
+
+    this.isPreviewingVibe.set(true);
+    const draft = this.characterForm.value;
+
+    this.characterService.previewPersonaVibe(draft, this.vibePreviewPrompt).subscribe({
+      next: (res) => {
+        this.isPreviewingVibe.set(false);
+        if (res.data) {
+          this.vibePreviewResult.set(res.data);
+        }
+      },
+      error: () => {
+        this.isPreviewingVibe.set(false);
+      },
+    });
+  }
+
+  speakVibePreview(): void {
+    const preview = this.vibePreviewResult();
+    if (!preview?.reply) return;
+
+    if (this.voiceService.isAudioPlaying() && this.isPlayingVibeAudio()) {
+      this.voiceService.stopAudio();
+      this.isPlayingVibeAudio.set(false);
+      return;
+    }
+
+    const voiceId = this.characterForm.get('voice_id')?.value || 'alloy';
+    this.isPlayingVibeAudio.set(true);
+    this.voiceService.previewVoice(preview.reply, voiceId).subscribe({
+      next: (res) => {
+        if (res.audioBase64) {
+          this.voiceService.playAudio(res.audioBase64, voiceId).finally(() => {
+            this.isPlayingVibeAudio.set(false);
+          });
+        } else {
+          this.isPlayingVibeAudio.set(false);
+        }
+      },
+      error: () => {
+        this.isPlayingVibeAudio.set(false);
+      },
+    });
+  }
+
+  relationshipOptions: { value: string; label: string; icon: string }[] = [
+    { value: 'teacher', label: 'Master Teacher & Step-by-Step Tutor', icon: '🎓' },
+    { value: 'friend', label: 'Close Friend & Confidant', icon: '' },
+    { value: 'mentor', label: 'Life & Career Mentor', icon: '' },
+    { value: 'thinker', label: 'Philosopher & Strategic Thinker', icon: '' },
+    { value: 'creative', label: 'Creative & Writing Partner', icon: '' },
+    { value: 'sports', label: 'Match Forecaster & Betting Options Copilot', icon: '' },
+    { value: 'partner', label: 'Romantic Partner / Spouse', icon: '' },
+    { value: 'father', label: 'Father / Paternal Figure', icon: '' },
+    { value: 'mother', label: 'Mother / Maternal Figure', icon: '' },
+    { value: 'custom', label: 'Custom Archetype', icon: '' },
+  ];
+
+  personalityChips = [
+    { label: 'Warm & Empathetic', desc: 'Deeply caring, attentive, active listener with genuine warmth.' },
+    { label: 'Direct & Action-Oriented', desc: 'No fluff, cuts straight to actionable insights and practical next steps.' },
+    { label: 'Wise & Thought-Provoking', desc: 'Uses Socratic questioning, deep philosophical reflections, and mental models.' },
+    { label: 'Witty & Humorous', desc: 'Playful banter, clever humor, keeps conversations light and fun.' },
+    { label: 'Analytical & Grounded', desc: 'Grounds every recommendation in logic, clarity, and structured facts.' },
+  ];
+
+  applyPersonalityPreset(chip: { label: string; desc: string }): void {
+    const current = this.characterForm.get('personality')?.value || '';
+    if (!current.trim()) {
+      this.characterForm.patchValue({ personality: chip.desc });
+    } else {
+      this.characterForm.patchValue({ personality: current + ' ' + chip.desc });
+    }
+  }
+
+  autoGenerateGreeting(): void {
+    const name = this.characterForm.get('name')?.value || 'Companion';
+    const role = this.characterForm.get('relationship_type')?.value || 'friend';
+    const isSports = this.characterForm.get('is_sports_analyst')?.value;
+
+    let greeting = '';
+    if (role === 'teacher' || role === 'tutor') {
+      greeting = `Hello there! I'm ${name}, your personal teacher and step-by-step study mentor. Whether we're tackling a tough calculation, breaking down a new concept with real-world examples, or prepping for an exam—what are we learning today?`;
+    } else if (isSports || role === 'sports') {
+      greeting = `Hey mate! I'm ${name}, your Match Forecaster & Options Copilot. Tell me which match you're looking at and the betting options you have in mind—let's grill them together!`;
+    } else if (role === 'mentor') {
+      greeting = `Greetings! I am ${name}. What challenge or goal are you working through today? Let's break it down together.`;
+    } else if (role === 'creative') {
+      greeting = `Hey there! I'm ${name}. I'm excited to brainstorm and create with you today. What idea shall we start with?`;
+    } else if (role === 'thinker') {
+      greeting = `Hello. I am ${name}. What fundamental question or premise would you like to examine today?`;
+    } else if (role === 'partner') {
+      greeting = `Hey my love! I've been thinking about you. How was your day?`;
+    } else if (role === 'father' || role === 'mother') {
+      greeting = `Hey kiddo, so glad to hear from you. Take a breath—how is everything going today?`;
+    } else {
+      greeting = `Hey! I'm ${name}. It's great to connect with you. What would you like to talk about today?`;
+    }
+
+    this.characterForm.patchValue({ greeting });
+  }
+
+  analysisStyleOptions = [
+    { value: 'quant_expected_value', label: 'Quantitative Expected Value (+EV)', desc: 'Poisson math simulations, true odds calculation & bookmaker vig removal' },
+    { value: 'tactical_pundit', label: 'Tactical Pundit', desc: 'Manager tactical profiles, rest day deficits, European travel fatigue & injuries' },
+    { value: 'conservative_grinder', label: 'Conservative Grinder', desc: 'Capital preservation, high-probability accumulators & strict stop-loss discipline' },
+  ];
+
+  leagueOptions = [
+    { value: 'Premier League', label: 'Premier League (EPL)' },
+    { value: 'Champions League', label: 'UEFA Champions League' },
+    { value: 'La Liga', label: 'Spanish La Liga' },
+    { value: 'Serie A', label: 'Italian Serie A' },
+    { value: 'Bundesliga', label: 'German Bundesliga' },
+    { value: 'MLS', label: 'Major League Soccer' },
+  ];
+
+  riskTierOptions = [
+    { value: 'conservative_eighth_kelly', label: 'Conservative (1/8 Kelly)', desc: 'Max 1.25% unit limit per play, optimal capital preservation' },
+    { value: 'balanced_quarter_kelly', label: 'Balanced (1/4 Kelly)', desc: 'Standard quantitative sizing, max 2.5% unit limit' },
+    { value: 'fixed_one_percent', label: 'Fixed Unit (1.0%)', desc: 'Flat 1.0% unit allocation across all positive-EV positions' },
+  ];
+
+  toggleLeague(league: string): void {
+    const current: string[] = this.characterForm.get('primary_leagues')?.value || [];
+    const index = current.indexOf(league);
+    if (index >= 0) {
+      this.characterForm.patchValue({ primary_leagues: current.filter((l) => l !== league) });
+    } else {
+      this.characterForm.patchValue({ primary_leagues: [...current, league] });
+    }
+  }
+
+  isLeagueSelected(league: string): boolean {
+    const current: string[] = this.characterForm.get('primary_leagues')?.value || [];
+    return current.includes(league);
+  }
 
   characterForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     avatarUrl: [''],
-    gender: [''],
+    gender: ['Non-Binary'],
     relationship_type: ['friend', [Validators.required]],
     nicknames_for_user: [''],
     catchphrases: [''],
     speech_quirks: [''],
     shared_memories_seed: [''],
-    personality: ['', [Validators.required]],
-    tone: ['Warm & Empathetic', [Validators.required]],
-    humor: [5, [Validators.required, Validators.min(1), Validators.max(10)]],
-    friendliness: [5, [Validators.required, Validators.min(1), Validators.max(10)]],
-    creativity: [5, [Validators.required, Validators.min(1), Validators.max(10)]],
-    style: ['Direct & Conversational', [Validators.required]],
+    personality: [''],
+    tone: ['Warm & Empathetic'],
+    humor: [5],
+    friendliness: [5],
+    creativity: [5],
+    style: ['Direct & Conversational'],
     backstory: [''],
-    interestsString: ['Philosophy, Sci-Fi, Coffee'],
-    greeting: ['Hello! It is wonderful to meet you. What would you like to explore today?', [Validators.required]],
+    interestsString: [''],
+    greeting: [''],
     // Voice Presence Fields
     voice_provider: ['preset'],
     voice_id: ['alloy'],
     voice_sample_url: [''],
     voice_settings: [null],
-    // Public AI Mind Fields
-    is_public: [false],
-    handle: [''],
-    headline: [''],
-    website_url: [''],
-    philosophy_statement: [''],
-    mental_models_string: [''],
-    tags_string: [''],
+    // Sports Betting Analyst Fields
+    is_sports_analyst: [false],
+    analysis_style: ['quant_expected_value'],
+    primary_leagues: [['Premier League']],
+    risk_tier: ['balanced_quarter_kelly'],
   });
 
   onAvatarFileSelected(event: Event): void {
@@ -291,6 +670,10 @@ export class CharacterFormComponent implements OnInit {
             philosophy_statement: char.philosophy_statement || '',
             mental_models_string: Array.isArray(char.mental_models) ? char.mental_models.join(', ') : '',
             tags_string: Array.isArray(char.tags) ? char.tags.join(', ') : '',
+            is_sports_analyst: Boolean(char.is_sports_analyst),
+            analysis_style: char.analysis_style || 'quant_expected_value',
+            primary_leagues: Array.isArray(char.primary_leagues) ? char.primary_leagues : [],
+            risk_tier: char.risk_tier || 'balanced_quarter_kelly',
           });
         }
       },
@@ -395,6 +778,16 @@ export class CharacterFormComponent implements OnInit {
 
     const val = this.characterForm.value;
 
+    const isSports = Boolean(val.is_sports_analyst || val.relationship_type === 'sports');
+    const role = val.relationship_type === 'sports' ? 'mentor' : (val.relationship_type || 'friend');
+    const finalName = (val.name || 'Companion').trim();
+    const finalPersonality = (val.personality || '').trim() ||
+      (isSports ? 'Sharp, collaborative football match forecaster and betting options sparring partner. Forecasts how a match will play out in plain English, grills your betting options to expose traps, and helps you lock in the smartest play.' : 'Empathetic, attentive, and authentic companion.');
+    const finalGreeting = (val.greeting || '').trim() ||
+      (isSports ? `Hey mate! I'm ${finalName}, your Match Forecaster & Options Copilot. Drop any upcoming match or the betting options you're considering and let's grill them together.` : `Hey! I'm ${finalName}. What would you like to explore today?`);
+    const finalTone = (val.tone || 'Warm & Thoughtful').trim();
+    const finalStyle = (val.style || 'Direct & Conversational').trim();
+
     const interests = val.interestsString
       ? val.interestsString.split(',').map((s: string) => s.trim()).filter((s: string) => !!s)
       : [];
@@ -407,45 +800,39 @@ export class CharacterFormComponent implements OnInit {
       ? val.catchphrases.split(',').map((s: string) => s.trim()).filter((s: string) => !!s)
       : [];
 
-    const mental_models = val.mental_models_string
-      ? val.mental_models_string.split(',').map((s: string) => s.trim()).filter((s: string) => !!s)
-      : [];
-
-    const tags = val.tags_string
-      ? val.tags_string.split(',').map((s: string) => s.trim()).filter((s: string) => !!s)
-      : [];
-
-    const cleanHandle = val.handle ? String(val.handle).replace(/^@/, '').toLowerCase().trim() : null;
-
     const dto: CreateCharacterDto = {
-      name: val.name,
+      name: finalName,
       avatarUrl: val.avatarUrl || null,
-      gender: val.gender || null,
-      relationship_type: val.relationship_type,
+      gender: val.gender || 'Non-Binary',
+      relationship_type: role,
       nicknames_for_user,
       catchphrases,
       speech_quirks: val.speech_quirks || null,
       shared_memories_seed: val.shared_memories_seed || null,
-      personality: val.personality,
-      tone: val.tone,
-      humor: parseInt(val.humor, 10),
-      friendliness: parseInt(val.friendliness, 10),
-      creativity: parseInt(val.creativity, 10),
-      style: val.style,
+      personality: finalPersonality,
+      tone: finalTone,
+      humor: parseInt(val.humor, 10) || 5,
+      friendliness: parseInt(val.friendliness, 10) || 5,
+      creativity: parseInt(val.creativity, 10) || 5,
+      style: finalStyle,
       backstory: val.backstory || null,
       interests,
-      greeting: val.greeting,
+      greeting: finalGreeting,
       voice_provider: val.voice_provider || 'preset',
       voice_id: val.voice_id || 'alloy',
       voice_sample_url: val.voice_sample_url || null,
       voice_settings: val.voice_settings || null,
-      is_public: Boolean(val.is_public),
-      handle: cleanHandle,
-      headline: val.headline || null,
-      website_url: val.website_url || null,
-      philosophy_statement: val.philosophy_statement || null,
-      mental_models,
-      tags,
+      is_public: false,
+      handle: null,
+      headline: null,
+      website_url: null,
+      philosophy_statement: null,
+      mental_models: [],
+      tags: [],
+      is_sports_analyst: isSports,
+      analysis_style: isSports ? (val.analysis_style || 'quant_expected_value') : 'quant_expected_value',
+      primary_leagues: isSports ? (val.primary_leagues?.length ? val.primary_leagues : ['Premier League']) : [],
+      risk_tier: isSports ? (val.risk_tier || 'balanced_quarter_kelly') : 'balanced_quarter_kelly',
     };
 
     if (this.isEditMode && this.characterId) {

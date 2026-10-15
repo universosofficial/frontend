@@ -36,14 +36,6 @@
             @if (char.handle) {
               <span class="wa-mind-handle-pill">&#64;{{ char.handle }}</span>
             }
-            @if (char.is_system) {
-              <span class="wa-badge wa-badge-teal">Official</span>
-            }
-            @if (char.is_public) {
-              <span class="wa-badge wa-badge-teal">Digital Twin</span>
-            } @else if (char.relationship_type) {
-              <span class="wa-badge wa-badge-gold">{{ char.relationship_type | titlecase }}</span>
-            }
           </div>
           <p class="wa-header-status">
             @if (isStreaming()) {
@@ -64,6 +56,69 @@
 
     <!-- Header Right Action Icons -->
     <div class="wa-header-right">
+
+      <!-- Feature #4: Dynamic Conversation Posture / Mood Switcher -->
+      <div class="wa-posture-switcher-wrap">
+        <button
+          type="button"
+          class="wa-posture-pill-btn"
+          [class.custom-mode]="activeConversationMode() !== 'default'"
+          (click)="isModeMenuOpen.set(!isModeMenuOpen())"
+          title="Switch how your companion responds right now"
+        >
+          <span>{{ getActiveModeObj().icon }}</span>
+          <span>{{ getActiveModeObj().label }}</span>
+          <span class="wa-caret">▾</span>
+        </button>
+
+        @if (isModeMenuOpen()) {
+          <div class="wa-posture-popover">
+            <div class="wa-posture-popover-title">Current Response Posture</div>
+            @for (mode of conversationModes; track mode.id) {
+              <button
+                type="button"
+                class="wa-posture-opt"
+                [class.active]="activeConversationMode() === mode.id"
+                (click)="selectConversationMode(mode.id)"
+              >
+                <span class="opt-icon">{{ mode.icon }}</span>
+                <div class="opt-info">
+                  <span class="opt-label">{{ mode.label }}</span>
+                  <span class="opt-desc">{{ mode.desc }}</span>
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Match Forecaster & Options Grill Button -->
+      @if (isSportsCharacter()) {
+        <button
+          type="button"
+          (click)="toggleBankrollDrawer()"
+          class="wa-header-bankroll-btn"
+          [class.active]="isBankrollDrawerOpen()"
+          title="Forecast a Match & Grill Your Betting Options"
+        >
+          <span class="wa-bk-coin">⚽</span>
+          <span class="wa-bk-val">Forecast &amp; Grill Options</span>
+        </button>
+      }
+
+      <!-- Master Teacher Study & Calculation Lab Button -->
+      @if (isTeacherCharacter()) {
+        <button
+          type="button"
+          (click)="toggleStudyLabDrawer()"
+          class="wa-header-study-btn"
+          [class.active]="isStudyLabDrawerOpen()"
+          title="Open Interactive Study & Calculation Lab"
+        >
+          <span class="wa-study-icon">🎓</span>
+          <span class="wa-study-val">Study &amp; Solve Lab</span>
+        </button>
+      }
 
       <!-- Memories Button (styled as WhatsApp contact info / starred items) -->
       <button 
@@ -93,7 +148,7 @@
   <!-- ========================================================
        WHATSAPP CHAT WALLPAPER & MESSAGES STREAM
        ======================================================== -->
-  <div class="wa-chat-body wa-wallpaper" #messagesContainer (scroll)="onScroll($event)">
+  <div class="wa-chat-body wa-wallpaper" #messagesContainer (scroll)="onScroll($event)" (click)="closeMessageMenu()">
     <!-- WhatsApp End-to-End Encryption / Memory System Pill -->
     <div class="wa-system-banner">
       <div class="wa-system-pill">
@@ -103,6 +158,26 @@
         <span>Messages are end-to-end memory augmented. Only you and this persona have access to these recall banks.</span>
       </div>
     </div>
+
+    <!-- Non-Intrusive Proactive Push Permission Banner -->
+    @if (pushService.isSupported() && !pushService.isSubscribed() && !isPushPromptDismissed()) {
+      <div class="wa-push-prompt-banner">
+        <div class="wa-ppb-content">
+          <span class="wa-ppb-icon">🔔</span>
+          <span class="wa-ppb-text">
+            Allow {{ chatService.activeCharacter()?.name || 'your companion' }} to text you match updates &amp; check-ins?
+          </span>
+        </div>
+        <div class="wa-ppb-actions">
+          <button type="button" class="wa-ppb-allow-btn" (click)="enablePushFromPrompt()">
+            Allow
+          </button>
+          <button type="button" class="wa-ppb-dismiss-btn" (click)="isPushPromptDismissed.set(true)" title="Dismiss">
+            &times;
+          </button>
+        </div>
+      </div>
+    }
 
     <!-- Date Divider Pill -->
     <div class="wa-date-divider">
@@ -132,17 +207,6 @@
 
             <h3 class="wa-hero-name">{{ char.name }}</h3>
 
-            <div class="wa-hero-badges">
-              @if (char.is_system) {
-                <span class="wa-badge wa-badge-teal">Official Companion</span>
-              }
-              @if (char.relationship_type) {
-                <span class="wa-badge wa-badge-gold">{{ char.relationship_type | titlecase }}</span>
-              }
-              @if (char.tone) {
-                <span class="wa-badge wa-badge-purple">{{ char.tone | titlecase }}</span>
-              }
-            </div>
 
             @if (char.greeting) {
               <div class="wa-hero-greeting-box">
@@ -154,21 +218,59 @@
             }
 
             <div class="wa-hero-starters">
-              <p class="wa-starters-label">Tap to start the conversation:</p>
-              <div class="wa-prompt-chips">
-                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Hey ' + char.name + ', how are you doing today?')">
-                  <span>👋</span>
-                  <span>Say hello</span>
-                </button>
-                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('I wanted to talk to you about something on my mind...')">
-                  <span>💭</span>
-                  <span>Share thoughts</span>
-                </button>
-                <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Do you remember some of our favorite memories?')">
-                  <span>✨</span>
-                  <span>Recall memories</span>
-                </button>
-              </div>
+              @if (isTeacherCharacter()) {
+                <p class="wa-starters-label">Ask a question, solve a calculation, or test your understanding:</p>
+                <div class="wa-prompt-chips">
+                  <button type="button" class="wa-prompt-chip" (click)="toggleStudyLabDrawer()">
+                    <span>🎓</span>
+                    <span>Open Study &amp; Solve Lab</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Can you solve this calculation step by step: 3(2x - 5) + 4 = 25? Show what we are finding, the formula and reasoning, and every calculation line.')">
+                    <span>🧮</span>
+                    <span>Solve calculation step-by-step</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Can you explain the intuition behind compound interest using a simple real-world analogy and a worked example?')">
+                    <span>💡</span>
+                    <span>Explain concept with real examples</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s do an interactive practice quiz. Test my understanding on a concept one question at a time and guide me through!')">
+                    <span>🎯</span>
+                    <span>Quiz me one question at a time</span>
+                  </button>
+                </div>
+              } @else if (isSportsCharacter()) {
+                <p class="wa-starters-label">Put heads together on a match or grill your betting options:</p>
+                <div class="wa-prompt-chips">
+                  <button type="button" class="wa-prompt-chip" (click)="toggleBankrollDrawer()">
+                    <span>⚽</span>
+                    <span>Pick a Match &amp; Grill My Options</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s forecast Liverpool vs Manchester City. I\'m thinking Over 2.5 Goals or BTTS — grill my options and tell me the smartest play.')">
+                    <span>🔥</span>
+                    <span>Grill Liverpool vs Man City options</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s put heads together on Arsenal vs Chelsea. What could go wrong with a Home Win, and is Double Chance or Over 1.5 Goals safer?')">
+                    <span>🛡️</span>
+                    <span>Forecast Arsenal vs Chelsea</span>
+                  </button>
+                </div>
+              } @else {
+                <p class="wa-starters-label">Tap to start the conversation:</p>
+                <div class="wa-prompt-chips">
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Hey ' + char.name + ', how are you doing today?')">
+                    <span>👋</span>
+                    <span>Say hello</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('I wanted to talk to you about something on my mind...')">
+                    <span>💭</span>
+                    <span>Share thoughts</span>
+                  </button>
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Do you remember some of our favorite memories?')">
+                    <span>✨</span>
+                    <span>Recall memories</span>
+                  </button>
+                </div>
+              }
             </div>
           }
         </div>
@@ -182,7 +284,84 @@
             [class.outgoing]="msg.sender_type === 'user'"
             [class.incoming]="msg.sender_type === 'assistant'"
           >
-            <div class="wa-bubble">
+            <!-- Collaborative Match Forecast & Options Card -->
+            @if (msg.sports_intel; as intel) {
+              <div class="wa-match-intel-card">
+                <!-- Card Header -->
+                <div class="wa-intel-header">
+                  @if (intel.type === 'manager_query') {
+                    <div class="wa-intel-fixture-row">
+                      <span class="wa-intel-pill">👔 HEAD COACH</span>
+                      <span class="wa-intel-fixture-title">{{ intel.team }}</span>
+                    </div>
+                    <div class="wa-intel-managers" style="margin-top: 4px;">
+                      <span>Coach: <strong style="color: #00a884;">{{ intel.manager }}</strong></span>
+                    </div>
+                  } @else if (intel.type === 'fixtures_query') {
+                    <div class="wa-intel-fixture-row">
+                      <span class="wa-intel-pill">📅 UPCOMING MATCHES</span>
+                      <span class="wa-intel-fixture-title">{{ intel.league }}</span>
+                    </div>
+                  } @else {
+                    <div class="wa-intel-fixture-row">
+                      <span class="wa-intel-pill">⚽ MATCH SNAPSHOT</span>
+                      @if (intel.fixture) {
+                        <span class="wa-intel-fixture-title">{{ intel.fixture }}</span>
+                      }
+                      @if (intel.odds) {
+                        <span style="font-size: 11px; color: #94a3b8; margin-left: auto;">
+                          1: <strong style="color: #e2e8f0;">{{ intel.odds.home }}</strong> ·
+                          X: <strong style="color: #e2e8f0;">{{ intel.odds.draw }}</strong> ·
+                          2: <strong style="color: #e2e8f0;">{{ intel.odds.away }}</strong>
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Safer Option Row -->
+                @if (intel.safeAccumulator) {
+                  <div class="wa-intel-value-row">
+                    <div class="wa-intel-selection-wrap">
+                      <span class="wa-target-icon">🛡️</span>
+                      <div>
+                        <span class="wa-market-tag" style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #34d399;">Safer Option</span>
+                        <span class="wa-selection-name">{{ intel.safeAccumulator.selection || intel.safeAccumulator }}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="wa-grill-option-btn"
+                      (click)="onSelectQuickPrompt('Let\'s grill ' + (intel.safeAccumulator.selection || intel.safeAccumulator) + ' for ' + (intel.fixture || 'this match') + ' — what could go wrong with it?')"
+                    >
+                      🔥 Grill
+                    </button>
+                  </div>
+                }
+
+                <!-- Sweet-Spot Option Row -->
+                @if (intel.bestValue) {
+                  <div class="wa-intel-value-row">
+                    <div class="wa-intel-selection-wrap">
+                      <span class="wa-target-icon">🎯</span>
+                      <div>
+                        <span class="wa-market-tag" style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #f59e0b;">Sweet-Spot ({{ intel.bestValue.market || intel.bestValue.marketType || 'Value' }})</span>
+                        <span class="wa-selection-name">{{ intel.bestValue.selection }}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="wa-grill-option-btn"
+                      (click)="onSelectQuickPrompt('Let\'s grill ' + intel.bestValue.selection + ' for ' + (intel.fixture || 'this match') + ' — what is the main catch?')"
+                    >
+                      🔥 Grill
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="wa-bubble" [class.is-editing]="editingMessageId() === msg.id">
               <!-- Bubble Tail SVG -->
               @if (msg.sender_type === 'user') {
                 <span class="wa-tail-out">
@@ -197,6 +376,49 @@
                   </svg>
                 </span>
               }
+
+              <!-- Message Action Options Trigger & Popover Menu -->
+              <div class="wa-msg-actions-wrap" [class.menu-open]="activeMessageMenuId() === msg.id">
+                <button
+                  type="button"
+                  class="wa-msg-action-trigger"
+                  (click)="toggleMessageMenu(msg.id, $event)"
+                  title="Message options"
+                  aria-label="Message options"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </button>
+
+                @if (activeMessageMenuId() === msg.id) {
+                  <div class="wa-msg-action-popover" (click)="$event.stopPropagation()">
+                    @if (msg.sender_type === 'user' && msg.message_type !== 'voice') {
+                      <button type="button" class="wa-popover-item" (click)="startEditingMessage(msg, $event)">
+                        <svg viewBox="0 0 20 20" fill="currentColor" class="wa-popover-icon">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                        <span>Edit</span>
+                      </button>
+                    }
+                    @if (msg.content && msg.message_type !== 'voice') {
+                      <button type="button" class="wa-popover-item" (click)="copyMessageText(cleanMessageContent(msg.content), $event)">
+                        <svg viewBox="0 0 20 20" fill="currentColor" class="wa-popover-icon">
+                          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    }
+                    <button type="button" class="wa-popover-item danger" (click)="deleteMessage(msg, $event)">
+                      <svg viewBox="0 0 20 20" fill="currentColor" class="wa-popover-icon">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                }
+              </div>
 
               <!-- Message Content: Voice Note or Text -->
               @if (msg.message_type === 'voice') {
@@ -286,6 +508,9 @@
                           <span>{{ expandedTranscripts().has(msg.id) ? 'Hide text' : 'Transcript' }}</span>
                         </button>
                       }
+                      @if (msg.is_edited) {
+                        <span class="wa-edited-badge">edited</span>
+                      }
                       <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
                       @if (msg.sender_type === 'user') {
                         <span class="wa-ticks">
@@ -305,16 +530,67 @@
                   }
                 </div>
               } @else {
-                <!-- Standard Text Message Content -->
-                <div class="wa-bubble-content">
-                  <p class="wa-text">{{ msg.content }}</p>
-                  @if (isStreaming() && msg.sender_type === 'assistant' && msg.id === chatService.messages()[chatService.messages().length - 1].id) {
-                    <span class="wa-streaming-cursor"></span>
+                <!-- Standard Text / Shared Image Message Content -->
+                @if (editingMessageId() === msg.id) {
+                  <div class="wa-inline-edit-box">
+                    <textarea
+                      [(ngModel)]="editingMessageContent"
+                      class="wa-inline-edit-textarea"
+                      rows="2"
+                      (keydown)="onEditKeyDown($event, msg.id)"
+                      placeholder="Edit message..."
+                      autofocus
+                    ></textarea>
+                    <div class="wa-inline-edit-actions">
+                      <button 
+                        type="button" 
+                        class="wa-inline-edit-btn cancel" 
+                        (click)="cancelEditingMessage()" 
+                        [disabled]="isSavingEdit()"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="button" 
+                        class="wa-inline-edit-btn save" 
+                        (click)="saveEditedMessage(msg.id)"
+                        [disabled]="isSavingEdit() || !editingMessageContent.trim()"
+                      >
+                        {{ isSavingEdit() ? 'Saving...' : 'Save' }}
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  @if (extractAttachedImageUrl(msg.content); as imgUrl) {
+                    <div class="wa-bubble-shared-img-wrap">
+                      <img [src]="imgUrl" alt="Shared attachment" class="wa-bubble-shared-img" />
+                    </div>
                   }
-                </div>
+                  <div class="wa-bubble-content">
+                    <p class="wa-text">{{ cleanMessageContent(msg.content) }}</p>
+                    @if (isStreaming() && msg.sender_type === 'assistant' && msg.id === chatService.messages()[chatService.messages().length - 1].id) {
+                      <span class="wa-streaming-cursor"></span>
+                    }
+                  </div>
+                }
 
-                <!-- Message Timestamp & Read Ticks -->
+                <!-- Message Timestamp, Pin Takeaway & Read Ticks -->
                 <div class="wa-meta">
+                  @if (msg.is_edited) {
+                    <span class="wa-edited-badge" title="Edited message">edited</span>
+                  }
+                  @if (msg.sender_type === 'assistant' && msg.content) {
+                    <button
+                      type="button"
+                      class="wa-save-takeaway-btn"
+                      [class.saved]="isMessageSaved(msg.id)"
+                      (click)="toggleSaveMessageTakeaway(msg)"
+                      [title]="isMessageSaved(msg.id) ? 'Pinned to Companion Memories' : 'Pin Insight to Companion Memories'"
+                    >
+                      <span>📌</span>
+                      <span>{{ isMessageSaved(msg.id) ? 'Pinned' : 'Pin' }}</span>
+                    </button>
+                  }
                   <span class="wa-timestamp">{{ msg.created_at | date:'shortTime' }}</span>
                   @if (msg.sender_type === 'user') {
                     <span class="wa-ticks" title="Read by Companion">
@@ -353,6 +629,44 @@
       </div>
     }
   </div>
+
+  <!-- Feature #1: Contextual Follow-Up Chips (Smart Replies) -->
+  @if (!isStreaming() && chatService.messages().length > 0 && smartFollowUps().length > 0) {
+    <div class="wa-smart-followups-row">
+      <span class="wa-followups-label">✨ Continue:</span>
+      @for (prompt of smartFollowUps(); track prompt) {
+        <button type="button" class="wa-followup-chip" (click)="onSelectQuickPrompt(prompt)">
+          {{ prompt }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Feature #6: Pending Attachment Preview Pill & Quick Emoji Bar -->
+  @if (pendingAttachment(); as att) {
+    <div class="wa-pending-attachment-bar">
+      @if (att.type === 'image' && att.url) {
+        <img [src]="att.url" alt="Preview" class="wa-att-thumb" />
+      } @else {
+        <span class="wa-att-doc-icon">📄</span>
+      }
+      <div class="wa-att-meta">
+        <span class="wa-att-name">{{ att.name }}</span>
+        <span class="wa-att-sub">{{ att.type === 'image' ? 'Photo ready to share' : 'Note/File excerpt attached' }}</span>
+      </div>
+      <button type="button" class="wa-att-remove-btn" (click)="clearPendingAttachment()" title="Remove attachment">
+        ×
+      </button>
+    </div>
+  }
+
+  @if (showEmojiPicker()) {
+    <div class="wa-emoji-picker-bar">
+      @for (em of quickEmojis; track em) {
+        <button type="button" class="wa-emoji-btn" (click)="insertEmoji(em)">{{ em }}</button>
+      }
+    </div>
+  }
 
   <!-- ========================================================
        WHATSAPP CHAT INPUT BAR
@@ -405,19 +719,31 @@
       </div>
     } @else {
       <!-- Normal Text / Mic Input Bar -->
-      <!-- Emoji Button -->
-      <button class="wa-icon-btn" title="Emoji">
+      <!-- Feature #6: Working Emoji Button -->
+      <button
+        type="button"
+        class="wa-icon-btn"
+        [class.active]="showEmojiPicker()"
+        (click)="showEmojiPicker.set(!showEmojiPicker())"
+        title="Insert Emoji"
+      >
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-3.5-9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
         </svg>
       </button>
 
-      <!-- Attachment Paperclip Button -->
-      <button class="wa-icon-btn" title="Attach">
+      <!-- Feature #6: Working Attachment Paperclip Button -->
+      <label class="wa-icon-btn wa-attach-label" [title]="isUploadingAttachment() ? 'Uploading...' : 'Attach Image or Note'">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 015 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3 3 0 006 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
         </svg>
-      </button>
+        <input
+          type="file"
+          accept="image/*,.txt,.md,.csv,.json"
+          hidden
+          (change)="onChatAttachmentSelected($event)"
+        />
+      </label>
 
       <!-- Pill-shaped Text Input -->
       <div class="wa-input-pill">
@@ -426,19 +752,19 @@
           [(ngModel)]="userInput"
           (keydown)="onKeyDown($event)"
           (input)="onInputResize()"
-          placeholder="Type a message"
+          placeholder="Share a thought, ask anything, or explore ideas..."
           rows="1"
           class="wa-textarea"
           [disabled]="isStreaming() || isVoiceNoteSending() || chatService.isLoadingMessages()"
         ></textarea>
       </div>
 
-      <!-- Action Button (Green Send button when text is present / Mic icon when empty) -->
-      @if (userInput.trim() || isStreaming() || isVoiceNoteSending()) {
+      <!-- Action Button (Send button when text or attachment is present / Mic icon when empty) -->
+      @if (userInput.trim() || pendingAttachment() || isStreaming() || isVoiceNoteSending()) {
         <button 
           (click)="sendMessage()" 
           class="wa-send-btn"
-          [disabled]="!userInput.trim() || isStreaming() || isVoiceNoteSending() || chatService.isLoadingMessages()"
+          [disabled]="(!userInput.trim() && !pendingAttachment()) || isStreaming() || isVoiceNoteSending() || chatService.isLoadingMessages()"
           title="Send Message"
         >
           @if (isStreaming() || isVoiceNoteSending()) {
@@ -450,12 +776,12 @@
           }
         </button>
       } @else {
-        <!-- WhatsApp Voice Note Mic Button -->
+        <!-- Voice Note Mic Button -->
         <button 
           type="button"
           (click)="startVoiceNoteRecording()" 
           class="wa-icon-btn wa-mic-btn" 
-          title="Record WhatsApp Voice Note"
+          title="Record Voice Note"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
@@ -466,13 +792,159 @@
   </footer>
 
   <!-- ========================================================
-       WHATSAPP "CONTACT INFO" SLIDE-OVER DRAWER (Memories)
+       WHATSAPP "CONTACT INFO" SLIDE-OVER DRAWER (Memories, Bond & Goals)
        ======================================================== -->
   <app-memory-drawer 
     [isOpen]="isMemoryDrawerOpen()" 
     [characterId]="characterId"
     (close)="isMemoryDrawerOpen.set(false)"
+    (goalCheckIn)="onSelectQuickPrompt($event)"
   ></app-memory-drawer>
+
+  <!-- ========================================================
+       MATCH FORECASTER & OPTIONS GRILL SLIDE-OVER DRAWER
+       ======================================================== -->
+  @if (isBankrollDrawerOpen()) {
+    <app-bankroll-settings
+      (close)="isBankrollDrawerOpen.set(false)"
+      (launchPrompt)="onSelectQuickPrompt($event)"
+      (bankrollUpdated)="onBankrollUpdated($event)"
+      (telemetryUpdated)="onTelemetryUpdated($event)"
+    ></app-bankroll-settings>
+  }
+
+  <!-- ========================================================
+       STUDY & CALCULATION LAB SLIDE-OVER DRAWER
+       ======================================================== -->
+  @if (isStudyLabDrawerOpen()) {
+    <div class="wa-study-drawer-backdrop" (click)="isStudyLabDrawerOpen.set(false)">
+      <div class="wa-study-drawer" (click)="$event.stopPropagation()">
+        <!-- Drawer Header -->
+        <div class="wa-sd-header">
+          <div class="wa-sd-title-wrap">
+            <span class="wa-sd-icon">🎓</span>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 class="wa-sd-title">Study &amp; Solve Lab</h3>
+                <span class="wa-sd-pill">STEP-BY-STEP</span>
+              </div>
+              <p class="wa-sd-sub">Line-by-line calculations, real-world intuition, &amp; interactive Socratic practice</p>
+            </div>
+          </div>
+          <button type="button" class="wa-sd-close-btn" (click)="isStudyLabDrawerOpen.set(false)" title="Close">&times;</button>
+        </div>
+
+        <div class="wa-sd-body">
+          <!-- Step 1: Learning Mode -->
+          <div class="wa-sd-section">
+            <label class="wa-sd-label">Select Learning Mode</label>
+            <div class="wa-study-mode-grid">
+              <button
+                type="button"
+                class="wa-study-mode-card"
+                [class.active]="studyMode() === 'calculation'"
+                (click)="setStudyMode('calculation')"
+              >
+                <span class="sm-icon">🧮</span>
+                <span class="sm-title">Solve Calculation</span>
+                <span class="sm-desc">Line-by-line arithmetic, principle, and units</span>
+              </button>
+
+              <button
+                type="button"
+                class="wa-study-mode-card"
+                [class.active]="studyMode() === 'explain'"
+                (click)="setStudyMode('explain')"
+              >
+                <span class="sm-icon">💡</span>
+                <span class="sm-title">Teach with Analogy</span>
+                <span class="sm-desc">Real-world intuition first, then concrete examples</span>
+              </button>
+
+              <button
+                type="button"
+                class="wa-study-mode-card"
+                [class.active]="studyMode() === 'diagnose'"
+                (click)="setStudyMode('diagnose')"
+              >
+                <span class="sm-icon">🔍</span>
+                <span class="sm-title">Diagnose My Mistake</span>
+                <span class="sm-desc">Spot where my math slipped and fix it gently</span>
+              </button>
+
+              <button
+                type="button"
+                class="wa-study-mode-card"
+                [class.active]="studyMode() === 'quiz'"
+                (click)="setStudyMode('quiz')"
+              >
+                <span class="sm-icon">🎯</span>
+                <span class="sm-title">Socratic Practice</span>
+                <span class="sm-desc">Test my understanding 1 question at a time</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="wa-sd-section">
+            <label class="wa-sd-label">Quick Starter Questions</label>
+            <div class="wa-sd-chips">
+              <button
+                type="button"
+                class="wa-sd-chip"
+                (click)="studyProblemInput.set('Solve 3(2x - 5) + 4 = 25 for x'); setStudyMode('calculation')"
+              >
+                🧮 Solve 3(2x - 5) + 4 = 25
+              </button>
+              <button
+                type="button"
+                class="wa-sd-chip"
+                (click)="studyProblemInput.set('How does compound interest work? Calculate $1,000 at 7% for 5 years.'); setStudyMode('calculation')"
+              >
+                📈 Compound Interest calculation
+              </button>
+              <button
+                type="button"
+                class="wa-sd-chip"
+                (click)="studyProblemInput.set('Explain the Calculus Chain Rule using an everyday analogy'); setStudyMode('explain')"
+              >
+                💡 Intuition behind Chain Rule
+              </button>
+              <button
+                type="button"
+                class="wa-sd-chip"
+                (click)="studyProblemInput.set('Quiz me on the Quadratic Formula and finding roots step by step'); setStudyMode('quiz')"
+              >
+                🎯 Quiz me on Quadratic Formula
+              </button>
+            </div>
+          </div>
+
+          <!-- Problem / Topic Input -->
+          <div class="wa-sd-section">
+            <label class="wa-sd-label">Your Problem, Equation, or Concept</label>
+            <textarea
+              [ngModel]="studyProblemInput()"
+              (ngModelChange)="studyProblemInput.set($event)"
+              class="wa-sd-textarea"
+              rows="4"
+              placeholder="Paste your math equation, word problem, or topic here (e.g., 'A car accelerates from 0 to 60 mph in 5 seconds. What is its acceleration in m/s^2?')..."
+            ></textarea>
+          </div>
+
+          <!-- Launch Button -->
+          <button
+            type="button"
+            class="wa-sd-launch-btn"
+            [disabled]="!studyProblemInput().trim()"
+            (click)="launchStudyLabPrompt()"
+          >
+            <span>Launch Step-by-Step Lesson &amp; Solution 🚀</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- ========================================================
        LIVE VOICE CALL OVERLAY

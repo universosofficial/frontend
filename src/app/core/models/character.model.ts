@@ -1,4 +1,4 @@
-export type RelationshipType = 'father' | 'mother' | 'spouse' | 'partner' | 'friend' | 'mentor' | 'sibling' | 'custom';
+export type RelationshipType = 'father' | 'mother' | 'spouse' | 'partner' | 'friend' | 'mentor' | 'sibling' | 'teacher' | 'tutor' | 'educator' | 'custom';
 
 export interface Character {
   id: number;
@@ -28,6 +28,7 @@ export interface Character {
   is_public?: boolean;
   is_verified?: boolean;
   is_subscribed?: boolean;
+  is_mind?: boolean;
   total_subscribers?: number;
   handle?: string | null;
   headline?: string | null;
@@ -37,6 +38,11 @@ export interface Character {
   mental_models?: string[];
   tags?: string[];
   total_interactions?: number;
+  is_sports_analyst?: boolean;
+  analysis_style?: 'quant_expected_value' | 'tactical_pundit' | 'conservative_grinder';
+  primary_leagues?: string[];
+  risk_tier?: 'conservative_eighth_kelly' | 'balanced_quarter_kelly' | 'fixed_one_percent';
+  allow_proactive_checkins?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -72,6 +78,10 @@ export interface CreateCharacterDto {
   decision_frameworks?: string[];
   mental_models?: string[];
   tags?: string[];
+  is_sports_analyst?: boolean;
+  analysis_style?: string;
+  primary_leagues?: string[];
+  risk_tier?: string;
 }
 
 export interface Conversation {
@@ -94,7 +104,27 @@ export interface Message {
   message_type?: 'text' | 'voice';
   audio_url?: string | null;
   duration_seconds?: number | null;
+  sports_intel?: any;
+  is_edited?: boolean;
+  edited_at?: string | null;
   created_at: string;
+}
+
+export interface SportsBankrollSettings {
+  id?: number;
+  user_id?: number;
+  total_bankroll: number;
+  currency: string;
+  staking_model: 'quarter_kelly' | 'eighth_kelly' | 'fixed_unit';
+  max_unit_limit_percent: number;
+  daily_stop_loss_percent: number;
+}
+
+export interface SportsTelemetry {
+  consecutive_losses: number;
+  daily_pnl: number;
+  circuit_breaker_active: boolean;
+  lockout_until?: string | null;
 }
 
 export interface ChatTurnResponse {

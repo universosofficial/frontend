@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from './auth.service';
-import { PublicMind, MindExploreResult, MindSource, MindPublishDto, UserMind } from '../models/mind.model';
+import { PublicMind, MindExploreResult, MindSource, MindPublishDto, UserMind, CouncilResult, AudienceQuestion, PaidHumanSession, MindSessionMeta } from '../models/mind.model';
 
 export interface StreamConsultationParams {
   handle?: string;
@@ -98,6 +98,67 @@ export class MindService {
       .pipe(map(() => void 0));
   }
 
+  /**
+   * Submit 3-question interactive Brain Interview to auto-train the creator's AI Mind.
+   */
+  submitInterview(answers: Array<{ question: string; answer: string }>): Observable<UserMind> {
+    return this.http
+      .post<{ success: boolean; message: string; data: UserMind }>(
+        'https://aicompanion-production-12db.up.railway.app/api/my-mind/interview',
+        { answers }
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * Teach the creator's AI Mind a canonical answer to a visitor question.
+   */
+  teachQuestionAnswer(
+    question: string,
+    answer: string
+  ): Observable<{ source: MindSource; sources: MindSource[]; audience_questions: AudienceQuestion[] }> {
+    return this.http
+      .post<{
+        success: boolean;
+        message: string;
+        data: { source: MindSource; sources: MindSource[]; audience_questions: AudienceQuestion[] };
+      }>('https://aicompanion-production-12db.up.railway.app/api/my-mind/teach-qa', { question, answer })
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * Fetch all paid direct human chat sessions for the creator's VIP Inbox.
+   */
+  getPaidSessions(): Observable<PaidHumanSession[]> {
+    return this.http
+      .get<{ success: boolean; data: PaidHumanSession[] }>('https://aicompanion-production-12db.up.railway.app/api/my-mind/paid-sessions')
+      .pipe(map((res) => res.data || []));
+  }
+
+  /**
+   * Send a personal verified human reply into a visitor's unlocked paid session.
+   */
+  replyToPaidSession(sessionId: number, content: string): Observable<PaidHumanSession[]> {
+    return this.http
+      .post<{ success: boolean; message: string; data: PaidHumanSession[] }>(
+        `https://aicompanion-production-12db.up.railway.app/api/my-mind/paid-sessions/${sessionId}/reply`,
+        { content }
+      )
+      .pipe(map((res) => res.data || []));
+  }
+
+  /**
+   * Convene a Council of 2-3 AI Minds to debate and synthesize a dilemma.
+   */
+  consultCouncil(handles: string[], question: string): Observable<CouncilResult> {
+    return this.http
+      .post<{ success: boolean; data: CouncilResult }>('https://aicompanion-production-12db.up.railway.app/api/minds/council', {
+        handles,
+        question,
+      })
+      .pipe(map((res) => res.data));
+  }
+
   // ==========================================
   // 2. Public Minds Discovery & Exploration
   // ==========================================
@@ -131,6 +192,38 @@ export class MindService {
     const cleanHandle = handle.replace(/^@/, '');
     return this.http
       .get<{ success: boolean; data: PublicMind }>(`https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}`)
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * Unlock Paid Direct Human Chat ($XX per session) inside the active AI Mind conversation thread.
+   */
+  escalateToHuman(
+    handle: string,
+    escalationNote: string = ''
+  ): Observable<{ session: MindSessionMeta; messages: any[] }> {
+    const cleanHandle = handle.replace(/^@/, '');
+    return this.http
+      .post<{ success: boolean; data: { session: MindSessionMeta; messages: any[] } }>(
+        `https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}/escalate`,
+        { escalationNote }
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * Toggle in-thread conversation mode between 'ai' (AI Mind) and 'human_direct' (Real Person).
+   */
+  switchChatMode(
+    handle: string,
+    mode: 'ai' | 'human_direct'
+  ): Observable<{ session: MindSessionMeta }> {
+    const cleanHandle = handle.replace(/^@/, '');
+    return this.http
+      .post<{ success: boolean; data: { session: MindSessionMeta } }>(
+        `https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}/mode`,
+        { mode }
+      )
       .pipe(map((res) => res.data));
   }
 

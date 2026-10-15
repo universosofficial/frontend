@@ -3,10 +3,14 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
-  // Public Marketing Landing Page (Root Route)
+  // Direct entry straight into the app (no landing page)
   {
     path: '',
     pathMatch: 'full',
+    redirectTo: 'dashboard/characters',
+  },
+  {
+    path: 'landing',
     loadComponent: () =>
       import('./features/landing/landing-page.component').then((m) => m.LandingPageComponent),
   },
@@ -35,6 +39,11 @@ export const routes: Routes = [
   },
   {
     path: 'minds/:handle',
+    loadComponent: () =>
+      import('./features/minds/mind-profile/mind-profile.component').then((m) => m.MindProfileComponent),
+  },
+  {
+    path: 'm/:handle',
     loadComponent: () =>
       import('./features/minds/mind-profile/mind-profile.component').then((m) => m.MindProfileComponent),
   },
