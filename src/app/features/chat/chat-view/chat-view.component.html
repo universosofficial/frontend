@@ -64,16 +64,16 @@
           class="wa-posture-pill-btn"
           [class.custom-mode]="activeConversationMode() !== 'default'"
           (click)="isModeMenuOpen.set(!isModeMenuOpen())"
-          title="Switch how your companion responds right now"
+          title="Change conversation tone"
         >
-          <span>{{ getActiveModeObj().icon }}</span>
-          <span>{{ getActiveModeObj().label }}</span>
+          <span class="wa-posture-icon">{{ getActiveModeObj().icon }}</span>
+          <span class="wa-posture-label">{{ getActiveModeObj().label }}</span>
           <span class="wa-caret">▾</span>
         </button>
 
         @if (isModeMenuOpen()) {
           <div class="wa-posture-popover">
-            <div class="wa-posture-popover-title">Current Response Posture</div>
+            <div class="wa-posture-popover-title">Conversation Tone</div>
             @for (mode of conversationModes; track mode.id) {
               <button
                 type="button"
@@ -99,10 +99,10 @@
           (click)="toggleBankrollDrawer()"
           class="wa-header-bankroll-btn"
           [class.active]="isBankrollDrawerOpen()"
-          title="Forecast a Match & Grill Your Betting Options"
+          title="Analyze Match Predictions & Odds"
         >
           <span class="wa-bk-coin">⚽</span>
-          <span class="wa-bk-val">Forecast &amp; Grill Options</span>
+          <span class="wa-bk-val">Predictions &amp; Odds</span>
         </button>
       }
 
@@ -125,19 +125,19 @@
         (click)="toggleMemoryDrawer()" 
         class="wa-header-memory-btn" 
         [class.active]="isMemoryDrawerOpen()"
-        title="Companion Neural Memories"
+        title="Saved Memories"
       >
         <svg viewBox="0 0 20 20" fill="currentColor">
           <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
         </svg>
-        <span>Memories</span>
+        <span class="wa-memory-btn-text">Memories</span>
         @if (memoryService.memories().length > 0) {
           <span class="wa-memory-counter">{{ memoryService.memories().length }}</span>
         }
       </button>
 
       <!-- More Menu / Info -->
-      <button (click)="toggleMemoryDrawer()" class="wa-icon-btn" title="Contact Info">
+      <button (click)="toggleMemoryDrawer()" class="wa-icon-btn wa-header-more-btn" title="Contact Info">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
         </svg>
@@ -155,7 +155,7 @@
         <svg viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
         </svg>
-        <span>Messages are end-to-end memory augmented. Only you and this persona have access to these recall banks.</span>
+        <span>Your messages and memories are private. Only you and this companion can see this conversation.</span>
       </div>
     </div>
 
@@ -188,7 +188,7 @@
     @if (chatService.isLoadingMessages()) {
       <div class="wa-chat-loading">
         <div class="wa-spinner"></div>
-        <span>Hydrating conversation history & memories...</span>
+        <span>Loading your conversation and memories...</span>
       </div>
     } @else {
       <!-- Empty Hero when no messages -->
@@ -239,19 +239,19 @@
                   </button>
                 </div>
               } @else if (isSportsCharacter()) {
-                <p class="wa-starters-label">Put heads together on a match or grill your betting options:</p>
+                <p class="wa-starters-label">Analyze an upcoming match or evaluate your options:</p>
                 <div class="wa-prompt-chips">
                   <button type="button" class="wa-prompt-chip" (click)="toggleBankrollDrawer()">
                     <span>⚽</span>
-                    <span>Pick a Match &amp; Grill My Options</span>
+                    <span>Analyze a Match &amp; Review Options</span>
                   </button>
-                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s forecast Liverpool vs Manchester City. I\'m thinking Over 2.5 Goals or BTTS — grill my options and tell me the smartest play.')">
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s forecast Liverpool vs Manchester City. I\'m thinking Over 2.5 Goals or BTTS — analyze my options and tell me the smartest play.')">
                     <span>🔥</span>
-                    <span>Grill Liverpool vs Man City options</span>
+                    <span>Analyze Liverpool vs Man City</span>
                   </button>
-                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s put heads together on Arsenal vs Chelsea. What could go wrong with a Home Win, and is Double Chance or Over 1.5 Goals safer?')">
+                  <button type="button" class="wa-prompt-chip" (click)="onSelectQuickPrompt('Let\'s look at Arsenal vs Chelsea. What are the key risks with a Home Win, and is Double Chance or Over 1.5 Goals safer?')">
                     <span>🛡️</span>
-                    <span>Forecast Arsenal vs Chelsea</span>
+                    <span>Analyze Arsenal vs Chelsea</span>
                   </button>
                 </div>
               } @else {
@@ -332,9 +332,9 @@
                     <button
                       type="button"
                       class="wa-grill-option-btn"
-                      (click)="onSelectQuickPrompt('Let\'s grill ' + (intel.safeAccumulator.selection || intel.safeAccumulator) + ' for ' + (intel.fixture || 'this match') + ' — what could go wrong with it?')"
+                      (click)="onSelectQuickPrompt('Let\'s analyze ' + (intel.safeAccumulator.selection || intel.safeAccumulator) + ' for ' + (intel.fixture || 'this match') + ' — what are the main risks?')"
                     >
-                      🔥 Grill
+                      🔎 Analyze
                     </button>
                   </div>
                 }
@@ -345,16 +345,16 @@
                     <div class="wa-intel-selection-wrap">
                       <span class="wa-target-icon">🎯</span>
                       <div>
-                        <span class="wa-market-tag" style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #f59e0b;">Sweet-Spot ({{ intel.bestValue.market || intel.bestValue.marketType || 'Value' }})</span>
+                        <span class="wa-market-tag" style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #f59e0b;">Best Value ({{ intel.bestValue.market || intel.bestValue.marketType || 'Value' }})</span>
                         <span class="wa-selection-name">{{ intel.bestValue.selection }}</span>
                       </div>
                     </div>
                     <button
                       type="button"
                       class="wa-grill-option-btn"
-                      (click)="onSelectQuickPrompt('Let\'s grill ' + intel.bestValue.selection + ' for ' + (intel.fixture || 'this match') + ' — what is the main catch?')"
+                      (click)="onSelectQuickPrompt('Let\'s analyze ' + intel.bestValue.selection + ' for ' + (intel.fixture || 'this match') + ' — what are the pros and cons?')"
                     >
-                      🔥 Grill
+                      🔎 Analyze
                     </button>
                   </div>
                 }
@@ -610,12 +610,12 @@
     <!-- Grounded Knowledge Indicator for Public Minds -->
     @if (lastGroundedInfo(); as info) {
       @if (info.count > 0) {
-        <div class="wa-grounded-pill-banner" title="Response grounded in verified authored knowledge nodes">
+        <div class="wa-grounded-pill-banner" title="Answer backed by verified knowledge sources">
           <svg viewBox="0 0 20 20" fill="currentColor" class="wa-grounded-svg">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
           </svg>
           <span class="wa-grounded-text">
-            Grounded Knowledge: synthesized from {{ info.count }} verified source excerpt(s)
+            Verified Knowledge: based on {{ info.count }} source document(s)
           </span>
         </div>
       }
@@ -828,7 +828,7 @@
                 <h3 class="wa-sd-title">Study &amp; Solve Lab</h3>
                 <span class="wa-sd-pill">STEP-BY-STEP</span>
               </div>
-              <p class="wa-sd-sub">Line-by-line calculations, real-world intuition, &amp; interactive Socratic practice</p>
+              <p class="wa-sd-sub">Step-by-step solutions, clear explanations &amp; interactive practice</p>
             </div>
           </div>
           <button type="button" class="wa-sd-close-btn" (click)="isStudyLabDrawerOpen.set(false)" title="Close">&times;</button>
@@ -846,8 +846,8 @@
                 (click)="setStudyMode('calculation')"
               >
                 <span class="sm-icon">🧮</span>
-                <span class="sm-title">Solve Calculation</span>
-                <span class="sm-desc">Line-by-line arithmetic, principle, and units</span>
+                <span class="sm-title">Solve Step-by-Step</span>
+                <span class="sm-desc">Clear calculation steps, formulas, and units</span>
               </button>
 
               <button
@@ -857,8 +857,8 @@
                 (click)="setStudyMode('explain')"
               >
                 <span class="sm-icon">💡</span>
-                <span class="sm-title">Teach with Analogy</span>
-                <span class="sm-desc">Real-world intuition first, then concrete examples</span>
+                <span class="sm-title">Explain with Analogy</span>
+                <span class="sm-desc">Simple real-world examples and clear intuition</span>
               </button>
 
               <button
@@ -868,8 +868,8 @@
                 (click)="setStudyMode('diagnose')"
               >
                 <span class="sm-icon">🔍</span>
-                <span class="sm-title">Diagnose My Mistake</span>
-                <span class="sm-desc">Spot where my math slipped and fix it gently</span>
+                <span class="sm-title">Find My Mistake</span>
+                <span class="sm-desc">See where you made an error and how to fix it</span>
               </button>
 
               <button
@@ -879,8 +879,8 @@
                 (click)="setStudyMode('quiz')"
               >
                 <span class="sm-icon">🎯</span>
-                <span class="sm-title">Socratic Practice</span>
-                <span class="sm-desc">Test my understanding 1 question at a time</span>
+                <span class="sm-title">Practice Quiz</span>
+                <span class="sm-desc">Test your understanding 1 question at a time</span>
               </button>
             </div>
           </div>

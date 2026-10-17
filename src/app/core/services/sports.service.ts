@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { SportsBankrollSettings, SportsTelemetry } from '../models/character.model';
+import { API_BASE_URL } from '../constants/api.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SportsService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://aicompanion-production-12db.up.railway.app/api/sports';
+  private apiUrl = `${API_BASE_URL}/sports`;
 
   getBankroll(): Observable<{ bankroll: SportsBankrollSettings; telemetry: SportsTelemetry }> {
     return this.http.get<{ success: boolean; data: { bankroll: SportsBankrollSettings; telemetry: SportsTelemetry } }>(

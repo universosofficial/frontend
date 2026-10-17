@@ -161,14 +161,14 @@ export class MindStudioComponent implements OnInit {
         this.character.set(updatedChar);
         this.successMessage.set(
           dto.is_public
-            ? `Mind saved! Published to Thought Commons as @${updatedChar.handle || updatedChar.name}.`
-            : 'Mind saved in private mode.'
+            ? `Profile saved! Published to Public Directory as @${updatedChar.handle || updatedChar.name}.`
+            : 'Profile saved in private mode.'
         );
         setTimeout(() => this.successMessage.set(null), 5000);
       },
       error: (err: any) => {
         this.isSaving.set(false);
-        this.errorMessage.set(err.error?.message || 'Failed to save mind settings.');
+        this.errorMessage.set(err.error?.message || 'Failed to save profile settings.');
       },
     });
   }

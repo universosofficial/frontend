@@ -2,13 +2,14 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { VoicePreset, ClonedVoiceResult, VoiceTurnResponse } from '../models/voice.model';
+import { API_BASE_URL, SERVER_ORIGIN } from '../constants/api.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VoiceService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://aicompanion-production-12db.up.railway.app/api/voice';
+  private apiUrl = `${API_BASE_URL}/voice`;
 
   // Playback state signals
   public isAudioPlaying = signal<boolean>(false);
@@ -70,11 +71,23 @@ export class VoiceService {
   /**
    * Request text synthesis preview.
    */
-  previewVoice(text: string, voiceId: string): Observable<{ audioBase64: string; mimeType: string }> {
+  previewVoice(
+    text: string,
+    voiceId: string,
+    voiceSampleUrl?: string | null,
+    voiceSettings?: any
+  ): Observable<{ audioBase64: string; mimeType: string }> {
     return this.http
       .post<{ success: boolean; data: { audioBase64: string; mimeType: string } }>(
         `${this.apiUrl}/speak`,
-        { text, voiceId, format: 'base64' }
+        {
+          text,
+          voiceId,
+          voiceSampleUrl: voiceSampleUrl || undefined,
+          refAudioUrl: voiceSampleUrl || undefined,
+          voiceSettings: voiceSettings || undefined,
+          format: 'base64',
+        }
       )
       .pipe(map((res) => res.data));
   }
@@ -186,7 +199,7 @@ export class VoiceService {
     if (!source) return '';
     if (source.startsWith('data:') || source.startsWith('blob:')) return source;
     if (source.startsWith('http://') || source.startsWith('https://')) return source;
-    if (source.startsWith('/uploads/')) return `https://aicompanion-production-12db.up.railway.app${source}`;
+    if (source.startsWith('/uploads/')) return `${SERVER_ORIGIN}${source}`;
     return `data:audio/mpeg;base64,${source}`;
   }
 

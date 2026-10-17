@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { API_BASE_URL } from '../constants/api.constants';
 
 export interface UploadResult {
   url: string;
@@ -22,7 +23,7 @@ export class UploadService {
     formData.append('image', file);
 
     return this.http
-      .post<{ success: boolean; data: UploadResult }>('https://aicompanion-production-12db.up.railway.app/api/upload/image', formData)
+      .post<{ success: boolean; data: UploadResult }>(`${API_BASE_URL}/upload/image`, formData)
       .pipe(map((res) => res.data));
   }
 
@@ -34,7 +35,7 @@ export class UploadService {
     formData.append('image', file);
 
     return this.http
-      .post<{ success: boolean; data: UploadResult }>('https://aicompanion-production-12db.up.railway.app/api/upload/mind-avatar', formData)
+      .post<{ success: boolean; data: UploadResult }>(`${API_BASE_URL}/upload/mind-avatar`, formData)
       .pipe(map((res) => res.data));
   }
 
@@ -46,7 +47,7 @@ export class UploadService {
     formData.append('image', file);
 
     return this.http
-      .post<{ success: boolean; data: UploadResult }>(`https://aicompanion-production-12db.up.railway.app/api/upload/character-avatar/${characterId}`, formData)
+      .post<{ success: boolean; data: UploadResult }>(`${API_BASE_URL}/upload/character-avatar/${characterId}`, formData)
       .pipe(map((res) => res.data));
   }
 }

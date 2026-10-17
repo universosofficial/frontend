@@ -7,8 +7,8 @@
       </svg>
     </a>
     <div class="wa-form-title-wrap">
-      <h1 class="wa-form-title">{{ isEditMode ? 'Configure Companion' : 'New Companion Studio' }}</h1>
-      <span class="wa-form-subtitle">Design a personal AI companion with persistent memory and vocal presence</span>
+      <h1 class="wa-form-title">{{ isEditMode ? 'Edit Companion' : 'Create AI Companion' }}</h1>
+      <span class="wa-form-subtitle">Create a personal AI companion with a unique voice and personality</span>
     </div>
   </header>
 
@@ -38,11 +38,11 @@
               <svg viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              AI Architect
+              Instant Setup
             </span>
-            <h2 class="wa-architect-heading">Describe who you want to talk to</h2>
+            <h2 class="wa-architect-heading">Describe your companion in a few words</h2>
           </div>
-          <span class="wa-architect-hint">Or load a pre-built archetype below</span>
+          <span class="wa-architect-hint">Or choose a starter template below</span>
         </div>
 
         <div class="wa-architect-bar">
@@ -51,7 +51,7 @@
             [(ngModel)]="magicPromptInput"
             [ngModelOptions]="{ standalone: true }"
             (keyup.enter)="onGenerateMagicPersona()"
-            placeholder="e.g. 'A calm late-night confidant when I overthink' or 'A sharp co-founder who stress-tests my strategy'..."
+            placeholder="e.g. 'A calm late-night friend when I overthink' or 'A sharp advisor who helps test my business ideas'..."
             class="wa-architect-input"
           />
           <button
@@ -74,9 +74,9 @@
           >
             @if (isGeneratingMagic()) {
               <span class="wa-spinner-sm"></span>
-              <span>Synthesizing...</span>
+              <span>Creating...</span>
             } @else {
-              <span>Auto-Configure</span>
+              <span>Generate Details</span>
             }
           </button>
         </div>
@@ -283,42 +283,359 @@
           <div class="wa-form-field-group">
             <div class="wa-label-row">
               <div>
-                <label class="wa-input-label">Vocal Presence</label>
-                <p class="wa-field-sub">Select the voice used for voice notes and live calls</p>
+                <label class="wa-input-label">Companion Voice</label>
+                <p class="wa-field-sub">Choose a preset voice or upload a voice clip to clone a custom voice</p>
+              </div>
+
+              <!-- Segmented Switch: Presets vs Custom Voice -->
+              <div class="wa-voice-mode-tabs" role="tablist">
+                <button
+                  type="button"
+                  class="wa-voice-tab-btn"
+                  [class.active]="activeVoiceTab() === 'preset'"
+                  (click)="setVoiceTab('preset')"
+                  role="tab"
+                  [attr.aria-selected]="activeVoiceTab() === 'preset'"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                  <span>Preset Voices ({{ presets().length }})</span>
+                </button>
+                <button
+                  type="button"
+                  class="wa-voice-tab-btn custom-tab"
+                  [class.active]="activeVoiceTab() === 'cloned'"
+                  (click)="setVoiceTab('cloned')"
+                  role="tab"
+                  [attr.aria-selected]="activeVoiceTab() === 'cloned'"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Custom Cloned Voice</span>
+                  @if (characterForm.get('voice_provider')?.value === 'cloned') {
+                    <span class="active-dot" title="Active Custom Voice"></span>
+                  }
+                </button>
               </div>
             </div>
-            <div class="wa-presets-compact-grid">
-              @for (p of presets(); track p.id) {
+
+            <!-- TAB 1: CURATED PRESETS -->
+            @if (activeVoiceTab() === 'preset') {
+              <div class="wa-presets-compact-grid">
+                @for (p of presets(); track p.id) {
+                  <div
+                    class="wa-preset-compact-card"
+                    [class.selected]="selectedPresetId() === p.id && characterForm.get('voice_provider')?.value === 'preset'"
+                    (click)="selectPreset(p)"
+                  >
+                    <div class="preset-top">
+                      <span class="p-name">{{ p.name }}</span>
+                      <button
+                        type="button"
+                        (click)="previewPreset(p, $event)"
+                        class="p-play-btn"
+                        [class.playing]="isPreviewPlayingVoiceId() === p.id"
+                        title="Sample Voice"
+                      >
+                        @if (isPreviewPlayingVoiceId() === p.id) {
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="5" width="4" height="14" rx="1" />
+                            <rect x="14" y="5" width="4" height="14" rx="1" />
+                          </svg>
+                        } @else {
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        }
+                      </button>
+                    </div>
+                    <span class="p-meta">{{ p.accent }} • {{ p.gender }}</span>
+                  </div>
+                }
+
+                <!-- Quick Action Card to Clone Custom Voice -->
                 <div
-                  class="wa-preset-compact-card"
-                  [class.selected]="selectedPresetId() === p.id"
-                  (click)="selectPreset(p)"
+                  class="wa-preset-compact-card custom-add-card"
+                  (click)="setVoiceTab('cloned')"
+                  title="Upload audio sample or record microphone"
                 >
                   <div class="preset-top">
-                    <span class="p-name">{{ p.name }}</span>
-                    <button
-                      type="button"
-                      (click)="previewPreset(p, $event)"
-                      class="p-play-btn"
-                      [class.playing]="isPreviewPlayingVoiceId() === p.id"
-                      title="Sample Voice"
-                    >
-                      @if (isPreviewPlayingVoiceId() === p.id) {
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <rect x="6" y="5" width="4" height="14" rx="1" />
-                          <rect x="14" y="5" width="4" height="14" rx="1" />
-                        </svg>
-                      } @else {
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      }
-                    </button>
+                    <span class="p-name">+ Custom Voice</span>
+                    <span class="p-add-badge">Clone</span>
                   </div>
-                  <span class="p-meta">{{ p.accent }} • {{ p.gender }}</span>
+                  <span class="p-meta">Upload file or record</span>
                 </div>
-              }
-            </div>
+              </div>
+            }
+
+            <!-- TAB 2: CUSTOM / CLONED VOICE STUDIO -->
+            @if (activeVoiceTab() === 'cloned') {
+              <div class="wa-custom-voice-studio">
+
+                <!-- Case 1: An existing custom voice is configured and not in replace mode -->
+                @if (characterForm.get('voice_provider')?.value === 'cloned' && characterForm.get('voice_id')?.value && !isReplacingVoice()) {
+                  <div class="wa-active-cloned-card">
+                    <div class="cloned-card-header">
+                      <div class="cloned-badge-group">
+                        <span class="cloned-badge">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                          </svg>
+                          Custom Voice Connected
+                        </span>
+                        <span class="cloned-id-label">ID: {{ characterForm.get('voice_id')?.value }}</span>
+                      </div>
+                      <div class="cloned-actions-row">
+                        <button
+                          type="button"
+                          class="wa-btn-subtle-sm"
+                          (click)="isReplacingVoice.set(true)"
+                          title="Upload a new sample or record again"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span>Re-clone Voice</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="wa-btn-subtle-sm danger"
+                          (click)="clearCustomVoice()"
+                          title="Discard custom voice and switch to presets"
+                        >
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="cloned-playback-box">
+                      <div class="playback-header-row">
+                        <div class="playback-info">
+                          <span class="playback-title">Active Custom Voice</span>
+                          <span class="playback-sub">
+                            @if (characterForm.get('voice_sample_url')?.value) {
+                              Voice audio sample connected for voice notes and calls
+                            } @else {
+                              Custom voice profile ready
+                            }
+                          </span>
+                        </div>
+
+                        <div class="playback-buttons">
+                          @if (characterForm.get('voice_sample_url')?.value) {
+                            <button
+                              type="button"
+                              class="wa-btn-play-sample"
+                              [class.playing]="isPlayingCustomSample()"
+                              (click)="playCustomVoiceSample()"
+                            >
+                              @if (isPlayingCustomSample()) {
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                  <rect x="6" y="5" width="4" height="14" rx="1" />
+                                  <rect x="14" y="5" width="4" height="14" rx="1" />
+                                </svg>
+                                <span>Pause Sample</span>
+                              } @else {
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M8 5v14l11-7z" />
+                                </svg>
+                                <span>Play Sample Audio</span>
+                              }
+                            </button>
+                          }
+
+                          <button
+                            type="button"
+                            class="wa-btn-preview-tts"
+                            [class.loading]="isPreviewingCustomTts()"
+                            (click)="previewCustomVoiceTts()"
+                          >
+                            @if (isPreviewingCustomTts()) {
+                              <span class="spinner-sm"></span>
+                              <span>Speaking...</span>
+                            } @else {
+                              <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                              </svg>
+                              <span>Test Voice</span>
+                            }
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Reference Sample Words (Transcript) for Pristine Sentence Synthesis -->
+                      <div class="cloned-transcript-box">
+                        <div class="cloned-transcript-header">
+                          <label class="cloned-transcript-label">Reference Speech Words (Sample Transcript)</label>
+                          <span class="cloned-transcript-pill">Required for clean sentence flow</span>
+                        </div>
+                        <input
+                          type="text"
+                          class="cloned-transcript-input"
+                          [value]="getClonedVoiceRefText()"
+                          (input)="onClonedVoiceRefTextChange($event)"
+                          placeholder="Exact words spoken in your audio sample (e.g. 'Hello, this is my voice...')"
+                        />
+                        <p class="cloned-transcript-hint">
+                          Matches the sample's speech cadence so the cloned voice pronounces new sentences clearly without stuttering or gibberish.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Case 2: Upload or Record New Custom Voice -->
+                  <div class="wa-clone-input-panel">
+                    <p class="wa-clone-instructions">
+                      Upload or record a 5–30 second audio clip. We'll use it to clone their speaking voice for voice notes and calls.
+                    </p>
+
+                    <div class="wa-clone-methods-grid">
+                      <!-- Method A: File Upload Dropzone -->
+                      <div class="wa-clone-method-card">
+                        <div class="method-header">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <span class="method-title">Upload Audio File</span>
+                        </div>
+                        <p class="method-sub">Audio file (.mp3, .wav, .m4a, .webm, up to 25MB)</p>
+
+                        <label class="wa-file-dropzone" [class.disabled]="isCloningVoice() || isRecordingVoiceSample()">
+                          <input
+                            type="file"
+                            accept="audio/*,.mp3,.wav,.m4a,.webm,.ogg"
+                            (change)="onVoiceSampleSelected($event)"
+                            [disabled]="isCloningVoice() || isRecordingVoiceSample()"
+                            hidden
+                          />
+                          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                          </svg>
+                          <span class="dropzone-text">
+                            @if (customVoiceFileName()) {
+                              Selected: <strong>{{ customVoiceFileName() }}</strong>
+                            } @else {
+                              Click to browse or drop audio sample
+                            }
+                          </span>
+                          <span class="dropzone-hint">MP3, WAV, M4A, WEBM • Max 25 MB</span>
+                        </label>
+                      </div>
+
+                      <!-- Method B: Record with Microphone -->
+                      <div class="wa-clone-method-card">
+                        <div class="method-header">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                          </svg>
+                          <span class="method-title">Record Voice Now</span>
+                        </div>
+                        <p class="method-sub">Speak naturally into your microphone for 5 to 30 seconds</p>
+
+                        <div class="wa-mic-record-box">
+                          @if (!isRecordingVoiceSample()) {
+                            <button
+                              type="button"
+                              class="wa-btn-start-record"
+                              (click)="startRecordingVoiceSample()"
+                              [disabled]="isCloningVoice()"
+                            >
+                              <div class="mic-circle">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                                </svg>
+                              </div>
+                              <div class="record-meta">
+                                <span class="record-title">Start Recording</span>
+                                <span class="record-hint">Click and speak a sentence</span>
+                              </div>
+                            </button>
+                          } @else {
+                            <div class="wa-recording-active-view">
+                              <div class="recording-pulse-indicator">
+                                <span class="pulse-dot"></span>
+                                <span class="rec-label">Recording: {{ formatRecordingTime(recordingDuration()) }} / 0:30</span>
+                              </div>
+
+                              <div class="waveform-anim">
+                                <span></span><span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span><span></span>
+                              </div>
+
+                              <div class="recording-actions">
+                                <button
+                                  type="button"
+                                  class="wa-btn-stop-record"
+                                  (click)="stopRecordingVoiceSample()"
+                                >
+                                  <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                                  </svg>
+                                  <span>Stop &amp; Clone Voice</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  class="wa-btn-cancel-record"
+                                  (click)="cancelRecordingVoiceSample()"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    @if (isReplacingVoice()) {
+                      <div class="wa-cancel-replace-row">
+                        <button type="button" class="wa-btn-text" (click)="isReplacingVoice.set(false)">
+                          ← Keep current custom voice
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Status Feedback Alerts -->
+                @if (isCloningVoice()) {
+                  <div class="wa-clone-status-banner loading">
+                    <span class="spinner-sm"></span>
+                    <div class="banner-text">
+                      <span class="banner-title">Setting Up Voice...</span>
+                      <span class="banner-sub">Analyzing speech sample to create your companion's custom voice.</span>
+                    </div>
+                  </div>
+                }
+
+                @if (cloneSuccess()) {
+                  <div class="wa-clone-status-banner success">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <div class="banner-text">
+                      <span class="banner-title">{{ cloneSuccess() }}</span>
+                    </div>
+                  </div>
+                }
+
+                @if (cloneError()) {
+                  <div class="wa-clone-status-banner error">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                    <div class="banner-text">
+                      <span class="banner-title">Voice Setup Failed</span>
+                      <span class="banner-sub">{{ cloneError() }}</span>
+                    </div>
+                  </div>
+                }
+
+              </div>
+            }
           </div>
 
           <!-- SECTION 5: DOMAIN COPILOT CAPABILITIES -->
@@ -326,8 +643,8 @@
             <label class="wa-switch-row">
               <input type="checkbox" formControlName="is_sports_analyst" class="wa-checkbox" />
               <div class="switch-info">
-                <span class="switch-title">Enable Match Forecaster &amp; Betting Options Copilot</span>
-                <span class="switch-desc">Connects live bookmaker odds and current season form to help forecast matches and stress-test betting options.</span>
+                <span class="switch-title">Enable Sports &amp; Match Analysis Copilot</span>
+                <span class="switch-desc">Connects real-time match data and odds to help analyze upcoming fixtures and games.</span>
               </div>
             </label>
           </div>
@@ -343,7 +660,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
-                <span>Deep Personalization (Nicknames, Catchphrases &amp; Shared History)</span>
+                <span>Personal Details (Nicknames, Catchphrases &amp; Backstory)</span>
               </div>
               <span class="accordion-arrow">{{ showAdvancedAccordion() ? 'Hide' : 'Expand' }}</span>
             </button>
@@ -379,13 +696,13 @@
                 </div>
 
                 <div class="wa-form-field-group">
-                  <label for="shared_memories_seed" class="wa-input-label">Formative Shared Context</label>
+                  <label for="shared_memories_seed" class="wa-input-label">Things They Should Know About You</label>
                   <div class="wa-input-box textarea-box">
                     <textarea 
                       id="shared_memories_seed"
                       rows="2" 
                       formControlName="shared_memories_seed"
-                      placeholder="Background context they should already know about you from day one..." 
+                      placeholder="Facts, preferences, or context they should already know from day one..." 
                       class="wa-field wa-textarea-field"
                     ></textarea>
                   </div>
@@ -398,7 +715,7 @@
                       id="backstory"
                       rows="2" 
                       formControlName="backstory"
-                      placeholder="Their life experience, domain expertise, or worldview..." 
+                      placeholder="Their background, skills, or worldview..." 
                       class="wa-field wa-textarea-field"
                     ></textarea>
                   </div>
@@ -411,8 +728,8 @@
           <div class="wa-vibe-preview-box">
             <div class="wa-vibe-header">
               <div class="wa-vibe-title-group">
-                <span class="wa-vibe-title">Response &amp; Voice Simulator</span>
-                <span class="wa-vibe-sub">Preview how {{ characterForm.get('name')?.value || 'this companion' }} responds before saving</span>
+                <span class="wa-vibe-title">Test Your Companion</span>
+                <span class="wa-vibe-sub">Preview how {{ characterForm.get('name')?.value || 'this companion' }} chats and sounds before saving</span>
               </div>
               <button
                 type="button"

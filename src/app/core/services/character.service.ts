@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Character, CreateCharacterDto } from '../models/character.model';
 import { ApiResponse } from '../models/user.model';
+import { API_BASE_URL } from '../constants/api.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CharacterService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'https://aicompanion-production-12db.up.railway.app/api/characters';
+  private readonly API_URL = `${API_BASE_URL}/characters`;
 
   readonly characters = signal<Character[]>([]);
   readonly selectedCharacter = signal<Character | null>(null);

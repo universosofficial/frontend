@@ -15,70 +15,70 @@ export interface TourStep {
   providedIn: 'root',
 })
 export class TourGuideService {
-  private readonly STORAGE_KEY = 'lumina_tour_guide_completed_v1';
+  private readonly STORAGE_KEY = 'univasos_tour_guide_completed_v1';
 
   readonly steps: TourStep[] = [
     {
       id: 'welcome',
-      badge: 'Welcome to Lumina',
+      badge: 'Welcome to Univasos',
       icon: '✨',
-      title: 'Your Unified AI Sanctuary & Thought Commons',
+      title: 'Your AI Companion & Knowledge Hub',
       description:
-        'Lumina combines private emotional AI companions with public AI Minds (Digital Twins). Converse with warm companions who remember your thoughts, or consult verified minds grounded in authored writings.',
+        'Univasos gives you private AI companions that remember what matters to you, plus public AIs you can explore or create for yourself.',
       position: 'center',
-      actionHint: 'Take a quick 1-minute guided walkthrough to see how everything works.',
+      actionHint: 'Take a quick 1-minute guided tour to see how everything works.',
     },
     {
       id: 'sidebar-chats',
       badge: 'Conversations',
       icon: '💬',
-      title: 'All Your Companions & Minds in One Place',
+      title: 'All Your Chats in One Place',
       description:
-        'Your conversations live in this left sidebar. Switch seamlessly between private companions and public AI minds without ever losing your chat context.',
+        'Your conversations live in this left sidebar. Switch easily between your companions and public AIs anytime.',
       targetSelector: '.wa-chat-list',
       position: 'right',
-      actionHint: 'Use the filter pills above to view Official personas, Custom creations, or AI Minds.',
+      actionHint: 'Use the filter buttons above to view Featured companions, your private creations, or Public AIs.',
     },
     {
       id: 'create-new',
       badge: 'Quick Creation',
       icon: '⚡',
-      title: 'Create Personas & Minds in Under 7 Fields',
+      title: 'Create AI Companions in Seconds',
       description:
-        'Tap the "+ New" button to design a new companion or train your own AI Mind. Keep it simple with zero cognitive overload, upload documents or PDFs, and share your unique social link!',
+        'Tap "+ New" to create a personal companion or set up your own public AI. Customize their personality, add a custom voice, or upload reference documents.',
       targetSelector: '.wa-new-chat-btn',
       position: 'bottom',
-      actionHint: 'Your personal AI Mind gets its own public page and social media share card.',
+      actionHint: 'Your AI can stay private or be shared with friends and followers.',
     },
     {
       id: 'chat-input',
       badge: 'Voice & Text',
       icon: '🎙️',
-      title: 'Text, Voice Notes & Live Spoken Calls',
+      title: 'Text, Voice Notes & Calls',
       description:
-        'Type your questions in the floating dock, or hold down the microphone button to record WhatsApp-style voice notes with live waveform audio visualization and instant transcripts.',
+        'Type messages normally, hold down the microphone button to send voice notes, or start a voice call anytime.',
       targetSelector: '.wa-chat-input-bar',
       position: 'top',
-      actionHint: 'You can also initiate real-time two-way voice calls with any companion or mind.',
+      actionHint: 'Tap the phone icon in the top header to start a live voice call.',
     },
     {
       id: 'memories-doctrine',
-      badge: 'Neural Recall',
+      badge: 'Saved Memories',
       icon: '📖',
-      title: 'Neural Memories & Knowledge Grounding',
+      title: 'Memories & Knowledge',
       description:
-        'Tap the Memories or Knowledge button to inspect the recall bank. See what your companion remembers about your conversations, or view the verified sources grounding an AI Mind’s advice.',
+        'Click Saved Memories at the top of any chat to see what your companion remembers about your conversations, or view the documents powering their answers.',
       targetSelector: '.wa-header-memory-btn',
       position: 'bottom',
-      actionHint: 'Clicking opens a smooth slide-out drawer without interrupting your conversation.',
+      actionHint: 'Memories are updated automatically as you chat.',
     },
     {
       id: 'ready',
-      badge: 'Ready to Explore',
+      badge: 'Ready to Start',
       icon: '🚀',
-      title: 'You are Ready to Start!',
+      title: 'You are Ready to Begin!',
       description:
-        'Explore the Thought Commons, chat with diverse personas, or start building your personal digital twin today. You can replay this interactive tour anytime from Settings.',
+        'Start a conversation, create a companion, or explore public AIs. You can replay this quick tour anytime from the settings menu.',
       position: 'center',
       actionHint: 'Click "Start Exploring" to dive in!',
     },

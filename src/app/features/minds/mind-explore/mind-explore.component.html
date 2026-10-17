@@ -8,22 +8,22 @@
         </svg>
       </a>
       <div class="wa-header-branding">
-        <h1 class="wa-explore-title">Digital Twin Minds Network</h1>
-        <p class="wa-explore-subtitle">Discover, add, and consult public AI Minds grounded in authentic writings, essays, and decision frameworks.</p>
+        <h1 class="wa-explore-title">Explore Public AIs</h1>
+        <p class="wa-explore-subtitle">Discover and chat with public AIs created by thinkers, authors, and experts.</p>
       </div>
     </div>
 
     <div class="wa-explore-header-actions">
-      <button type="button" class="wa-council-btn" (click)="openCouncilModal()" title="Ask 2-3 AI Minds to debate a dilemma together">
+      <button type="button" class="wa-council-btn" (click)="openCouncilModal()" title="Ask 2-3 AIs to discuss a topic together">
         <span>🏛️</span>
-        <span>Convene Council</span>
+        <span>Group Debate</span>
       </button>
 
-      <a routerLink="/dashboard/characters/new" class="wa-publish-mind-btn" title="Publish an AI Mind">
+      <a routerLink="/dashboard/characters/new" class="wa-publish-mind-btn" title="Create a public AI">
         <svg viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
         </svg>
-        <span>Publish Your Mind</span>
+        <span>Create Public AI</span>
       </a>
     </div>
   </header>
@@ -38,7 +38,7 @@
         type="text"
         [value]="searchQuery()"
         (input)="onSearchInput($any($event.target).value)"
-        placeholder="Search AI Minds (e.g. Elon Musk, Warren Buffett, Startup, Science)..."
+        placeholder="Search public AIs by name, topic, or field..."
         class="wa-search-input"
       />
       @if (searchQuery()) {
@@ -68,7 +68,7 @@
           class="wa-sort-btn" 
           [class.active]="selectedSort() === 'popular'" 
           (click)="setSort('popular')"
-          title="Most Consulted"
+          title="Most Popular"
         >
           Popular
         </button>
@@ -77,7 +77,7 @@
           class="wa-sort-btn" 
           [class.active]="selectedSort() === 'newest'" 
           (click)="setSort('newest')"
-          title="Recently Published"
+          title="Recently Added"
         >
           Newest
         </button>
@@ -90,7 +90,7 @@
     @if (isLoading()) {
       <div class="wa-explore-loading">
         <div class="wa-spinner"></div>
-        <span>Searching Digital Twin Minds...</span>
+        <span>Searching public AIs...</span>
       </div>
     } @else if (errorMessage()) {
       <div class="wa-explore-error">
@@ -104,9 +104,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
           </svg>
         </div>
-        <h3>No AI Minds found</h3>
-        <p>No published digital twins matched your search criteria. Be the first to build and publish a Mind in this field!</p>
-        <a routerLink="/dashboard/characters/new" class="wa-btn-primary">+ Publish an AI Mind</a>
+        <h3>No public AIs found</h3>
+        <p>No published AIs matched your search. Be the first to build and publish an AI in this topic!</p>
+        <a routerLink="/dashboard/characters/new" class="wa-btn-primary">+ Create Public AI</a>
       </div>
     } @else {
       <!-- Responsive Mind Cards Grid -->
@@ -129,7 +129,7 @@
                 <div class="wa-mind-name-row">
                   <h3 class="wa-mind-name">{{ mind.display_name || mind.name }}</h3>
                   @if (mind.is_verified) {
-                    <span class="wa-verified-disc" title="Verified Public Mind">
+                    <span class="wa-verified-disc" title="Verified Profile">
                       <svg viewBox="0 0 20 20" fill="currentColor" class="wa-verified-icon">
                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                       </svg>
@@ -137,6 +137,11 @@
                   }
                   @if (mind.handle) {
                     <span class="wa-mind-handle">&#64;{{ mind.handle }}</span>
+                  }
+                  @if (mind.direct_chat_enabled !== false) {
+                    <span class="wa-token-fee-pill" title="Direct Human Access Available">
+                      ◈ {{ mind.direct_chat_price || 25 }} Vasos
+                    </span>
                   }
                 </div>
                 @if (mind.headline) {
@@ -155,7 +160,7 @@
             <!-- Card Action Footer: Clean, One Primary Action + Subtle Icons -->
             <div class="wa-mind-card-footer">
               <button type="button" class="wa-consult-btn" (click)="consultMind(mind); $event.stopPropagation()">
-                <span>Consult</span>
+                <span>Chat</span>
                 <svg viewBox="0 0 20 20" fill="currentColor" class="wa-btn-icon">
                   <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
@@ -167,7 +172,7 @@
                 [class.subscribed]="mind.is_subscribed"
                 [disabled]="subscribingMindId() === mind.id"
                 (click)="toggleSubscription(mind, $event)"
-                [title]="mind.is_subscribed ? 'Saved in My Minds' : 'Save to My Minds'"
+                [title]="mind.is_subscribed ? 'Saved in My Chats' : 'Save to My Chats'"
               >
                 @if (subscribingMindId() === mind.id) {
                   <span class="wa-sub-spin"></span>
@@ -187,7 +192,7 @@
                 type="button"
                 class="wa-card-share-btn"
                 (click)="openShareMind(mind, $event)"
-                title="Share this Mind"
+                title="Share this AI"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -206,8 +211,8 @@
       <div class="wa-council-modal" (click)="$event.stopPropagation()">
         <header class="wa-council-header">
           <div>
-            <h2>🏛️ AI Mind Boardroom Council</h2>
-            <p>Select 2 to 3 AI Minds, present one dilemma, and get their contrasting perspectives + a unified Council Verdict.</p>
+            <h2>🏛️ AI Group Debate</h2>
+            <p>Pick 2 or 3 AIs to discuss your question and compare their viewpoints.</p>
           </div>
           <button type="button" class="wa-council-close" (click)="closeCouncilModal()">&times;</button>
         </header>

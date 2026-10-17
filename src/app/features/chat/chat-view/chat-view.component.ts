@@ -72,11 +72,11 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   activeConversationMode = signal<string>('default');
   isModeMenuOpen = signal<boolean>(false);
   conversationModes = [
-    { id: 'default', icon: '✨', label: 'Natural', desc: 'Authentic default personality' },
-    { id: 'listen', icon: '🫂', label: 'Just Listen', desc: 'Warm validation, zero lecturing' },
-    { id: 'tough_love', icon: '🔥', label: 'Tough Love', desc: 'Direct accountability & challenge' },
-    { id: 'brainstorm', icon: '💡', label: 'Brainstorm', desc: 'Creative sparring & strategy' },
-    { id: 'calm', icon: '🧘', label: 'Ground Me', desc: 'Soothing & calming presence' },
+    { id: 'default', icon: '✨', label: 'Natural', desc: 'Their standard personality' },
+    { id: 'listen', icon: '🫂', label: 'Just Listen', desc: 'Listen with empathy, no advice' },
+    { id: 'tough_love', icon: '🔥', label: 'Tough Love', desc: 'Honest, direct feedback' },
+    { id: 'brainstorm', icon: '💡', label: 'Brainstorm', desc: 'Ideas, problem solving & planning' },
+    { id: 'calm', icon: '🧘', label: 'Ground Me', desc: 'Relaxing, supportive & calming' },
   ];
 
   // Feature #6: Working Attachment & Quick Emoji Picker
@@ -315,6 +315,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
       tempUserMessage,
       streamingAssistantMessage,
     ]);
+    this.chatService.updateLastMessage(this.characterId, content, 'user');
 
     this.abortController = new AbortController();
 
@@ -359,9 +360,13 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
               m.id === tempAssistantId ? finalMsg : m
             )
           );
+          this.chatService.updateLastMessage(this.characterId, finalMsg.content || '', 'assistant');
           this.updateSmartFollowUps(finalMsg.content || '');
         } else {
           const latest = this.chatService.messages().find((m) => m.id === tempAssistantId);
+          if (latest?.content) {
+            this.chatService.updateLastMessage(this.characterId, latest.content, 'assistant');
+          }
           this.updateSmartFollowUps(latest?.content || '');
         }
         // Refresh memories and sidebar chat order in background

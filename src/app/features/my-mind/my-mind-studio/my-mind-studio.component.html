@@ -2,22 +2,22 @@
   @if (isLoading()) {
     <div class="studio-loading">
       <div class="spinner"></div>
-      <p>Loading your AI Mind Studio...</p>
+      <p>Loading your AI Profile...</p>
     </div>
   } @else {
     <!-- Studio Header -->
     <header class="studio-header">
       <div class="header-left">
-        <h1>My AI Mind Studio</h1>
+        <h1>My AI Profile</h1>
         <p class="subtitle">
-          Configure and train your personal AI Digital Twin.
+          Create and train your personal AI to share your knowledge and answer questions.
         </p>
       </div>
 
       <div class="header-actions">
         @if (isPublished() && handle()) {
           <a [routerLink]="['/minds/@' + handle()]" target="_blank" class="view-public-btn">
-            View Public Mind ↗
+            View Public Profile ↗
           </a>
         }
 
@@ -52,7 +52,7 @@
             </svg>
           </div>
           <div class="share-banner-text">
-            <span class="share-banner-title">Your Public AI Mind Link is Live</span>
+            <span class="share-banner-title">Your Public AI Profile is Live</span>
             <span class="share-banner-url">{{ getShareUrl() }}</span>
           </div>
         </div>
@@ -72,8 +72,8 @@
       <!-- Left Column: 7 Essential Fields (Zero Cognitive Overload) -->
       <section class="card profile-card">
         <div class="card-header">
-          <h2>1. Mind Profile & Identity</h2>
-          <p>The core identity visitors will encounter when consulting your Digital Twin.</p>
+          <h2>1. Profile &amp; Name</h2>
+          <p>The name and bio people see when chatting with your AI.</p>
         </div>
 
         <!-- Field 1: Display Name -->
@@ -122,55 +122,351 @@
           </div>
         </div>
 
-        <!-- Field 5: Core Thought Philosophy -->
+        <!-- Field 5: Core Thinking Style & Values -->
         <div class="form-group">
-          <label>5. Core Thought Philosophy</label>
+          <label>5. Core Thinking Style &amp; Values</label>
           <textarea
             [(ngModel)]="philosophyStatement"
             rows="3"
             placeholder="Boil things down to fundamental truths. Question premises before jumping to solutions..."
             class="input-textarea"
           ></textarea>
-          <span class="hint">The lens your Mind uses to analyze questions from visitors.</span>
+          <span class="hint">How your AI approaches questions and solves problems.</span>
         </div>
 
-        <!-- Field 6: Voice Archetype -->
+        <!-- Field 6: Voice -->
         <div class="form-group voice-group">
-          <label>6. Voice Presence</label>
-          <div class="mind-voice-grid">
-            @for (p of presets(); track p.id) {
+          <div class="voice-header-row">
+            <div>
+              <label>6. Voice</label>
+              <p class="voice-sub">Choose a preset voice or upload an audio sample to clone your own voice</p>
+            </div>
+
+            <!-- Segmented Switch: Presets vs Custom Voice -->
+            <div class="voice-mode-tabs" role="tablist">
+              <button
+                type="button"
+                class="voice-tab-btn"
+                [class.active]="activeVoiceTab() === 'preset'"
+                (click)="setVoiceTab('preset')"
+                role="tab"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <span>Curated Presets ({{ presets().length }})</span>
+              </button>
+              <button
+                type="button"
+                class="voice-tab-btn"
+                [class.active]="activeVoiceTab() === 'cloned'"
+                (click)="setVoiceTab('cloned')"
+                role="tab"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Custom Cloned Voice</span>
+                @if (voiceProvider() === 'cloned') {
+                  <span class="active-dot" title="Active Cloned Voice"></span>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 1: CURATED PRESETS -->
+          @if (activeVoiceTab() === 'preset') {
+            <div class="mind-voice-grid">
+              @for (p of presets(); track p.id) {
+                <div
+                  class="mind-voice-card"
+                  [class.selected]="voiceId() === p.id && voiceProvider() === 'preset'"
+                  (click)="selectVoicePreset(p)"
+                >
+                  <div class="voice-card-header">
+                    <div>
+                      <span class="v-name">{{ p.name }}</span>
+                      <span class="v-meta">{{ p.accent }} • {{ p.gender }}</span>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="previewVoice(p, $event)"
+                      class="v-preview-btn"
+                      [class.playing]="previewPlayingVoiceId() === p.id"
+                      title="Preview voice"
+                    >
+                      @if (previewPlayingVoiceId() === p.id) {
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <rect x="6" y="5" width="4" height="14" rx="1" />
+                          <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                      } @else {
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Quick Action Card to Clone Custom Voice -->
               <div
-                class="mind-voice-card"
-                [class.selected]="voiceId() === p.id"
-                (click)="selectVoicePreset(p)"
+                class="mind-voice-card custom-add-card"
+                (click)="setVoiceTab('cloned')"
+                title="Upload audio sample or record microphone"
               >
                 <div class="voice-card-header">
                   <div>
-                    <span class="v-name">{{ p.name }}</span>
-                    <span class="v-meta">{{ p.accent }} • {{ p.gender }}</span>
+                    <span class="v-name">+ Custom Voice</span>
+                    <span class="v-meta">Clone your own voice</span>
                   </div>
-                  <button
-                    type="button"
-                    (click)="previewVoice(p, $event)"
-                    class="v-preview-btn"
-                    [class.playing]="previewPlayingVoiceId() === p.id"
-                    title="Preview voice"
-                  >
-                    @if (previewPlayingVoiceId() === p.id) {
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <rect x="6" y="5" width="4" height="14" rx="1" />
-                        <rect x="14" y="5" width="4" height="14" rx="1" />
-                      </svg>
-                    } @else {
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    }
-                  </button>
+                  <span class="clone-tag">✨ Clone</span>
                 </div>
               </div>
-            }
-          </div>
+            </div>
+          }
+
+          <!-- TAB 2: CUSTOM / CLONED VOICE STUDIO -->
+          @if (activeVoiceTab() === 'cloned') {
+            <div class="mind-custom-voice-studio">
+              @if (voiceProvider() === 'cloned' && voiceId() && !isReplacingVoice()) {
+                <div class="mind-active-cloned-card">
+                  <div class="cloned-card-header">
+                    <div class="cloned-badge-group">
+                      <span class="cloned-badge">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg>
+                        Digital Twin Voice Connected
+                      </span>
+                      <span class="cloned-id-label">ID: {{ voiceId() }}</span>
+                    </div>
+                    <div class="cloned-actions-row">
+                      <button
+                        type="button"
+                        class="btn-subtle-sm"
+                        (click)="isReplacingVoice.set(true)"
+                        title="Upload a new sample or record again"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Re-clone Voice</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-subtle-sm danger"
+                        (click)="clearCustomVoice()"
+                        title="Discard custom voice and switch to presets"
+                      >
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="cloned-playback-box">
+                    <div class="playback-info">
+                      <span class="playback-title">Active Vocal Persona</span>
+                      <span class="playback-sub">
+                        @if (voiceSampleUrl()) {
+                          Your audio sample is calibrated for audio responses
+                        } @else {
+                          Acoustic resonance profile calibrated
+                        }
+                      </span>
+                    </div>
+
+                    <div class="playback-buttons">
+                      @if (voiceSampleUrl()) {
+                        <button
+                          type="button"
+                          class="btn-play-sample"
+                          [class.playing]="isPlayingCustomSample()"
+                          (click)="playCustomVoiceSample()"
+                        >
+                          @if (isPlayingCustomSample()) {
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <rect x="6" y="5" width="4" height="14" rx="1" />
+                              <rect x="14" y="5" width="4" height="14" rx="1" />
+                            </svg>
+                            <span>Pause Sample</span>
+                          } @else {
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                            <span>Play Sample Audio</span>
+                          }
+                        </button>
+                      }
+
+                      <button
+                        type="button"
+                        class="btn-preview-tts"
+                        [class.loading]="isPreviewingCustomTts()"
+                        (click)="previewCustomVoiceTts()"
+                      >
+                        @if (isPreviewingCustomTts()) {
+                          <span class="spinner-sm"></span>
+                          <span>Speaking...</span>
+                        } @else {
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                          </svg>
+                          <span>Test Speech Synthesis</span>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              } @else {
+                <div class="mind-clone-input-panel">
+                  <p class="mind-clone-instructions">
+                    Provide a 5–30 second recording of your voice. Our acoustics engine will clone your tone, cadence, and vocal presence for your Digital Twin.
+                  </p>
+
+                  <div class="mind-clone-methods-grid">
+                    <div class="mind-clone-method-card">
+                      <div class="method-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span class="method-title">Upload Audio File</span>
+                      </div>
+                      <p class="method-sub">Audio file (.mp3, .wav, .m4a, .webm, up to 25MB)</p>
+
+                      <label class="file-dropzone" [class.disabled]="isCloningVoice() || isRecordingVoiceSample()">
+                        <input
+                          type="file"
+                          accept="audio/*,.mp3,.wav,.m4a,.webm,.ogg"
+                          (change)="onVoiceSampleUpload($event)"
+                          [disabled]="isCloningVoice() || isRecordingVoiceSample()"
+                          hidden
+                        />
+                        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                        <span class="dropzone-text">
+                          @if (customVoiceFileName()) {
+                            Selected: <strong>{{ customVoiceFileName() }}</strong>
+                          } @else {
+                            Click to browse or drop audio sample
+                          }
+                        </span>
+                        <span class="dropzone-hint">MP3, WAV, M4A, WEBM • Max 25 MB</span>
+                      </label>
+                    </div>
+
+                    <div class="mind-clone-method-card">
+                      <div class="method-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                        <span class="method-title">Record Voice Now</span>
+                      </div>
+                      <p class="method-sub">Speak naturally into your microphone for 5 to 30 seconds</p>
+
+                      <div class="mic-record-box">
+                        @if (!isRecordingVoiceSample()) {
+                          <button
+                            type="button"
+                            class="btn-start-record"
+                            (click)="startRecordingVoiceSample()"
+                            [disabled]="isCloningVoice()"
+                          >
+                            <div class="mic-circle">
+                              <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                              </svg>
+                            </div>
+                            <div class="record-meta">
+                              <span class="record-title">Start Recording</span>
+                              <span class="record-hint">Click and speak a sentence</span>
+                            </div>
+                          </button>
+                        } @else {
+                          <div class="recording-active-view">
+                            <div class="recording-pulse-indicator">
+                              <span class="pulse-dot"></span>
+                              <span class="rec-label">Recording: {{ formatRecordingTime(recordingDuration()) }} / 0:30</span>
+                            </div>
+
+                            <div class="waveform-anim">
+                              <span></span><span></span><span></span><span></span><span></span>
+                              <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+
+                            <div class="recording-actions">
+                              <button
+                                type="button"
+                                class="btn-stop-record"
+                                (click)="stopRecordingVoiceSample()"
+                              >
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                                </svg>
+                                <span>Stop &amp; Clone Voice</span>
+                              </button>
+                              <button
+                                type="button"
+                                class="btn-cancel-record"
+                                (click)="cancelRecordingVoiceSample()"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (isReplacingVoice()) {
+                    <div class="cancel-replace-row">
+                      <button type="button" class="btn-text" (click)="isReplacingVoice.set(false)">
+                        ← Keep current custom voice
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Status Feedback Alerts -->
+              @if (isCloningVoice()) {
+                <div class="clone-status-banner loading">
+                  <span class="spinner-sm"></span>
+                  <div class="banner-text">
+                    <span class="banner-title">Setting Up Voice...</span>
+                    <span class="banner-sub">Analyzing speech sample to create your custom voice.</span>
+                  </div>
+                </div>
+              }
+
+              @if (cloneSuccess()) {
+                <div class="clone-status-banner success">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  <div class="banner-text">
+                    <span class="banner-title">{{ cloneSuccess() }}</span>
+                  </div>
+                </div>
+              }
+
+              @if (cloneError()) {
+                <div class="clone-status-banner error">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <div class="banner-text">
+                    <span class="banner-title">Voice Setup Failed</span>
+                    <span class="banner-sub">{{ cloneError() }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
         </div>
 
         <!-- Field 7: Publish to Commons Toggle -->
@@ -180,8 +476,8 @@
             <span class="slider"></span>
           </label>
           <div class="switch-meta">
-            <span class="switch-title">7. Publish in Thought Commons</span>
-            <span class="switch-desc">Allow visitors to consult your Mind and share its link on social media.</span>
+            <span class="switch-title">7. Make Public in Directory</span>
+            <span class="switch-desc">Allow others to find and chat with your AI twin using your public link.</span>
           </div>
         </div>
 
@@ -193,17 +489,17 @@
               <span class="slider"></span>
             </label>
             <div class="switch-meta">
-              <span class="switch-title">8. Paid Direct Human Escalation</span>
-              <span class="switch-desc">Let visitors unlock a direct paid conversation with the real you inside the same chat thread.</span>
+              <span class="switch-title">8. Paid Direct Chat with You</span>
+              <span class="switch-desc">Let people pay to message the real you directly in this chat.</span>
             </div>
           </div>
 
           @if (directChatEnabled()) {
             <div class="human-access-grid">
               <div class="form-group">
-                <label>Per-Session Unlock Price (USD)</label>
+                <label>Per-Session Unlock Fee (◈ Vasos)</label>
                 <div class="price-input-wrap">
-                  <span class="currency-prefix">$</span>
+                  <span class="currency-prefix">◈</span>
                   <input type="number" min="1" step="1" [(ngModel)]="directChatPrice" class="input-text price-input" />
                 </div>
               </div>
@@ -285,8 +581,8 @@
       <!-- Right Column: Knowledge Base & Grounding Center -->
       <section class="card training-card">
         <div class="card-header">
-          <h2>2. Knowledge Grounding Center</h2>
-          <p>Train your Mind by linking websites or uploading documents. Content is parsed into searchable intelligence.</p>
+          <h2>2. Teach Your AI Knowledge</h2>
+          <p>Add articles, documents, or websites so your AI knows your work and can answer accurately.</p>
         </div>
 
         <!-- Ingestion Tabs -->
@@ -598,7 +894,7 @@
 
           @if (paidSessions().length === 0) {
             <p class="empty-sources">
-              No paid human escalations yet. When a visitor clicks "👤 Talk to Real {{ displayName() || 'You' }} · ${{ directChatPrice() || 25 }}", their thread and AI Context Brief will appear right here.
+              No paid human escalations yet. When a visitor clicks "👤 Talk to Real {{ displayName() || 'You' }} · {{ directChatPrice() || 25 }} ◈ Vasos", their thread and AI Context Brief will appear right here.
             </p>
           } @else {
             <div class="vip-inbox-layout">
@@ -613,7 +909,7 @@
                   >
                     <div class="vip-tab-top">
                       <strong>{{ sess.visitor_name }}</strong>
-                      <span class="vip-paid-pill">${{ sess.paid_amount || directChatPrice() }}</span>
+                      <span class="vip-paid-pill">{{ sess.paid_amount || directChatPrice() }} ◈ Vasos</span>
                     </div>
                     <div class="vip-tab-sub">
                       <span>{{ sess.chat_mode === 'human_direct' ? '🟢 Human Direct' : '🧠 AI Mode' }}</span>

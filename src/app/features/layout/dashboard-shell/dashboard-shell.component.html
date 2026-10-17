@@ -10,12 +10,20 @@
   <aside class="wa-sidebar">
     <!-- Minimalist Sanctuary Top Header -->
     <header class="wa-header">
-      <div class="wa-user-profile" [title]="authService.currentUser()?.email || 'User Profile'" (click)="toggleSettings()">
+      <div class="wa-user-profile" [title]="authService.currentUser()?.email || 'User Profile'" (click)="onNavigateProfile()">
         <div class="wa-user-avatar">
-          {{ authService.currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' }}
+          @if (authService.currentUser()?.avatar_url; as avatar) {
+            <img [src]="avatar" [alt]="authService.currentUser()?.display_name || 'User'" />
+          } @else {
+            {{ authService.currentUser()?.display_name?.charAt(0)?.toUpperCase() || authService.currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' }}
+          }
         </div>
         <div class="wa-user-meta">
-          <span class="wa-user-name">{{ authService.currentUser()?.email?.split('@')?.[0] || 'User' }}</span>
+          <span class="wa-user-name">{{ authService.currentUser()?.display_name || authService.currentUser()?.email?.split('@')?.[0] || 'User' }}</span>
+          <span class="wa-user-status" title="Univasos Native Token • Unlimited Beta Access">
+            <span class="vasos-glyph">◈</span>
+            <span class="vasos-text">Unlimited Vasos</span>
+          </span>
         </div>
       </div>
 
@@ -24,7 +32,7 @@
         <button 
           (click)="onNewPersona()" 
           class="wa-new-chat-btn" 
-          title="Create New Character or Mind"
+          title="Create New AI Companion"
         >
           <svg viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -36,7 +44,7 @@
         <button 
           (click)="tourService.startTour(true)" 
           class="wa-icon-btn wa-tour-btn" 
-          title="Take Interactive Tour Guide"
+          title="Take Interactive Tour"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
@@ -68,7 +76,7 @@
         <input 
           type="text" 
           [(ngModel)]="searchQuery" 
-          placeholder="Search or start new chat" 
+          placeholder="Search chats or companions..." 
           class="wa-search-input"
         />
         @if (searchQuery()) {
@@ -90,24 +98,24 @@
           [class.active]="activeTab() === 'official'" 
           (click)="activeTab.set('official')"
         >
-          Official
+          Featured
         </button>
         <button 
           class="wa-pill" 
           [class.active]="activeTab() === 'custom'" 
           (click)="activeTab.set('custom')"
         >
-          Custom
+          My Companions
         </button>
         <button 
           class="wa-pill wa-pill-minds" 
           (click)="onNavigateExplore()"
-          title="Explore Public AI Minds in Thought Commons"
+          title="Explore Public AI Personalities & Experts"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px; display: inline-block; vertical-align: -1px; margin-right: 3px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
           </svg>
-          AI Minds
+          Explore AIs
         </button>
       </div>
     </div>
@@ -122,7 +130,7 @@
       } @else if (filteredCharacters().length === 0) {
         <div class="wa-list-empty">
           <p>No companions found</p>
-          <button (click)="onNewPersona()" class="wa-btn-link">+ Create Persona</button>
+          <button (click)="onNewPersona()" class="wa-btn-link">+ Create AI Companion</button>
         </div>
       } @else {
         @for (char of filteredCharacters(); track (char.handle || char.id)) {
@@ -142,17 +150,24 @@
               }
             </div>
 
-            <!-- Chat Item Body: Purely Name and Bio -->
+            <!-- Chat Item Body: User Chat Name & Last Message -->
             <div class="wa-chat-content">
               <div class="wa-chat-top-row">
                 <span class="wa-chat-title">{{ char.name }}</span>
-                @if (hasProactiveCheckIn(char, $index)) {
-                  <span class="wa-unread-dot" title="Proactive check-in waiting"></span>
-                }
+                <div class="wa-chat-meta-right">
+                  @if (getLastMessageTime(char)) {
+                    <span class="wa-chat-time">{{ getLastMessageTime(char) }}</span>
+                  }
+                  @if (hasProactiveCheckIn(char, $index)) {
+                    <span class="wa-unread-dot" title="New message"></span>
+                  }
+                </div>
               </div>
 
               <div class="wa-chat-bottom-row">
-                <p class="wa-chat-snippet">{{ char.headline || char.personality || char.greeting }}</p>
+                <p class="wa-chat-snippet" [title]="getLastMessage(char)">
+                  {{ getLastMessage(char) }}
+                </p>
               </div>
             </div>
           </div>
@@ -272,16 +287,21 @@
         <!-- Modal Body Content -->
         <div class="wa-settings-body">
           <!-- Profile Info Card -->
-          <div class="wa-settings-profile-card">
+          <div class="wa-settings-profile-card clickable" (click)="onNavigateProfile()" title="Open full account profile">
             <div class="wa-settings-big-avatar">
-              {{ authService.currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' }}
+              @if (authService.currentUser()?.avatar_url; as avatar) {
+                <img [src]="avatar" [alt]="authService.currentUser()?.display_name || 'User'" />
+              } @else {
+                {{ authService.currentUser()?.display_name?.charAt(0)?.toUpperCase() || authService.currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' }}
+              }
             </div>
             <div class="wa-settings-profile-info">
+              <span class="wa-settings-name">{{ authService.currentUser()?.display_name || authService.currentUser()?.email?.split('@')?.[0] }}</span>
               <span class="wa-settings-email">{{ authService.currentUser()?.email }}</span>
               <div class="wa-settings-meta-row">
-                <span class="wa-badge wa-badge-teal">{{ authService.currentUser()?.role || 'User' }}</span>
+                <span class="wa-badge wa-badge-teal">Manage Profile &rarr;</span>
                 <span class="wa-settings-token-stat">
-                  ⚡ {{ (authService.currentUser()?.daily_token_limit || 50000) | number }} tokens/day
+                  ◈ Unlimited Vasos
                 </span>
               </div>
             </div>
@@ -319,9 +339,9 @@
             </div>
           </div>
 
-          <!-- Section: AI Minds & Companions -->
+          <!-- Section: AI Profile & Companions -->
           <div class="wa-settings-section">
-            <span class="wa-section-heading">AI Minds & Companions</span>
+            <span class="wa-section-heading">AI Profile &amp; Companions</span>
 
             <div class="wa-setting-item" (click)="onNavigateMyMind()">
               <div class="wa-setting-item-left">
@@ -331,8 +351,8 @@
                   </svg>
                 </div>
                 <div class="wa-setting-text">
-                  <span class="wa-setting-label">My AI Mind Studio (1:1)</span>
-                  <span class="wa-setting-sublabel">Train and manage your personal public Digital Twin</span>
+                  <span class="wa-setting-label">My AI Twin Profile</span>
+                  <span class="wa-setting-sublabel">Train your personal AI to answer questions using your knowledge</span>
                 </div>
               </div>
               <span class="wa-setting-arrow">&rarr;</span>
@@ -346,8 +366,8 @@
                   </svg>
                 </div>
                 <div class="wa-setting-text">
-                  <span class="wa-setting-label">My Private Companions (1:N)</span>
-                  <span class="wa-setting-sublabel">Browse and manage private emotional personas</span>
+                  <span class="wa-setting-label">My Private Companions</span>
+                  <span class="wa-setting-sublabel">Manage your private AI characters (friends, mentors, helpers)</span>
                 </div>
               </div>
               <span class="wa-setting-arrow">&rarr;</span>
@@ -361,8 +381,8 @@
                   </svg>
                 </div>
                 <div class="wa-setting-text">
-                  <span class="wa-setting-label">Explore Thought Commons</span>
-                  <span class="wa-setting-sublabel">Search public AI Minds and consult digital twins</span>
+                  <span class="wa-setting-label">Explore Public AIs</span>
+                  <span class="wa-setting-sublabel">Discover and chat with public AI personalities and thinkers</span>
                 </div>
               </div>
               <span class="wa-setting-arrow">&rarr;</span>
@@ -376,11 +396,33 @@
                   </svg>
                 </div>
                 <div class="wa-setting-text">
-                  <span class="wa-setting-label">Create New Private Persona</span>
-                  <span class="wa-setting-sublabel">Design a custom private AI companion</span>
+                  <span class="wa-setting-label">Create New AI Companion</span>
+                  <span class="wa-setting-sublabel">Make a custom companion with a unique voice and personality</span>
                 </div>
               </div>
               <span class="wa-setting-arrow">&rarr;</span>
+            </div>
+          </div>
+
+          <!-- Section: Univasos Native Token Economy -->
+          <div class="wa-settings-section">
+            <span class="wa-section-heading">Univasos Token Economy</span>
+
+            <div class="wa-vasos-wallet-card">
+              <div class="wa-wallet-card-header">
+                <div class="wa-wallet-token-badge">
+                  <span class="wallet-glyph">◈</span>
+                  <span class="wallet-code">VASO</span>
+                </div>
+                <span class="wa-wallet-tier-badge">Unlimited Beta</span>
+              </div>
+              <div class="wa-wallet-balance-row">
+                <span class="wa-wallet-balance-num">◈ Unlimited</span>
+                <span class="wa-wallet-token-name">Vasos</span>
+              </div>
+              <p class="wa-wallet-card-desc">
+                Vasos power transactions across Univasos — unlocking direct human consultations, 1-on-1 creator access, and knowledge expansions. During Beta, all accounts are granted unlimited tokens.
+              </p>
             </div>
           </div>
 

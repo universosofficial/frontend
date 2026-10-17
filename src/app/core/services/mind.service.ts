@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from './auth.service';
 import { PublicMind, MindExploreResult, MindSource, MindPublishDto, UserMind, CouncilResult, AudienceQuestion, PaidHumanSession, MindSessionMeta } from '../models/mind.model';
+import { API_BASE_URL } from '../constants/api.constants';
 
 export interface StreamConsultationParams {
   handle?: string;
@@ -35,7 +36,7 @@ export class MindService {
    */
   getMyMind(): Observable<UserMind> {
     return this.http
-      .get<{ success: boolean; data: UserMind }>('https://aicompanion-production-12db.up.railway.app/api/my-mind')
+      .get<{ success: boolean; data: UserMind }>(`${API_BASE_URL}/my-mind`)
       .pipe(map((res) => res.data));
   }
 
@@ -44,7 +45,7 @@ export class MindService {
    */
   updateMyMind(dto: Partial<UserMind>): Observable<UserMind> {
     return this.http
-      .put<{ success: boolean; message: string; data: UserMind }>('https://aicompanion-production-12db.up.railway.app/api/my-mind', dto)
+      .put<{ success: boolean; message: string; data: UserMind }>(`${API_BASE_URL}/my-mind`, dto)
       .pipe(map((res) => res.data));
   }
 
@@ -54,7 +55,7 @@ export class MindService {
   ingestMyMindUrl(url: string, title?: string, topic?: string): Observable<MindSource> {
     return this.http
       .post<{ success: boolean; data: { source: MindSource; chunksCreated: number } }>(
-        'https://aicompanion-production-12db.up.railway.app/api/my-mind/sources/url',
+        `${API_BASE_URL}/my-mind/sources/url`,
         { url, title, topic }
       )
       .pipe(map((res) => res.data.source || (res.data as any)));
@@ -71,7 +72,7 @@ export class MindService {
 
     return this.http
       .post<{ success: boolean; data: { source: MindSource; chunksCreated: number } }>(
-        'https://aicompanion-production-12db.up.railway.app/api/my-mind/sources/file',
+        `${API_BASE_URL}/my-mind/sources/file`,
         formData
       )
       .pipe(map((res) => res.data.source || (res.data as any)));
@@ -83,7 +84,7 @@ export class MindService {
   ingestMyMindText(title: string, content: string, topic?: string): Observable<MindSource> {
     return this.http
       .post<{ success: boolean; data: { source: MindSource; chunksCreated: number } }>(
-        'https://aicompanion-production-12db.up.railway.app/api/my-mind/sources/text',
+        `${API_BASE_URL}/my-mind/sources/text`,
         { title, content, topic }
       )
       .pipe(map((res) => res.data.source || (res.data as any)));
@@ -94,7 +95,7 @@ export class MindService {
    */
   deleteMyMindSource(sourceId: number): Observable<void> {
     return this.http
-      .delete<{ success: boolean; message: string }>(`https://aicompanion-production-12db.up.railway.app/api/my-mind/sources/${sourceId}`)
+      .delete<{ success: boolean; message: string }>(`${API_BASE_URL}/my-mind/sources/${sourceId}`)
       .pipe(map(() => void 0));
   }
 
@@ -104,7 +105,7 @@ export class MindService {
   submitInterview(answers: Array<{ question: string; answer: string }>): Observable<UserMind> {
     return this.http
       .post<{ success: boolean; message: string; data: UserMind }>(
-        'https://aicompanion-production-12db.up.railway.app/api/my-mind/interview',
+        `${API_BASE_URL}/my-mind/interview`,
         { answers }
       )
       .pipe(map((res) => res.data));
@@ -122,7 +123,7 @@ export class MindService {
         success: boolean;
         message: string;
         data: { source: MindSource; sources: MindSource[]; audience_questions: AudienceQuestion[] };
-      }>('https://aicompanion-production-12db.up.railway.app/api/my-mind/teach-qa', { question, answer })
+      }>(`${API_BASE_URL}/my-mind/teach-qa`, { question, answer })
       .pipe(map((res) => res.data));
   }
 
@@ -131,7 +132,7 @@ export class MindService {
    */
   getPaidSessions(): Observable<PaidHumanSession[]> {
     return this.http
-      .get<{ success: boolean; data: PaidHumanSession[] }>('https://aicompanion-production-12db.up.railway.app/api/my-mind/paid-sessions')
+      .get<{ success: boolean; data: PaidHumanSession[] }>(`${API_BASE_URL}/my-mind/paid-sessions`)
       .pipe(map((res) => res.data || []));
   }
 
@@ -141,7 +142,7 @@ export class MindService {
   replyToPaidSession(sessionId: number, content: string): Observable<PaidHumanSession[]> {
     return this.http
       .post<{ success: boolean; message: string; data: PaidHumanSession[] }>(
-        `https://aicompanion-production-12db.up.railway.app/api/my-mind/paid-sessions/${sessionId}/reply`,
+        `${API_BASE_URL}/my-mind/paid-sessions/${sessionId}/reply`,
         { content }
       )
       .pipe(map((res) => res.data || []));
@@ -152,7 +153,7 @@ export class MindService {
    */
   consultCouncil(handles: string[], question: string): Observable<CouncilResult> {
     return this.http
-      .post<{ success: boolean; data: CouncilResult }>('https://aicompanion-production-12db.up.railway.app/api/minds/council', {
+      .post<{ success: boolean; data: CouncilResult }>(`${API_BASE_URL}/minds/council`, {
         handles,
         question,
       })
@@ -181,7 +182,7 @@ export class MindService {
     if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
 
     return this.http
-      .get<{ success: boolean; data: MindExploreResult }>('https://aicompanion-production-12db.up.railway.app/api/minds/explore', { params: httpParams })
+      .get<{ success: boolean; data: MindExploreResult }>(`${API_BASE_URL}/minds/explore`, { params: httpParams })
       .pipe(map((res) => res.data));
   }
 
@@ -191,7 +192,7 @@ export class MindService {
   getMindByHandle(handle: string): Observable<PublicMind> {
     const cleanHandle = handle.replace(/^@/, '');
     return this.http
-      .get<{ success: boolean; data: PublicMind }>(`https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}`)
+      .get<{ success: boolean; data: PublicMind }>(`${API_BASE_URL}/minds/@${cleanHandle}`)
       .pipe(map((res) => res.data));
   }
 
@@ -205,7 +206,7 @@ export class MindService {
     const cleanHandle = handle.replace(/^@/, '');
     return this.http
       .post<{ success: boolean; data: { session: MindSessionMeta; messages: any[] } }>(
-        `https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}/escalate`,
+        `${API_BASE_URL}/minds/@${cleanHandle}/escalate`,
         { escalationNote }
       )
       .pipe(map((res) => res.data));
@@ -221,7 +222,7 @@ export class MindService {
     const cleanHandle = handle.replace(/^@/, '');
     return this.http
       .post<{ success: boolean; data: { session: MindSessionMeta } }>(
-        `https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}/mode`,
+        `${API_BASE_URL}/minds/@${cleanHandle}/mode`,
         { mode }
       )
       .pipe(map((res) => res.data));
@@ -246,8 +247,8 @@ export class MindService {
   }: StreamConsultationParams): Promise<void> {
     const cleanHandle = handle ? handle.replace(/^@/, '') : null;
     const endpoint = cleanHandle
-      ? `https://aicompanion-production-12db.up.railway.app/api/minds/@${cleanHandle}/consult`
-      : `https://aicompanion-production-12db.up.railway.app/api/minds/${mindId || characterId}/consult`;
+      ? `${API_BASE_URL}/minds/@${cleanHandle}/consult`
+      : `${API_BASE_URL}/minds/${mindId || characterId}/consult`;
 
     const token = this.authService.token();
 
@@ -329,7 +330,7 @@ export class MindService {
 
   // Backward-compatibility stubs
   publishMind(characterId: number, dto: MindPublishDto): Observable<any> {
-    return this.http.put<{ success: boolean; data: any }>(`https://aicompanion-production-12db.up.railway.app/api/characters/${characterId}`, dto).pipe(map((r) => r.data));
+    return this.http.put<{ success: boolean; data: any }>(`${API_BASE_URL}/characters/${characterId}`, dto).pipe(map((r) => r.data));
   }
 
   getSources(characterId: number): Observable<MindSource[]> {
@@ -358,19 +359,19 @@ export class MindService {
 
   subscribeMind(characterId: number) {
     return this.http.post<{ success: boolean; is_subscribed: boolean; message: string }>(
-      `https://aicompanion-production-12db.up.railway.app/api/characters/${characterId}`,
+      `${API_BASE_URL}/characters/${characterId}`,
       {}
     );
   }
 
   unsubscribeMind(characterId: number) {
     return this.http.delete<{ success: boolean; is_subscribed: boolean; message: string }>(
-      `https://aicompanion-production-12db.up.railway.app/api/characters/${characterId}`,
+      `${API_BASE_URL}/characters/${characterId}`,
       {}
     );
   }
 
   getSubscriptions() {
-    return this.http.get<{ success: boolean; data: any }>('https://aicompanion-production-12db.up.railway.app/api/minds/explore').pipe(map((r) => r.data?.minds || []));
+    return this.http.get<{ success: boolean; data: any }>(`${API_BASE_URL}/minds/explore`).pipe(map((r) => r.data?.minds || []));
   }
 }

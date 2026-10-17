@@ -3,6 +3,7 @@
   flex-direction: column;
   flex: 1;
   height: 100%;
+  height: 100dvh;
   min-height: 0;
   width: 100%;
   overflow: hidden;
@@ -12,6 +13,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  height: 100dvh;
   min-height: 0;
   flex: 1;
   width: 100%;
@@ -46,6 +48,7 @@
   align-items: center;
   gap: 14px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .wa-btn-back {
@@ -117,6 +120,8 @@
   flex-direction: column;
   cursor: pointer;
   min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .wa-header-title-row {
@@ -1380,8 +1385,133 @@
    MOBILE ADAPTATIONS
    ======================================================== */
 @media (max-width: 768px) {
+  :host {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .wa-chat-container {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  /* Mobile-first streamlined header */
+  .wa-chat-header {
+    height: 56px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .wa-header-left {
+    flex: 1 1 0%;
+    min-width: 0;
+    gap: 8px;
+  }
+
   .wa-btn-back {
     display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    margin-right: -4px;
+    margin-left: -4px;
+  }
+
+  .wa-header-avatar-wrap {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+
+  .wa-header-info {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .wa-header-title-row {
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .wa-header-name {
+    font-size: 14.5px;
+    max-width: 100%;
+  }
+
+  .wa-mind-handle-pill {
+    display: none; // Hides handle on mobile to give full prominence to companion name
+  }
+
+  .wa-header-status {
+    font-size: 11px;
+  }
+
+  .wa-header-right {
+    flex-shrink: 0;
+    gap: 5px;
+  }
+
+  /* Compact posture/tone pill on mobile: icon + caret only */
+  .wa-posture-pill-btn {
+    padding: 5px 8px;
+    font-size: 13px;
+    gap: 3px;
+
+    .wa-posture-label {
+      display: none; // Hides the word like "Natural"
+    }
+
+    .wa-caret {
+      font-size: 9px;
+      margin-left: 1px;
+    }
+  }
+
+  .wa-posture-popover {
+    width: 230px;
+    max-width: calc(100vw - 20px);
+  }
+
+  /* Compact sport / study lab buttons */
+  .wa-header-bankroll-btn,
+  .wa-header-study-btn {
+    padding: 5px 8px;
+    font-size: 13px;
+    border-radius: 14px;
+
+    .wa-bk-val,
+    .wa-study-val {
+      display: none; // Hides long labels like "Predictions & Odds"
+    }
+  }
+
+  /* Compact memories button on mobile: icon + counter badge only */
+  .wa-header-memory-btn {
+    padding: 5px 8px;
+    gap: 4px;
+    border-radius: 14px;
+
+    .wa-memory-btn-text {
+      display: none; // Hides the word "Memories"
+    }
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  .wa-memory-counter {
+    padding: 1px 5px;
+    font-size: 9.5px;
+  }
+
+  /* Hide redundant 3-dots button on mobile because avatar & memories button already open info drawer */
+  .wa-header-more-btn {
+    display: none !important;
   }
 
   .wa-bubble {
@@ -1389,12 +1519,67 @@
   }
 
   .wa-chat-body {
-    padding: 12px 3% 16px;
+    padding: 10px 12px 14px;
+    flex: 1 1 0%;
+    min-height: 0;
   }
 
   .wa-chat-input-bar {
-    margin: 6px 12px 12px 12px;
+    margin: 4px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px;
     border-radius: 24px;
+    padding: 4px 8px;
+    min-height: 48px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
+  }
+
+  .wa-input-pill {
+    padding: 4px 8px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .wa-textarea {
+    font-size: 16px; /* Prevents auto-zoom on iOS Safari when tapping input */
+    min-height: 24px;
+    line-height: 1.35;
+    min-width: 0;
+  }
+
+  .wa-icon-btn {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .wa-send-btn {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
+
+  .wa-smart-followups-row {
+    padding: 4px 10px 0;
+    margin-bottom: 2px;
+  }
+
+  .wa-pending-attachment-bar {
+    margin: 4px 10px 0;
+  }
+
+  .wa-emoji-picker-bar {
+    margin: 4px 10px 0;
   }
 }
 

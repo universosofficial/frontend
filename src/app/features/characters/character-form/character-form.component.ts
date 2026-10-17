@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { VoicePreset, ClonedVoiceResult } from '../../../core/models/voice.model
   templateUrl: './character-form.component.html',
   styleUrl: './character-form.component.scss',
 })
-export class CharacterFormComponent implements OnInit {
+export class CharacterFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private characterService = inject(CharacterService);
   private mindService = inject(MindService);
@@ -41,6 +41,12 @@ export class CharacterFormComponent implements OnInit {
   cloneError = signal<string | null>(null);
   cloneSuccess = signal<string | null>(null);
   isRecordingVoiceSample = signal<boolean>(false);
+  recordingDuration = signal<number>(0);
+  private recordingInterval: any = null;
+  isPlayingCustomSample = signal<boolean>(false);
+  isPreviewingCustomTts = signal<boolean>(false);
+  isReplacingVoice = signal<boolean>(false);
+  customVoiceFileName = signal<string | null>(null);
   isPreviewPlayingVoiceId = signal<string | null>(null);
 
   // Thought Commons Knowledge Studio state
@@ -524,6 +530,23 @@ export class CharacterFormComponent implements OnInit {
     });
   }
 
+  setVoiceTab(tab: 'preset' | 'cloned'): void {
+    this.activeVoiceTab.set(tab);
+    if (tab === 'preset') {
+      this.characterForm.patchValue({
+        voice_provider: 'preset',
+        voice_id: this.selectedPresetId() || 'alloy',
+      });
+    } else {
+      const currentVoiceId = this.characterForm.get('voice_id')?.value;
+      if (this.characterForm.get('voice_sample_url')?.value || (currentVoiceId && !['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'].includes(currentVoiceId))) {
+        this.characterForm.patchValue({
+          voice_provider: 'cloned',
+        });
+      }
+    }
+  }
+
   selectPreset(preset: VoicePreset): void {
     this.selectedPresetId.set(preset.id);
     this.characterForm.patchValue({
@@ -560,6 +583,7 @@ export class CharacterFormComponent implements OnInit {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       const file = target.files[0];
+      this.customVoiceFileName.set(file.name);
       const charName = this.characterForm.get('name')?.value || 'Companion';
 
       this.isCloningVoice.set(true);
@@ -575,11 +599,14 @@ export class CharacterFormComponent implements OnInit {
             voice_sample_url: res.voiceSampleUrl,
             voice_settings: res.voiceSettings,
           });
-          this.cloneSuccess.set('Voice sample cloned and assigned successfully!');
+          this.isReplacingVoice.set(false);
+          this.cloneSuccess.set(`Audio sample "${file.name}" analyzed, cloned, and configured!`);
+          target.value = '';
         },
         error: (err) => {
           this.isCloningVoice.set(false);
           this.cloneError.set(err.error?.message || 'Failed to clone voice sample.');
+          target.value = '';
         },
       });
     }
@@ -591,12 +618,28 @@ export class CharacterFormComponent implements OnInit {
       this.cloneSuccess.set(null);
       await this.voiceService.startRecording();
       this.isRecordingVoiceSample.set(true);
+      this.recordingDuration.set(0);
+
+      if (this.recordingInterval) {
+        clearInterval(this.recordingInterval);
+      }
+      this.recordingInterval = setInterval(() => {
+        this.recordingDuration.update((sec) => sec + 1);
+        if (this.recordingDuration() >= 30) {
+          this.stopRecordingVoiceSample();
+        }
+      }, 1000);
     } catch (err: any) {
-      this.cloneError.set(err.message || 'Microphone access denied.');
+      this.cloneError.set(err.message || 'Microphone access denied or not available.');
+      this.isRecordingVoiceSample.set(false);
     }
   }
 
   async stopRecordingVoiceSample(): Promise<void> {
+    if (this.recordingInterval) {
+      clearInterval(this.recordingInterval);
+      this.recordingInterval = null;
+    }
     if (!this.isRecordingVoiceSample()) return;
     this.isRecordingVoiceSample.set(false);
     this.isCloningVoice.set(true);
@@ -614,7 +657,8 @@ export class CharacterFormComponent implements OnInit {
             voice_sample_url: res.voiceSampleUrl,
             voice_settings: res.voiceSettings,
           });
-          this.cloneSuccess.set('Microphone voice sample cloned and configured!');
+          this.isReplacingVoice.set(false);
+          this.cloneSuccess.set('Microphone voice sample analyzed and cloned successfully!');
         },
         error: (err) => {
           this.isCloningVoice.set(false);
@@ -625,6 +669,107 @@ export class CharacterFormComponent implements OnInit {
       this.isCloningVoice.set(false);
       this.cloneError.set('Could not finalize recording.');
     }
+  }
+
+  cancelRecordingVoiceSample(): void {
+    if (this.recordingInterval) {
+      clearInterval(this.recordingInterval);
+      this.recordingInterval = null;
+    }
+    this.voiceService.cancelRecording();
+    this.isRecordingVoiceSample.set(false);
+    this.recordingDuration.set(0);
+  }
+
+  playCustomVoiceSample(): void {
+    const sampleUrl = this.characterForm.get('voice_sample_url')?.value;
+    if (!sampleUrl) return;
+
+    if (this.voiceService.isAudioPlaying() && this.isPlayingCustomSample()) {
+      this.voiceService.stopAudio();
+      this.isPlayingCustomSample.set(false);
+      return;
+    }
+
+    this.isPlayingCustomSample.set(true);
+    this.voiceService.playAudio(sampleUrl, 'custom-cloned-sample').finally(() => {
+      this.isPlayingCustomSample.set(false);
+    });
+  }
+
+  getClonedVoiceRefText(): string {
+    const settings = this.characterForm.get('voice_settings')?.value;
+    return settings?.ref_text || '';
+  }
+
+  onClonedVoiceRefTextChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const newRefText = target.value;
+    const currentSettings = this.characterForm.get('voice_settings')?.value || {};
+    this.characterForm.patchValue({
+      voice_settings: {
+        ...currentSettings,
+        ref_text: newRefText,
+      },
+    });
+  }
+
+  previewCustomVoiceTts(): void {
+    const voiceId = this.characterForm.get('voice_id')?.value;
+    const voiceSampleUrl = this.characterForm.get('voice_sample_url')?.value;
+    const voiceSettings = this.characterForm.get('voice_settings')?.value || {};
+    const greeting = this.characterForm.get('greeting')?.value || `Hello! I am your AI companion, configured with this custom voice.`;
+    if (!voiceId && !voiceSampleUrl) return;
+
+    if (this.voiceService.isAudioPlaying() && this.isPreviewingCustomTts()) {
+      this.voiceService.stopAudio();
+      this.isPreviewingCustomTts.set(false);
+      return;
+    }
+
+    this.isPreviewingCustomTts.set(true);
+    this.voiceService.previewVoice(greeting, voiceId || 'cloned_voice', voiceSampleUrl, voiceSettings).subscribe({
+      next: (res) => {
+        if (res.audioBase64) {
+          this.voiceService.playAudio(res.audioBase64, voiceId || 'custom-voice').finally(() => {
+            this.isPreviewingCustomTts.set(false);
+          });
+        } else {
+          this.isPreviewingCustomTts.set(false);
+        }
+      },
+      error: () => {
+        this.isPreviewingCustomTts.set(false);
+      },
+    });
+  }
+
+  clearCustomVoice(): void {
+    this.characterForm.patchValue({
+      voice_provider: 'preset',
+      voice_id: this.selectedPresetId() || 'alloy',
+      voice_sample_url: '',
+      voice_settings: null,
+    });
+    this.activeVoiceTab.set('preset');
+    this.cloneSuccess.set(null);
+    this.cloneError.set(null);
+    this.isReplacingVoice.set(false);
+    this.customVoiceFileName.set(null);
+  }
+
+  formatRecordingTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  ngOnDestroy(): void {
+    if (this.recordingInterval) {
+      clearInterval(this.recordingInterval);
+      this.recordingInterval = null;
+    }
+    this.voiceService.stopAudio();
   }
 
   loadCharacter(id: number): void {

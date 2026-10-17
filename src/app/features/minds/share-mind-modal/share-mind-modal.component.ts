@@ -41,17 +41,17 @@ import { CommonModule } from '@angular/common';
                 <span class="preview-name">{{ mindName || 'AI Mind' }}</span>
                 <span class="preview-handle">&#64;{{ cleanHandle }}</span>
               </div>
-              <p class="preview-headline">{{ headline || 'Digital Twin • Thought Commons' }}</p>
+              <p class="preview-headline">{{ headline || 'Univasos AI Profile' }}</p>
               <div class="preview-badge">
                 <span class="pulse-dot"></span>
-                <span>Active 1:1 Grounded Intelligence</span>
+                <span>Active AI Companion</span>
               </div>
             </div>
           </div>
 
           <!-- Link Copy Field -->
           <div class="share-link-group">
-            <label class="share-label">Public Mind Link</label>
+            <label class="share-label">Public AI Link</label>
             <div class="link-input-row">
               <input type="text" [value]="shareUrl" readonly class="share-link-input" #linkInput />
               <button
@@ -135,7 +135,7 @@ import { CommonModule } from '@angular/common';
               <svg viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
-              <span>This Mind is currently in <strong>Private Draft</strong> mode. Turn on <strong>Publish in Thought Commons</strong> so your social followers can consult it without restrictions.</span>
+              <span>This AI profile is currently in <strong>Private</strong> mode. Turn on <strong>Make Public in Directory</strong> so your followers can chat with it without restrictions.</span>
             </div>
           }
         </div>
@@ -503,8 +503,8 @@ export class ShareMindModalComponent {
   }
 
   get shareMessage(): string {
-    const name = this.mindName || 'AI Mind';
-    return `Consult my 1:1 AI Mind (${name}) on Thought Commons! Grounded in real doctrine and mental models:`;
+    const name = this.mindName || 'AI Profile';
+    return `Chat with my personal AI (${name}) on Univasos:`;
   }
 
   get twitterShareUrl(): string {
@@ -528,7 +528,7 @@ export class ShareMindModalComponent {
   }
 
   get redditShareUrl(): string {
-    return `https://reddit.com/submit?url=${encodeURIComponent(this.shareUrl)}&title=${encodeURIComponent('Consult ' + (this.mindName || 'AI Mind') + ' on Thought Commons')}`;
+    return `https://reddit.com/submit?url=${encodeURIComponent(this.shareUrl)}&title=${encodeURIComponent('Chat with ' + (this.mindName || 'AI Profile') + ' on Univasos')}`;
   }
 
   copyLink(inputEl: HTMLInputElement): void {

@@ -3,14 +3,14 @@
     <!-- Header -->
     <div class="section-header">
       <div class="section-badge">
-        <span>The Thought Commons</span>
+        <span>Public Directory</span>
       </div>
       <h2 class="section-title">
-        Live Public Mind Directory Preview
+        Explore Public AI Profiles
       </h2>
       <p class="section-subtitle">
-        Explore living digital twins published by philosophers, founders, engineers, and researchers. 
-        Each mind is grounded strictly in their ingested writings and mental models.
+        Explore public AIs created by philosophers, founders, engineers, and researchers. 
+        Each AI is grounded in their real writings and knowledge.
       </p>
     </div>
 
@@ -24,7 +24,7 @@
           type="text" 
           [value]="searchQuery()" 
           (input)="onSearchChange($event)"
-          placeholder="Search by name, handle, or topic (e.g. Stoicism, Physics, Bootstrapping)..."
+          placeholder="Search by name, handle, or topic (e.g. Science, Philosophy, Startups)..."
           class="search-input" />
         @if (searchQuery()) {
           <button class="clear-btn" (click)="clearSearch()">✕</button>
@@ -54,9 +54,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
-          <h3>No Public Minds Matched</h3>
-          <p>No minds found for "{{ searchQuery() }}". Try adjusting your filters or be the first to publish one!</p>
-          <a routerLink="/register" class="empty-cta">Publish a Mind in this topic →</a>
+          <h3>No Public AIs Matched</h3>
+          <p>No AIs found for "{{ searchQuery() }}". Try adjusting your filters or be the first to create one!</p>
+          <a routerLink="/register" class="empty-cta">Create an AI in this topic →</a>
         </div>
       } @else {
         @for (mind of filteredMinds(); track mind.id) {
@@ -65,7 +65,7 @@
             <div class="mind-card-header">
               <div class="mind-avatar-box">
                 <span class="avatar-initial">{{ mind.name.charAt(0) }}</span>
-                <span class="verified-dot" title="Verified Corpus Grounding">✓</span>
+                <span class="verified-dot" title="Verified Sources">✓</span>
               </div>
               <div class="mind-identity">
                 <div class="mind-name-line">
@@ -104,11 +104,11 @@
             <div class="card-footer">
               <div class="metrics-row">
                 <span class="metric">
-                  <strong>{{ mind.consultations | number }}</strong> consultations
+                  <strong>{{ mind.consultations | number }}</strong> chats
                 </span>
                 <span class="metric-dot">•</span>
                 <span class="metric">
-                  <strong>{{ mind.subscribers | number }}</strong> subscribers
+                  <strong>{{ mind.subscribers | number }}</strong> followers
                 </span>
               </div>
 
@@ -117,10 +117,10 @@
                   <svg viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                   </svg>
-                  <span>Inspect Sources</span>
+                  <span>Sources</span>
                 </button>
                 <a routerLink="/explore" class="consult-btn" (click)="$event.stopPropagation()">
-                  <span>Consult</span>
+                  <span>Chat</span>
                   <svg viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                   </svg>
@@ -135,7 +135,7 @@
     <!-- Commons Full Exploration Link -->
     <div class="bottom-directory-cta">
       <a routerLink="/explore" class="browse-all-btn">
-        <span>Browse All Verified Minds in Commons (40+ Active)</span>
+        <span>Browse All Public AIs in Directory</span>
         <svg viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>

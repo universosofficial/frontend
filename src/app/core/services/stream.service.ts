@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../constants/api.constants';
 
 export interface StreamChatParams {
   conversationId: number;
@@ -34,7 +35,7 @@ export class StreamService {
     const token = this.authService.token();
 
     try {
-      const response = await fetch('https://aicompanion-production-12db.up.railway.app/api/chat/stream', {
+      const response = await fetch(`${API_BASE_URL}/chat/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

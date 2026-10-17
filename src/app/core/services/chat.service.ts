@@ -3,19 +3,42 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { Conversation, Message, Character, ChatTurnResponse } from '../models/character.model';
 import { ApiResponse } from '../models/user.model';
+import { API_BASE_URL } from '../constants/api.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'https://aicompanion-production-12db.up.railway.app/api/chat';
+  private readonly API_URL = `${API_BASE_URL}/chat`;
 
   readonly activeConversation = signal<Conversation | null>(null);
   readonly activeCharacter = signal<Character | null>(null);
   readonly messages = signal<Message[]>([]);
   readonly isSending = signal<boolean>(false);
   readonly isLoadingMessages = signal<boolean>(false);
+  readonly lastMessageMap = signal<Map<string, { content: string; sender_type: string; created_at: string }>>(new Map());
+
+  /**
+   * Update the latest message for a character in real time
+   */
+  updateLastMessage(
+    characterIdOrHandle: number | string,
+    content: string,
+    senderType: 'user' | 'assistant' = 'user'
+  ): void {
+    if (!characterIdOrHandle) return;
+    const key = String(characterIdOrHandle).replace(/^@/, '');
+    this.lastMessageMap.update((prev) => {
+      const next = new Map(prev);
+      next.set(key, {
+        content,
+        sender_type: senderType,
+        created_at: new Date().toISOString(),
+      });
+      return next;
+    });
+  }
 
   /**
    * Start or resume a conversation with a companion
@@ -31,7 +54,12 @@ export class ChatService {
         if (res.data) {
           this.activeConversation.set(res.data.conversation);
           this.activeCharacter.set(res.data.character);
-          this.messages.set(res.data.messages || []);
+          const msgs = res.data.messages || [];
+          this.messages.set(msgs);
+          if (msgs.length > 0) {
+            const last = msgs[msgs.length - 1];
+            this.updateLastMessage(characterId, last.content, (last.sender_type as any) || 'assistant');
+          }
         }
       }),
       catchError((err) => {
@@ -51,6 +79,11 @@ export class ChatService {
         this.isLoadingMessages.set(false);
         if (res.data) {
           this.messages.set(res.data);
+          const char = this.activeCharacter();
+          if (char && res.data.length > 0) {
+            const last = res.data[res.data.length - 1];
+            this.updateLastMessage(char.handle || char.id, last.content, (last.sender_type as any) || 'assistant');
+          }
         }
       }),
       catchError((err) => {
@@ -65,6 +98,7 @@ export class ChatService {
    */
   sendMessage(conversationId: number, characterId: number, content: string): Observable<ApiResponse<ChatTurnResponse>> {
     this.isSending.set(true);
+    this.updateLastMessage(characterId, content, 'user');
 
     // Optimistically append user message to local message stream
     const tempUserMessage: Message = {
@@ -90,6 +124,7 @@ export class ChatService {
             const filtered = prev.filter((m) => m.id !== tempUserMessage.id);
             return [...filtered, res.data!.userMessage, res.data!.assistantMessage];
           });
+          this.updateLastMessage(characterId, res.data.assistantMessage.content, 'assistant');
         }
       }),
       catchError((err) => {

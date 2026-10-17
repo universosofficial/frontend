@@ -16,12 +16,18 @@ export interface VoiceSettings {
   similarity_boost?: number;
   speed?: number;
   mappedPreset?: string;
+  ref_text?: string;
+  voiceSampleUrl?: string | null;
+  sampleUrl?: string | null;
+  estimatedPitchHz?: number;
 }
 
 export interface ClonedVoiceResult {
   voiceId: string;
   voiceSampleUrl: string | null;
   voiceProvider: VoiceProvider;
+  refText?: string;
+  transcript?: string;
   voiceSettings: VoiceSettings;
 }
 

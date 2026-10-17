@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Memory } from '../models/memory.model';
 import { ApiResponse } from '../models/user.model';
+import { API_BASE_URL } from '../constants/api.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MemoryService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'https://aicompanion-production-12db.up.railway.app/api/memories';
+  private readonly API_URL = `${API_BASE_URL}/memories`;
 
   readonly memories = signal<Memory[]>([]);
   readonly isLoading = signal<boolean>(false);

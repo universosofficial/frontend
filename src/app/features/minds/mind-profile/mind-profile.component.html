@@ -2,7 +2,7 @@
   @if (isLoadingMind()) {
     <div class="wa-chat-loading">
       <div class="wa-spinner"></div>
-      <span>Calibrating neural mind connection with &#64;{{ handle() }}...</span>
+      <span>Connecting with &#64;{{ handle() }}...</span>
     </div>
   } @else if (errorMessage()) {
     <div class="wa-profile-error">
@@ -13,14 +13,14 @@
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
       </div>
-      <h2>Mind Unavailable</h2>
+      <h2>Profile Unavailable</h2>
       <p class="wa-error-msg">{{ errorMessage() }}</p>
-      <button type="button" (click)="goBack()" class="wa-btn-primary">&larr; Return to Thought Commons</button>
+      <button type="button" (click)="goBack()" class="wa-btn-primary">&larr; Return to Public Directory</button>
     </div>
   } @else {
     @if (mind(); as m) {
       <!-- ========================================================
-           LUMINA CHAT APP BAR (Top Header)
+           UNIVASOS CHAT APP BAR (Top Header)
            ======================================================== -->
       <header class="wa-chat-header">
         <div class="wa-header-left">
@@ -32,7 +32,7 @@
           </button>
 
           <!-- Avatar with Warm Halo Ring & Online Dot -->
-          <div class="wa-header-avatar-wrap" (click)="toggleKnowledgeDrawer()" title="View Mind Info & Knowledge">
+          <div class="wa-header-avatar-wrap" (click)="toggleKnowledgeDrawer()" title="View Info & Knowledge">
             @if (m.avatar_url) {
               <img [src]="m.avatar_url" [alt]="m.display_name || m.name || m.handle" class="wa-header-avatar" />
             } @else {
@@ -47,7 +47,7 @@
           <div class="wa-header-info" (click)="toggleKnowledgeDrawer()">
             <div class="wa-header-title-row">
               <h2 class="wa-header-name">{{ m.display_name || m.name || m.handle }}</h2>
-              <span class="wa-verified-disc" title="Verified Public Mind">
+              <span class="wa-verified-disc" title="Verified Profile">
                 <svg viewBox="0 0 20 20" fill="currentColor" class="wa-verified-icon">
                   <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
@@ -58,7 +58,7 @@
             <p class="wa-header-status">
               @if (isStreaming()) {
                 <span class="wa-status-typing">
-                  synthesizing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+                  typing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
                 </span>
               } @else if (isVoiceNoteSending()) {
                 <span class="wa-status-typing">
@@ -66,27 +66,27 @@
                 </span>
               } @else if (sessionMeta()?.chat_mode === 'human_direct') {
                 <span class="wa-status-human-direct">
-                  👤 Direct Human Channel &bull; {{ m.direct_chat_sla || 'Replies personally within a few hours' }}
+                  👤 Direct Channel &bull; {{ m.direct_chat_sla || 'Replies personally within a few hours' }}
                 </span>
               } @else {
-                <span class="wa-status-online">online &bull; AI Digital Twin</span>
+                <span class="wa-status-online">online &bull; AI Profile</span>
               }
             </p>
           </div>
         </div>
 
-        <!-- Header Right Action Icons (Clean Lumina Design + Direct Human Escalation) -->
+        <!-- Header Right Action Icons (Clean Univasos Design + Direct Human Escalation) -->
         <div class="wa-header-right">
           @if (sessionMeta()?.is_paid_unlocked) {
             <!-- Seamless Mode Switcher once Paid Direct Chat is Unlocked -->
-            <div class="wa-mode-switcher-pill" title="Switch between 24/7 AI Mind and Direct Human Conversation">
+            <div class="wa-mode-switcher-pill" title="Switch between AI and Direct Conversation">
               <button
                 type="button"
                 class="wa-mode-seg-btn"
                 [class.active]="sessionMeta()?.chat_mode !== 'human_direct'"
                 (click)="switchThreadMode('ai')"
               >
-                <span>🧠 AI Mind</span>
+                <span>🧠 AI</span>
               </button>
               <button
                 type="button"
@@ -107,7 +107,7 @@
             >
               <span class="wa-human-cta-dot"></span>
               <span>👤 Talk to Real {{ m.display_name || m.name || m.handle }}</span>
-              <span class="wa-human-price-tag">${{ m.direct_chat_price || 25 }}</span>
+              <span class="wa-human-price-tag">{{ m.direct_chat_price || 25 }} ◈ Vasos</span>
             </button>
           }
 
@@ -601,22 +601,22 @@
               <span class="wa-drawer-handle">&#64;{{ m.handle }}</span>
 
               <div class="wa-hero-badges">
-                <span class="wa-badge wa-badge-teal">Thought Commons</span>
+                <span class="wa-badge wa-badge-teal">Public Profile</span>
                 @if ((m.total_interactions || 0) > 0) {
-                  <span class="wa-badge wa-badge-gold">⚡ {{ m.total_interactions }} consultations</span>
+                  <span class="wa-badge wa-badge-gold">⚡ {{ m.total_interactions }} chats</span>
                 }
               </div>
 
               <!-- Quick Action Buttons in Drawer: Voice Call & Share -->
               <div class="wa-drawer-actions-row">
-                <button type="button" (click)="startVoiceCall()" class="wa-drawer-voice-btn" title="Start Live Voice Consultation">
+                <button type="button" (click)="startVoiceCall()" class="wa-drawer-voice-btn" title="Start Voice Call">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-2.2 2.2a15.053 15.053 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-.99-1.12z" />
                   </svg>
                   <span>Voice Call</span>
                 </button>
 
-                <button type="button" (click)="openShareModal()" class="wa-drawer-action-share-btn" title="Share AI Mind">
+                <button type="button" (click)="openShareModal()" class="wa-drawer-action-share-btn" title="Share Profile">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                   </svg>
@@ -627,7 +627,7 @@
               @if (!sessionMeta()?.is_paid_unlocked && m.direct_chat_enabled !== false) {
                 <button type="button" (click)="openEscalateModal()" class="wa-creator-cta-btn full-width">
                   <span>👤</span>
-                  <span>Talk to Real {{ m.display_name || m.name }} &bull; ${{ m.direct_chat_price || 25 }}</span>
+                  <span>Talk to Real {{ m.display_name || m.name }} &bull; {{ m.direct_chat_price || 25 }} ◈ Vasos</span>
                 </button>
               }
 
@@ -782,8 +782,21 @@
               <span class="wa-escalate-sla">{{ m.direct_chat_sla || 'Replies personally within a few hours' }}</span>
             </div>
             <div class="wa-escalate-price-box">
-              <span class="wa-price-amount">${{ m.direct_chat_price || 25 }}</span>
+              <span class="wa-price-amount">{{ m.direct_chat_price || 25 }} ◈ Vasos</span>
               <span class="wa-price-unit">per session</span>
+            </div>
+          </div>
+
+          <!-- Vasos Token Wallet Status -->
+          <div class="wa-vasos-wallet-banner">
+            <div class="wa-wallet-token-pill">
+              <span class="token-glyph">◈</span>
+              <span class="token-name">Vasos Native Token</span>
+            </div>
+            <div class="wa-wallet-balance-info">
+              <span class="wallet-label">Your Balance:</span>
+              <span class="wallet-amount">◈ Unlimited Vasos</span>
+              <span class="wallet-tier-tag">Beta Active</span>
             </div>
           </div>
 
@@ -838,7 +851,7 @@
             @if (isEscalating()) {
               <span>Preparing Context Brief &amp; Unlocking...</span>
             } @else {
-              <span>Unlock Direct Human Chat &bull; ${{ m.direct_chat_price || 25 }}</span>
+              <span>Unlock Direct Human Chat &bull; {{ m.direct_chat_price || 25 }} ◈ Vasos</span>
             }
           </button>
         </div>

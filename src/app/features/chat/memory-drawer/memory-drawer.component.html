@@ -182,10 +182,10 @@
           }
         </div>
 
-        <!-- Relational Persona Grounding -->
+        <!-- Personality & Nicknames -->
         @if (char.nicknames_for_user.length || char.catchphrases.length || char.speech_quirks) {
           <div class="wa-drawer-section">
-            <span class="wa-section-label">Relational Persona</span>
+            <span class="wa-section-label">Personality &amp; Nicknames</span>
             @if (char.nicknames_for_user.length) {
               <div class="wa-style-row">
                 <span class="wa-style-label">Calls you:</span>
@@ -200,7 +200,7 @@
             }
             @if (char.speech_quirks) {
               <div class="wa-style-row">
-                <span class="wa-style-label">Quirks & Voice:</span>
+                <span class="wa-style-label">Voice &amp; Style:</span>
                 <span class="wa-style-val">{{ char.speech_quirks }}</span>
               </div>
             }
@@ -217,9 +217,9 @@
           </div>
         </div>
 
-        <!-- Personality Calibration Stats -->
+        <!-- Personality Traits -->
         <div class="wa-drawer-section">
-          <span class="wa-section-label">Calibration Traits</span>
+          <span class="wa-section-label">Personality Traits</span>
           <div class="wa-traits-list">
             <div class="wa-trait-bar-row">
               <span class="wa-trait-name">Humor</span>
@@ -269,10 +269,10 @@
         </div>
       }
 
-      <!-- Neural Recall Bank / Memories Section (With Feature #5: Direct "+ Teach Memory" & Inline Edit) -->
+      <!-- Saved Memories Section (With Feature #5: Direct "+ Teach Memory" & Inline Edit) -->
       <div class="wa-drawer-section">
         <div class="wa-memories-header">
-          <span class="wa-section-label">Neural Memories</span>
+          <span class="wa-section-label">Saved Memories</span>
           <div style="display: flex; align-items: center; gap: 8px;">
             <span class="wa-badge wa-badge-teal">{{ memoryService.memories().length }} saved</span>
             <button
@@ -316,13 +316,13 @@
         @if (memoryService.isLoading() && memoryService.memories().length === 0) {
           <div class="wa-drawer-loading">
             <div class="wa-spinner"></div>
-            <span>Reading memory bank...</span>
+            <span>Loading memories...</span>
           </div>
         } @else if (memoryService.memories().length === 0) {
           <div class="wa-drawer-empty">
             <span class="wa-empty-icon">🧠</span>
-            <h4>No Memories Formed Yet</h4>
-            <p>During conversations, important facts, goals, and preferences are automatically remembered—or click "+ Teach Fact" above.</p>
+            <h4>No Memories Yet</h4>
+            <p>During your chats, important facts, goals, and preferences are automatically remembered—or tap "+ Teach Fact" above.</p>
           </div>
         } @else {
           <div class="wa-memories-list">

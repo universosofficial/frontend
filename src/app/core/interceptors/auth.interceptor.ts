@@ -12,7 +12,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Attach token for all backend API requests (both relative /api/ and absolute URLs)
   const isApiRequest = req.url.startsWith('/api/') || req.url.includes('/api/');
-  const isAuthEndpoint = req.url.includes('/auth/login') || req.url.includes('/auth/register');
+  const isAuthEndpoint = req.url.includes('/auth/') && !req.url.includes('/auth/me');
 
   if (token && isApiRequest && !isAuthEndpoint) {
     const clonedReq = req.clone({

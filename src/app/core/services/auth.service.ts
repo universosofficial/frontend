@@ -2,7 +2,8 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of, throwError } from 'rxjs';
-import { User, AuthResponse, ApiResponse } from '../models/user.model';
+import { User, AuthResponse, AuthInitResponse, ApiResponse } from '../models/user.model';
+import { API_BASE_URL } from '../constants/api.constants';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.currentUser());
   readonly isLoading = signal<boolean>(false);
 
-  private readonly API_PREFIX = 'https://aicompanion-production-12db.up.railway.app/api/auth';
+  private readonly API_PREFIX = `${API_BASE_URL}/auth`;
 
   constructor() {
     // If token exists on app initialization, automatically hydrate the user session
@@ -27,14 +28,33 @@ export class AuthService {
   }
 
   /**
-   * Register a new user account
+   * Register a new user account (initiates Resend OTP email verification)
    */
-  register(credentials: { email: string; password: string }): Observable<ApiResponse<AuthResponse>> {
+  register(credentials: { email: string; password: string }): Observable<ApiResponse<AuthInitResponse>> {
     this.isLoading.set(true);
-    return this.http.post<ApiResponse<AuthResponse>>(`${this.API_PREFIX}/register`, credentials).pipe(
+    return this.http.post<ApiResponse<AuthInitResponse>>(`${this.API_PREFIX}/register`, credentials).pipe(
       tap((res) => {
         this.isLoading.set(false);
-        if (res.data) {
+        if (res.data?.accessToken && res.data?.user) {
+          this.setSession(res.data as AuthResponse);
+        }
+      }),
+      catchError((err) => {
+        this.isLoading.set(false);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Verify registration email with 6-digit OTP code
+   */
+  verifyEmail(payload: { email: string; code: string }): Observable<ApiResponse<AuthResponse>> {
+    this.isLoading.set(true);
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.API_PREFIX}/verify-email`, payload).pipe(
+      tap((res) => {
+        this.isLoading.set(false);
+        if (res.data?.accessToken && res.data?.user) {
           this.setSession(res.data);
         }
       }),
@@ -46,17 +66,78 @@ export class AuthService {
   }
 
   /**
-   * Log in with existing credentials
+   * Resend account registration verification code
    */
-  login(credentials: { email: string; password: string }): Observable<ApiResponse<AuthResponse>> {
+  resendVerification(email: string): Observable<ApiResponse<{ email: string }>> {
+    return this.http.post<ApiResponse<{ email: string }>>(`${this.API_PREFIX}/resend-verification`, { email });
+  }
+
+  /**
+   * Log in with existing credentials (sends 2FA login verification code if verified)
+   */
+  login(credentials: { email: string; password: string }): Observable<ApiResponse<AuthInitResponse>> {
     this.isLoading.set(true);
-    return this.http.post<ApiResponse<AuthResponse>>(`${this.API_PREFIX}/login`, credentials).pipe(
+    return this.http.post<ApiResponse<AuthInitResponse>>(`${this.API_PREFIX}/login`, credentials).pipe(
       tap((res) => {
         this.isLoading.set(false);
-        if (res.data) {
+        if (res.data?.accessToken && res.data?.user) {
+          this.setSession(res.data as AuthResponse);
+        }
+      }),
+      catchError((err) => {
+        this.isLoading.set(false);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Verify 2FA login code
+   */
+  verifyLoginCode(payload: { email: string; code: string }): Observable<ApiResponse<AuthResponse>> {
+    this.isLoading.set(true);
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.API_PREFIX}/verify-login-code`, payload).pipe(
+      tap((res) => {
+        this.isLoading.set(false);
+        if (res.data?.accessToken && res.data?.user) {
           this.setSession(res.data);
         }
       }),
+      catchError((err) => {
+        this.isLoading.set(false);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Resend 2FA login code
+   */
+  resendLoginCode(email: string): Observable<ApiResponse<{ email: string }>> {
+    return this.http.post<ApiResponse<{ email: string }>>(`${this.API_PREFIX}/resend-login-code`, { email });
+  }
+
+  /**
+   * Initiate password recovery (sends reset OTP code via Resend)
+   */
+  forgotPassword(email: string): Observable<ApiResponse<{ email: string; expiresInMinutes?: number }>> {
+    this.isLoading.set(true);
+    return this.http.post<ApiResponse<{ email: string; expiresInMinutes?: number }>>(`${this.API_PREFIX}/forgot-password`, { email }).pipe(
+      tap(() => this.isLoading.set(false)),
+      catchError((err) => {
+        this.isLoading.set(false);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Reset password with verification code and new password
+   */
+  resetPassword(payload: { email: string; code: string; newPassword: string }): Observable<ApiResponse<any>> {
+    this.isLoading.set(true);
+    return this.http.post<ApiResponse<any>>(`${this.API_PREFIX}/reset-password`, payload).pipe(
+      tap(() => this.isLoading.set(false)),
       catchError((err) => {
         this.isLoading.set(false);
         return throwError(() => err);
@@ -72,6 +153,52 @@ export class AuthService {
       tap((res) => {
         if (res.data?.user) {
           this.currentUser.set(res.data.user);
+        }
+      })
+    );
+  }
+
+  /**
+   * Update profile information (display_name, avatar_url, bio, phone, location)
+   */
+  updateProfile(profileData: {
+    display_name?: string | null;
+    avatar_url?: string | null;
+    bio?: string | null;
+    phone?: string | null;
+    location?: string | null;
+  }): Observable<ApiResponse<{ user: User }>> {
+    return this.http.put<ApiResponse<{ user: User }>>(`${this.API_PREFIX}/profile`, profileData).pipe(
+      tap((res) => {
+        if (res.data?.user) {
+          this.currentUser.set(res.data.user);
+        }
+      })
+    );
+  }
+
+  /**
+   * Change account password
+   */
+  changePassword(passwords: { currentPassword: string; newPassword: string }): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.API_PREFIX}/change-password`, passwords);
+  }
+
+  /**
+   * Upload user avatar
+   */
+  uploadAvatar(file: File): Observable<ApiResponse<{ url: string; user?: User }>> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<ApiResponse<{ url: string; user?: User }>>(`${API_BASE_URL}/upload/user-avatar`, formData).pipe(
+      tap((res) => {
+        if (res.data?.user) {
+          this.currentUser.set(res.data.user);
+        } else if (res.data?.url && this.currentUser()) {
+          this.currentUser.set({
+            ...this.currentUser()!,
+            avatar_url: res.data.url,
+          });
         }
       })
     );
@@ -122,7 +249,7 @@ export class AuthService {
   /**
    * Helper: save tokens and set reactive state
    */
-  private setSession(authData: AuthResponse): void {
+  public setSession(authData: AuthResponse): void {
     localStorage.setItem('access_token', authData.accessToken);
     localStorage.setItem('refresh_token', authData.refreshToken);
     this.token.set(authData.accessToken);

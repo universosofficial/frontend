@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
+import { API_BASE_URL } from '../constants/api.constants';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -18,7 +19,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 })
 export class PushNotificationService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://aicompanion-production-12db.up.railway.app/api/notifications';
+  private apiUrl = `${API_BASE_URL}/notifications`;
 
   isSupported = signal<boolean>(false);
   permission = signal<NotificationPermission>('default');

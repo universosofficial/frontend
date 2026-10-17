@@ -48,6 +48,11 @@ export const routes: Routes = [
       import('./features/minds/mind-profile/mind-profile.component').then((m) => m.MindProfileComponent),
   },
   {
+    path: 'profile',
+    redirectTo: 'dashboard/profile',
+    pathMatch: 'full',
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -114,6 +119,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/my-mind/my-mind-studio/my-mind-studio.component').then(
             (m) => m.MyMindStudioComponent
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/profile/user-profile/user-profile.component').then(
+            (m) => m.UserProfileComponent
           ),
       },
       {

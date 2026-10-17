@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { ShareMindModalComponent } from '../../minds/share-mind-modal/share-mind
   templateUrl: './my-mind-studio.component.html',
   styleUrl: './my-mind-studio.component.scss',
 })
-export class MyMindStudioComponent implements OnInit {
+export class MyMindStudioComponent implements OnInit, OnDestroy {
   private mindService = inject(MindService);
   private uploadService = inject(UploadService);
   public voiceService = inject(VoiceService);
@@ -39,6 +39,13 @@ export class MyMindStudioComponent implements OnInit {
   isCloningVoice = signal<boolean>(false);
   cloneError = signal<string | null>(null);
   cloneSuccess = signal<string | null>(null);
+  isRecordingVoiceSample = signal<boolean>(false);
+  recordingDuration = signal<number>(0);
+  private recordingInterval: any = null;
+  isPlayingCustomSample = signal<boolean>(false);
+  isPreviewingCustomTts = signal<boolean>(false);
+  isReplacingVoice = signal<boolean>(false);
+  customVoiceFileName = signal<string | null>(null);
   previewPlayingVoiceId = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
@@ -148,10 +155,22 @@ export class MyMindStudioComponent implements OnInit {
     });
   }
 
+  setVoiceTab(tab: 'preset' | 'cloned'): void {
+    this.activeVoiceTab.set(tab);
+    if (tab === 'preset') {
+      this.voiceProvider.set('preset');
+    } else {
+      if (this.voiceSampleUrl() || (this.voiceId() && !['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'].includes(this.voiceId()))) {
+        this.voiceProvider.set('cloned');
+      }
+    }
+  }
+
   onVoiceSampleUpload(event: Event): void {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       const file = target.files[0];
+      this.customVoiceFileName.set(file.name);
       const mindName = this.displayName() || 'AI Mind';
 
       this.isCloningVoice.set(true);
@@ -164,14 +183,153 @@ export class MyMindStudioComponent implements OnInit {
           this.voiceProvider.set('cloned');
           this.voiceId.set(res.voiceId);
           this.voiceSampleUrl.set(res.voiceSampleUrl);
-          this.cloneSuccess.set('Voice profile cloned and assigned to your Digital Twin!');
+          this.isReplacingVoice.set(false);
+          this.cloneSuccess.set(`Audio sample "${file.name}" cloned and assigned to your Digital Twin!`);
+          target.value = '';
         },
         error: (err) => {
           this.isCloningVoice.set(false);
           this.cloneError.set(err.error?.message || 'Failed to clone voice sample.');
+          target.value = '';
         },
       });
     }
+  }
+
+  async startRecordingVoiceSample(): Promise<void> {
+    try {
+      this.cloneError.set(null);
+      this.cloneSuccess.set(null);
+      await this.voiceService.startRecording();
+      this.isRecordingVoiceSample.set(true);
+      this.recordingDuration.set(0);
+
+      if (this.recordingInterval) {
+        clearInterval(this.recordingInterval);
+      }
+      this.recordingInterval = setInterval(() => {
+        this.recordingDuration.update((sec) => sec + 1);
+        if (this.recordingDuration() >= 30) {
+          this.stopRecordingVoiceSample();
+        }
+      }, 1000);
+    } catch (err: any) {
+      this.cloneError.set(err.message || 'Microphone access denied or not available.');
+      this.isRecordingVoiceSample.set(false);
+    }
+  }
+
+  async stopRecordingVoiceSample(): Promise<void> {
+    if (this.recordingInterval) {
+      clearInterval(this.recordingInterval);
+      this.recordingInterval = null;
+    }
+    if (!this.isRecordingVoiceSample()) return;
+    this.isRecordingVoiceSample.set(false);
+    this.isCloningVoice.set(true);
+
+    try {
+      const audioBlob = await this.voiceService.stopRecording();
+      const mindName = this.displayName() || 'AI Mind';
+
+      this.voiceService.cloneVoice(audioBlob, mindName).subscribe({
+        next: (res) => {
+          this.isCloningVoice.set(false);
+          this.voiceProvider.set('cloned');
+          this.voiceId.set(res.voiceId);
+          this.voiceSampleUrl.set(res.voiceSampleUrl);
+          this.isReplacingVoice.set(false);
+          this.cloneSuccess.set('Microphone voice sample cloned and assigned to your Digital Twin!');
+        },
+        error: (err) => {
+          this.isCloningVoice.set(false);
+          this.cloneError.set(err.error?.message || 'Failed to process voice sample.');
+        },
+      });
+    } catch (err: any) {
+      this.isCloningVoice.set(false);
+      this.cloneError.set('Could not finalize recording.');
+    }
+  }
+
+  cancelRecordingVoiceSample(): void {
+    if (this.recordingInterval) {
+      clearInterval(this.recordingInterval);
+      this.recordingInterval = null;
+    }
+    this.voiceService.cancelRecording();
+    this.isRecordingVoiceSample.set(false);
+    this.recordingDuration.set(0);
+  }
+
+  playCustomVoiceSample(): void {
+    const sampleUrl = this.voiceSampleUrl();
+    if (!sampleUrl) return;
+
+    if (this.voiceService.isAudioPlaying() && this.isPlayingCustomSample()) {
+      this.voiceService.stopAudio();
+      this.isPlayingCustomSample.set(false);
+      return;
+    }
+
+    this.isPlayingCustomSample.set(true);
+    this.voiceService.playAudio(sampleUrl, 'mind-custom-sample').finally(() => {
+      this.isPlayingCustomSample.set(false);
+    });
+  }
+
+  previewCustomVoiceTts(): void {
+    const voiceId = this.voiceId();
+    const voiceSampleUrl = this.voiceSampleUrl();
+    const statement = this.philosophyStatement() || `Hello! I am your AI Mind Digital Twin. Welcome to my thought profile.`;
+    if (!voiceId && !voiceSampleUrl) return;
+
+    if (this.voiceService.isAudioPlaying() && this.isPreviewingCustomTts()) {
+      this.voiceService.stopAudio();
+      this.isPreviewingCustomTts.set(false);
+      return;
+    }
+
+    this.isPreviewingCustomTts.set(true);
+    this.voiceService.previewVoice(statement, voiceId || 'cloned_voice', voiceSampleUrl).subscribe({
+      next: (res) => {
+        if (res.audioBase64) {
+          this.voiceService.playAudio(res.audioBase64, voiceId || 'custom-voice').finally(() => {
+            this.isPreviewingCustomTts.set(false);
+          });
+        } else {
+          this.isPreviewingCustomTts.set(false);
+        }
+      },
+      error: () => {
+        this.isPreviewingCustomTts.set(false);
+      },
+    });
+  }
+
+  clearCustomVoice(): void {
+    this.voiceProvider.set('preset');
+    this.voiceId.set('echo');
+    this.voiceSampleUrl.set(null);
+    this.activeVoiceTab.set('preset');
+    this.cloneSuccess.set(null);
+    this.cloneError.set(null);
+    this.isReplacingVoice.set(false);
+    this.customVoiceFileName.set(null);
+  }
+
+  formatRecordingTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  ngOnDestroy(): void {
+    if (this.recordingInterval) {
+      clearInterval(this.recordingInterval);
+      this.recordingInterval = null;
+    }
+    this.voiceService.stopAudio();
   }
 
   loadMyMind(): void {

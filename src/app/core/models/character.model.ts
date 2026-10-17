@@ -43,6 +43,9 @@ export interface Character {
   primary_leagues?: string[];
   risk_tier?: 'conservative_eighth_kelly' | 'balanced_quarter_kelly' | 'fixed_one_percent';
   allow_proactive_checkins?: boolean;
+  last_message?: string | null;
+  last_message_at?: string | null;
+  last_message_sender?: 'user' | 'assistant' | null;
   created_at?: string;
   updated_at?: string;
 }
