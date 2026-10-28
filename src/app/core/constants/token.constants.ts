@@ -1,5 +1,5 @@
 /**
- * Univasos Native Token Constants & Helper Functions
+ * Virtual Human Native Token Constants & Helper Functions
  * 
  * Token Name: Vasos (plural: Vasos, singular: Vaso)
  * Symbol: ◈

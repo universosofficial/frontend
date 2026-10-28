@@ -15,16 +15,16 @@ export interface TourStep {
   providedIn: 'root',
 })
 export class TourGuideService {
-  private readonly STORAGE_KEY = 'univasos_tour_guide_completed_v1';
+  private readonly STORAGE_KEY = 'Virtual Human_tour_guide_completed_v1';
 
   readonly steps: TourStep[] = [
     {
       id: 'welcome',
-      badge: 'Welcome to Univasos',
+      badge: 'Welcome to Virtual Human',
       icon: '✨',
       title: 'Your AI Companion & Knowledge Hub',
       description:
-        'Univasos gives you private AI companions that remember what matters to you, plus public AIs you can explore or create for yourself.',
+        'Virtual Human gives you private AI companions that remember what matters to you, plus public AIs you can explore or create for yourself.',
       position: 'center',
       actionHint: 'Take a quick 1-minute guided tour to see how everything works.',
     },

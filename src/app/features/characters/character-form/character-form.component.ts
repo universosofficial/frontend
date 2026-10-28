@@ -37,6 +37,7 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
   presets = signal<VoicePreset[]>([]);
   activeVoiceTab = signal<'preset' | 'cloned'>('preset');
   selectedPresetId = signal<string>('alloy');
+  voiceConsentChecked = signal<boolean>(false);
   isCloningVoice = signal<boolean>(false);
   cloneError = signal<string | null>(null);
   cloneSuccess = signal<string | null>(null);
@@ -482,6 +483,12 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
     analysis_style: ['quant_expected_value'],
     primary_leagues: [['Premier League']],
     risk_tier: ['balanced_quarter_kelly'],
+    // Proactive Auto-Text & Notification Settings
+    allow_proactive_checkins: [true],
+    proactive_frequency: ['24h'],
+    proactive_preferred_time: ['anytime'],
+    proactive_notify_push: [true],
+    proactive_notify_email: [true],
   });
 
   onAvatarFileSelected(event: Event): void {
@@ -582,6 +589,12 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
   onVoiceSampleSelected(event: Event): void {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
+      if (!this.voiceConsentChecked()) {
+        this.cloneError.set('Please certify that you own or have explicit permission to use this reference voice audio under our Terms of Service before uploading.');
+        target.value = '';
+        return;
+      }
+
       const file = target.files[0];
       this.customVoiceFileName.set(file.name);
       const charName = this.characterForm.get('name')?.value || 'Companion';
@@ -590,7 +603,7 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
       this.cloneError.set(null);
       this.cloneSuccess.set(null);
 
-      this.voiceService.cloneVoice(file, charName).subscribe({
+      this.voiceService.cloneVoice(file, charName, undefined, this.voiceConsentChecked()).subscribe({
         next: (res) => {
           this.isCloningVoice.set(false);
           this.characterForm.patchValue({
@@ -614,6 +627,11 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
 
   async startRecordingVoiceSample(): Promise<void> {
     try {
+      if (!this.voiceConsentChecked()) {
+        this.cloneError.set('Please certify that you own or have explicit permission to use this reference voice audio under our Terms of Service before recording.');
+        return;
+      }
+
       this.cloneError.set(null);
       this.cloneSuccess.set(null);
       await this.voiceService.startRecording();
@@ -648,7 +666,7 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
       const audioBlob = await this.voiceService.stopRecording();
       const charName = this.characterForm.get('name')?.value || 'Companion';
 
-      this.voiceService.cloneVoice(audioBlob, charName).subscribe({
+      this.voiceService.cloneVoice(audioBlob, charName, undefined, this.voiceConsentChecked()).subscribe({
         next: (res) => {
           this.isCloningVoice.set(false);
           this.characterForm.patchValue({
@@ -819,6 +837,11 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
             analysis_style: char.analysis_style || 'quant_expected_value',
             primary_leagues: Array.isArray(char.primary_leagues) ? char.primary_leagues : [],
             risk_tier: char.risk_tier || 'balanced_quarter_kelly',
+            allow_proactive_checkins: char.allow_proactive_checkins !== false,
+            proactive_frequency: char.proactive_frequency || '24h',
+            proactive_preferred_time: char.proactive_preferred_time || 'anytime',
+            proactive_notify_push: (char.proactive_channels as any)?.push !== false,
+            proactive_notify_email: (char.proactive_channels as any)?.email !== false,
           });
         }
       },
@@ -978,6 +1001,13 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
       analysis_style: isSports ? (val.analysis_style || 'quant_expected_value') : 'quant_expected_value',
       primary_leagues: isSports ? (val.primary_leagues?.length ? val.primary_leagues : ['Premier League']) : [],
       risk_tier: isSports ? (val.risk_tier || 'balanced_quarter_kelly') : 'balanced_quarter_kelly',
+      allow_proactive_checkins: Boolean(val.allow_proactive_checkins),
+      proactive_frequency: val.proactive_frequency || '24h',
+      proactive_preferred_time: val.proactive_preferred_time || 'anytime',
+      proactive_channels: {
+        push: Boolean(val.proactive_notify_push),
+        email: Boolean(val.proactive_notify_email),
+      },
     };
 
     if (this.isEditMode && this.characterId) {

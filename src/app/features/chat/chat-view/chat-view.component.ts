@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ChatService } from '../../../core/services/chat.service';
 import { CharacterService } from '../../../core/services/character.service';
 import { StreamService } from '../../../core/services/stream.service';
@@ -39,6 +39,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   pushService = inject(PushNotificationService);
   uploadService = inject(UploadService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   @ViewChild('messageInput') private messageInput!: ElementRef<HTMLTextAreaElement>;
@@ -57,6 +58,8 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   bankrollTotal = signal<number>(1000);
   bankrollCurrency = signal<string>('$');
   isCircuitBreakerActive = signal<boolean>(false);
+  crisisSupportActive = signal<boolean>(false);
+  crisisHotlineInfo = signal<any>(null);
   lastGroundedInfo = signal<{ count: number; sources: any[] } | null>(null);
   smartFollowUps = signal<string[]>([]);
   savedMessageIds = signal<Set<number>>(new Set());
@@ -67,6 +70,23 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   editingMessageContent = '';
   activeMessageMenuId = signal<number | null>(null);
   isSavingEdit = signal<boolean>(false);
+
+  // Companion Header Menu & Per-Character Settings / Delete
+  isHeaderMenuOpen = signal<boolean>(false);
+  isAutoTextModalOpen = signal<boolean>(false);
+  isDeleteConfirmModalOpen = signal<boolean>(false);
+  isSavingAutoText = signal<boolean>(false);
+  autoTextSaveSuccess = signal<boolean>(false);
+  autoTextSaveError = signal<string | null>(null);
+  isDeletingCharacter = signal<boolean>(false);
+  deleteError = signal<string | null>(null);
+
+  // Per-Character Auto-Text Config Fields
+  autoTextEnabled = signal<boolean>(true);
+  autoTextFrequency = signal<string>('24h');
+  autoTextPreferredTime = signal<string>('anytime');
+  notifyPush = signal<boolean>(true);
+  notifyEmail = signal<boolean>(true);
 
   // Feature #4: Dynamic Conversation Posture / Mood Switcher
   activeConversationMode = signal<string>('default');
@@ -137,7 +157,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.isUserScrolledUp = false;
     this.loadBankrollSettings();
     this.chatService.startConversation(characterId).subscribe({
-      next: () => {
+      next: (res) => {
         this.shouldScrollToBottom = true;
         const msgs = this.chatService.messages();
         if (msgs.length > 0) {
@@ -145,6 +165,17 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
         } else {
           this.smartFollowUps.set([]);
         }
+
+        const char = res.data?.character || this.chatService.activeCharacter();
+        if (char) {
+          this.autoTextEnabled.set(char.allow_proactive_checkins !== false);
+          this.autoTextFrequency.set(char.proactive_frequency || '24h');
+          this.autoTextPreferredTime.set(char.proactive_preferred_time || 'anytime');
+          const channels = char.proactive_channels || {};
+          this.notifyPush.set(channels.push !== false);
+          this.notifyEmail.set(channels.email !== false);
+        }
+
         // Refresh sidebar characters so the companion/mind appears in chat list and is marked active
         this.characterService.getCharacters().subscribe();
       },
@@ -337,6 +368,12 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
       onDone: (result: any) => {
         this.isStreaming.set(false);
         this.abortController = null;
+        if (result.crisisDetected) {
+          this.crisisSupportActive.set(true);
+          if (result.crisisHotline) {
+            this.crisisHotlineInfo.set(result.crisisHotline);
+          }
+        }
         if (result.groundedChunksCount !== undefined) {
           this.lastGroundedInfo.set({
             count: result.groundedChunksCount,
@@ -384,6 +421,10 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
         );
       },
     });
+  }
+
+  dismissCrisisSupport(): void {
+    this.crisisSupportActive.set(false);
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -843,6 +884,131 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     try {
       navigator.clipboard.writeText(content);
     } catch (_) {}
+  }
+
+  toggleHeaderMenu(event?: Event): void {
+    if (event) event.stopPropagation();
+    this.isHeaderMenuOpen.set(!this.isHeaderMenuOpen());
+  }
+
+  closeAllMenus(): void {
+    this.closeMessageMenu();
+    if (this.isHeaderMenuOpen()) {
+      this.isHeaderMenuOpen.set(false);
+    }
+  }
+
+  openAutoTextSettings(): void {
+    this.isHeaderMenuOpen.set(false);
+    const char = this.chatService.activeCharacter();
+    if (char) {
+      this.autoTextEnabled.set(char.allow_proactive_checkins !== false);
+      this.autoTextFrequency.set(char.proactive_frequency || '24h');
+      this.autoTextPreferredTime.set(char.proactive_preferred_time || 'anytime');
+      const channels = char.proactive_channels || {};
+      this.notifyPush.set(channels.push !== false);
+      this.notifyEmail.set(channels.email !== false);
+    }
+    this.autoTextSaveSuccess.set(false);
+    this.autoTextSaveError.set(null);
+    this.isAutoTextModalOpen.set(true);
+  }
+
+  closeAutoTextModal(): void {
+    this.isAutoTextModalOpen.set(false);
+    this.autoTextSaveSuccess.set(false);
+    this.autoTextSaveError.set(null);
+  }
+
+  onAutoTextFreqChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    if (target) {
+      this.autoTextFrequency.set(target.value);
+    }
+  }
+
+  onAutoTextTimeChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    if (target) {
+      this.autoTextPreferredTime.set(target.value);
+    }
+  }
+
+  saveAutoTextSettings(): void {
+    const char = this.chatService.activeCharacter();
+    if (!char) return;
+
+    this.isSavingAutoText.set(true);
+    this.autoTextSaveSuccess.set(false);
+    this.autoTextSaveError.set(null);
+
+    const patchPayload = {
+      allow_proactive_checkins: this.autoTextEnabled(),
+      proactive_frequency: this.autoTextFrequency(),
+      proactive_preferred_time: this.autoTextPreferredTime(),
+      proactive_channels: {
+        push: this.notifyPush(),
+        email: this.notifyEmail(),
+      },
+    };
+
+    this.characterService.updateCharacter(char.id, patchPayload).subscribe({
+      next: (res) => {
+        this.isSavingAutoText.set(false);
+        this.autoTextSaveSuccess.set(true);
+        if (res.data) {
+          this.chatService.activeCharacter.set(res.data);
+        }
+        setTimeout(() => {
+          this.closeAutoTextModal();
+        }, 1200);
+      },
+      error: (err) => {
+        this.isSavingAutoText.set(false);
+        this.autoTextSaveError.set(err.error?.message || err.message || 'Failed to save settings.');
+      },
+    });
+  }
+
+  onEditCharacter(characterId: number): void {
+    this.isHeaderMenuOpen.set(false);
+    this.router.navigate(['/dashboard/characters', characterId, 'edit']);
+  }
+
+  openMemoriesFromMenu(): void {
+    this.isHeaderMenuOpen.set(false);
+    this.toggleMemoryDrawer();
+  }
+
+  openDeleteConfirmModal(): void {
+    this.isHeaderMenuOpen.set(false);
+    this.deleteError.set(null);
+    this.isDeleteConfirmModalOpen.set(true);
+  }
+
+  closeDeleteConfirmModal(): void {
+    this.isDeleteConfirmModalOpen.set(false);
+    this.deleteError.set(null);
+  }
+
+  executeDeleteCharacter(): void {
+    const char = this.chatService.activeCharacter();
+    if (!char || char.is_system) return;
+
+    this.isDeletingCharacter.set(true);
+    this.deleteError.set(null);
+
+    this.characterService.deleteCharacter(char.id).subscribe({
+      next: () => {
+        this.isDeletingCharacter.set(false);
+        this.closeDeleteConfirmModal();
+        this.router.navigate(['/dashboard/characters']);
+      },
+      error: (err) => {
+        this.isDeletingCharacter.set(false);
+        this.deleteError.set(err.error?.message || err.message || 'Failed to delete companion.');
+      },
+    });
   }
 
   private scrollToBottom(): void {

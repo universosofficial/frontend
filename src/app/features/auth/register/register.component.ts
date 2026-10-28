@@ -97,7 +97,7 @@ export class RegisterComponent implements OnDestroy {
     this.authService.verifyEmail({ email: this.pendingEmail, code: cleanCode }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Email verified successfully! Welcome to Univasos.';
+        this.successMessage = 'Email verified successfully! Welcome to Virtual Human.';
         setTimeout(() => {
           this.router.navigate(['/dashboard']);
         }, 800);

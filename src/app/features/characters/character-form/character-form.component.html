@@ -491,7 +491,37 @@
                       Upload or record a 5–30 second audio clip. We'll use it to clone their speaking voice for voice notes and calls.
                     </p>
 
-                    <div class="wa-clone-methods-grid">
+                    <!-- Voice Cloning Terms of Service Disclaimer & Mandatory Ownership Consent -->
+                    <div class="wa-voice-consent-card" [class.consented]="voiceConsentChecked()">
+                      <div class="consent-header">
+                        <div class="consent-icon-badge">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                        </div>
+                        <div class="consent-info">
+                          <h4 class="consent-heading">Voice Cloning Rights &amp; Ethical Terms of Service</h4>
+                          <p class="consent-text">
+                            By uploading or recording reference audio, you certify and warrant that you own all rights to this voice, have obtained explicit written consent from the individual, or are recording your own voice. Cloning voices for deceptive impersonation, fraud, harassment, defamation, or non-consensual deepfakes is strictly prohibited under our Terms of Service and will result in immediate permanent account termination.
+                          </p>
+                        </div>
+                      </div>
+                      <label class="consent-checkbox-row" for="voice_consent_checkbox">
+                        <input
+                          type="checkbox"
+                          class="consent-input"
+                          id="voice_consent_checkbox"
+                          [checked]="voiceConsentChecked()"
+                          (change)="voiceConsentChecked.set($any($event.target).checked)"
+                        />
+                        <span class="consent-custom-check"></span>
+                        <span class="consent-label-text">
+                          <strong>Mandatory Certification:</strong> I certify that I own this voice or have explicit written consent from the individual to clone and use this reference audio in Univasos.
+                        </span>
+                      </label>
+                    </div>
+
+                    <div class="wa-clone-methods-grid" [class.consent-pending]="!voiceConsentChecked()">
                       <!-- Method A: File Upload Dropzone -->
                       <div class="wa-clone-method-card">
                         <div class="method-header">
@@ -502,19 +532,21 @@
                         </div>
                         <p class="method-sub">Audio file (.mp3, .wav, .m4a, .webm, up to 25MB)</p>
 
-                        <label class="wa-file-dropzone" [class.disabled]="isCloningVoice() || isRecordingVoiceSample()">
+                        <label class="wa-file-dropzone" [class.disabled]="isCloningVoice() || isRecordingVoiceSample() || !voiceConsentChecked()">
                           <input
                             type="file"
                             accept="audio/*,.mp3,.wav,.m4a,.webm,.ogg"
                             (change)="onVoiceSampleSelected($event)"
-                            [disabled]="isCloningVoice() || isRecordingVoiceSample()"
+                            [disabled]="isCloningVoice() || isRecordingVoiceSample() || !voiceConsentChecked()"
                             hidden
                           />
                           <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                           </svg>
                           <span class="dropzone-text">
-                            @if (customVoiceFileName()) {
+                            @if (!voiceConsentChecked()) {
+                              <span class="consent-warn-inline">Check agreement above to enable upload</span>
+                            } @else if (customVoiceFileName()) {
                               Selected: <strong>{{ customVoiceFileName() }}</strong>
                             } @else {
                               Click to browse or drop audio sample
@@ -540,7 +572,8 @@
                               type="button"
                               class="wa-btn-start-record"
                               (click)="startRecordingVoiceSample()"
-                              [disabled]="isCloningVoice()"
+                              [disabled]="isCloningVoice() || !voiceConsentChecked()"
+                              [title]="!voiceConsentChecked() ? 'Please check agreement above to enable recording' : 'Start microphone recording'"
                             >
                               <div class="mic-circle">
                                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -550,7 +583,7 @@
                               </div>
                               <div class="record-meta">
                                 <span class="record-title">Start Recording</span>
-                                <span class="record-hint">Click and speak a sentence</span>
+                                <span class="record-hint">{{ !voiceConsentChecked() ? 'Check agreement above to enable' : 'Click and speak a sentence' }}</span>
                               </div>
                             </button>
                           } @else {
@@ -718,6 +751,83 @@
                       placeholder="Their background, skills, or worldview..." 
                       class="wa-field wa-textarea-field"
                     ></textarea>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- AUTO-TEXT & NOTIFICATION SETTINGS -->
+          <div class="wa-section-card wa-autotext-settings-card">
+            <div class="wa-section-header">
+              <div class="wa-section-title-wrap">
+                <span class="wa-section-title">⏰ Auto-Text &amp; Notification Settings</span>
+                <span class="wa-section-sub">Configure how and when {{ characterForm.get('name')?.value || 'this companion' }} proactively checks in on you</span>
+              </div>
+            </div>
+
+            <!-- Enable / Disable Switch -->
+            <div class="wa-autotext-toggle-row">
+              <div class="wa-toggle-info">
+                <span class="toggle-title">Proactive Check-Ins</span>
+                <span class="toggle-desc">Allow this companion to send spontaneous thoughts, check-ins, or questions based on your shared conversations.</span>
+              </div>
+              <label class="wa-switch">
+                <input type="checkbox" formControlName="allow_proactive_checkins" />
+                <span class="wa-slider round"></span>
+              </label>
+            </div>
+
+            @if (characterForm.get('allow_proactive_checkins')?.value) {
+              <div class="wa-autotext-options">
+                <div class="wa-form-row two-col">
+                  <!-- Frequency -->
+                  <div class="wa-form-field-group">
+                    <label for="proactive_frequency" class="wa-input-label">Repetition &amp; Frequency</label>
+                    <div class="wa-input-box">
+                      <select id="proactive_frequency" formControlName="proactive_frequency" class="wa-field">
+                        <option value="6h">Frequent (Every 6 hours)</option>
+                        <option value="12h">Twice a day (Every 12 hours)</option>
+                        <option value="24h">Daily (Every 24 hours - Recommended)</option>
+                        <option value="48h">Every 2 days (48 hours)</option>
+                        <option value="weekly">Weekly</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Preferred Time of Day -->
+                  <div class="wa-form-field-group">
+                    <label for="proactive_preferred_time" class="wa-input-label">Preferred Time Window</label>
+                    <div class="wa-input-box">
+                      <select id="proactive_preferred_time" formControlName="proactive_preferred_time" class="wa-field">
+                        <option value="anytime">Anytime (Natural)</option>
+                        <option value="morning">Morning (8:00 AM – 12:00 PM)</option>
+                        <option value="afternoon">Afternoon (12:00 PM – 6:00 PM)</option>
+                        <option value="evening">Evening (6:00 PM – 10:00 PM)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Channels -->
+                <div class="wa-channels-group">
+                  <span class="wa-input-label">Notification Channels</span>
+                  <div class="wa-channels-grid">
+                    <label class="wa-channel-item">
+                      <input type="checkbox" formControlName="proactive_notify_push" />
+                      <div class="channel-content">
+                        <span class="channel-title">🔔 Web Push Notification</span>
+                        <span class="channel-desc">Receive browser/device alert when a check-in arrives</span>
+                      </div>
+                    </label>
+
+                    <label class="wa-channel-item">
+                      <input type="checkbox" formControlName="proactive_notify_email" />
+                      <div class="channel-content">
+                        <span class="channel-title">✉️ Email Notification (via Resend)</span>
+                        <span class="channel-desc">Send the check-in text directly to your registered email</span>
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>

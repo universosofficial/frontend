@@ -136,19 +136,72 @@
         }
       </button>
 
-      <!-- More Menu / Info -->
-      <button (click)="toggleMemoryDrawer()" class="wa-icon-btn wa-header-more-btn" title="Contact Info">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-        </svg>
-      </button>
+      <!-- More Menu / Companion Actions Dropdown -->
+      <div class="wa-header-menu-container">
+        <button 
+          type="button" 
+          (click)="toggleHeaderMenu($event)" 
+          class="wa-icon-btn wa-header-more-btn" 
+          [class.active]="isHeaderMenuOpen()"
+          title="Companion Options"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+          </svg>
+        </button>
+
+        @if (isHeaderMenuOpen()) {
+          <div class="wa-header-dropdown-menu" (click)="$event.stopPropagation()">
+            <button type="button" class="wa-dropdown-item" (click)="openAutoTextSettings()">
+              <span class="item-icon">⏰</span>
+              <div class="item-text">
+                <span class="item-title">Auto-Text &amp; Notifications</span>
+                <span class="item-sub">Set check-in time, frequency &amp; channels</span>
+              </div>
+            </button>
+
+            @if (chatService.activeCharacter(); as char) {
+              @if (!char.is_system) {
+                <button type="button" class="wa-dropdown-item" (click)="onEditCharacter(char.id)">
+                  <span class="item-icon">✏️</span>
+                  <div class="item-text">
+                    <span class="item-title">Edit Companion</span>
+                    <span class="item-sub">Change name, voice, persona &amp; background</span>
+                  </div>
+                </button>
+              }
+            }
+
+            <button type="button" class="wa-dropdown-item" (click)="openMemoriesFromMenu()">
+              <span class="item-icon">🧠</span>
+              <div class="item-text">
+                <span class="item-title">Saved Memories &amp; Profile</span>
+                <span class="item-sub">View knowledge, facts &amp; shared context</span>
+              </div>
+            </button>
+
+            @if (chatService.activeCharacter(); as char) {
+              @if (!char.is_system) {
+                <div class="wa-dropdown-divider"></div>
+                <button type="button" class="wa-dropdown-item danger" (click)="openDeleteConfirmModal()">
+                  <span class="item-icon">🗑️</span>
+                  <div class="item-text">
+                    <span class="item-title">Delete Companion</span>
+                    <span class="item-sub">Permanently delete this companion &amp; history</span>
+                  </div>
+                </button>
+              }
+            }
+          </div>
+        }
+      </div>
     </div>
   </header>
 
   <!-- ========================================================
        WHATSAPP CHAT WALLPAPER & MESSAGES STREAM
        ======================================================== -->
-  <div class="wa-chat-body wa-wallpaper" #messagesContainer (scroll)="onScroll($event)" (click)="closeMessageMenu()">
+  <div class="wa-chat-body wa-wallpaper" #messagesContainer (scroll)="onScroll($event)" (click)="closeAllMenus()">
     <!-- WhatsApp End-to-End Encryption / Memory System Pill -->
     <div class="wa-system-banner">
       <div class="wa-system-pill">
@@ -668,6 +721,46 @@
     </div>
   }
 
+  <!-- Dedicated Crisis & Emotional Distress Support Lifeline Banner -->
+  @if (crisisSupportActive()) {
+    <div class="wa-crisis-banner" role="alert">
+      <div class="wa-crisis-banner-main">
+        <div class="wa-crisis-icon">
+          <span>💛</span>
+        </div>
+        <div class="wa-crisis-text-wrap">
+          <div class="wa-crisis-title-row">
+            <span class="wa-crisis-title">You are not alone &bull; Support is available 24/7</span>
+            <span class="wa-crisis-badge">Free &amp; Confidential</span>
+          </div>
+          <p class="wa-crisis-desc">
+            If you or someone you care about is struggling, overwhelmed, or in pain, compassionate people are standing by to listen without judgment.
+          </p>
+          <div class="wa-crisis-actions">
+            <a href="tel:988" class="wa-crisis-action-pill call" title="Call or text 988 Lifeline">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+              </svg>
+              <span>Call / Text 988</span>
+            </a>
+            <a href="https://988lifeline.org/chat" target="_blank" rel="noopener noreferrer" class="wa-crisis-action-pill chat">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+              </svg>
+              <span>988 Web Chat</span>
+            </a>
+            <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="wa-crisis-action-pill intl">
+              <span>🌐 International Helplines</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="wa-crisis-close-btn" (click)="dismissCrisisSupport()" title="Dismiss support banner">
+        &times;
+      </button>
+    </div>
+  }
+
   <!-- ========================================================
        WHATSAPP CHAT INPUT BAR
        ======================================================== -->
@@ -956,5 +1049,170 @@
       (closeCall)="endVoiceCall()"
       (messageAdded)="onVoiceTurnMessageAdded($event)"
     ></app-voice-call-overlay>
+  }
+
+  <!-- ========================================================
+       PER-CHARACTER AUTO-TEXT & NOTIFICATION MODAL
+       ======================================================== -->
+  @if (isAutoTextModalOpen()) {
+    <div class="wa-modal-backdrop" (click)="closeAutoTextModal()">
+      <div class="wa-modal-card wa-autotext-modal" (click)="$event.stopPropagation()">
+        <div class="wa-modal-header">
+          <div class="wa-modal-title-group">
+            <span class="wa-modal-badge">⏰ Proactive Check-Ins &amp; Alerts</span>
+            <h3 class="wa-modal-title">
+              Auto-Text Settings for {{ chatService.activeCharacter()?.name || 'Companion' }}
+            </h3>
+          </div>
+          <button type="button" class="wa-modal-close-btn" (click)="closeAutoTextModal()" title="Close">✕</button>
+        </div>
+
+        <div class="wa-modal-body">
+          @if (autoTextSaveSuccess()) {
+            <div class="wa-modal-alert success">
+              <span>✓ Settings saved successfully!</span>
+            </div>
+          }
+          @if (autoTextSaveError()) {
+            <div class="wa-modal-alert error">
+              <span>{{ autoTextSaveError() }}</span>
+            </div>
+          }
+
+          <!-- Master Check-In Switch -->
+          <div class="wa-setting-row-switch">
+            <div class="switch-info">
+              <span class="switch-title">Proactive Auto-Text</span>
+              <span class="switch-desc">
+                Allow {{ chatService.activeCharacter()?.name || 'this companion' }} to proactively text you with thoughtful check-ins and questions based on your shared memories.
+              </span>
+            </div>
+            <label class="wa-switch">
+              <input type="checkbox" [checked]="autoTextEnabled()" (change)="autoTextEnabled.set(!autoTextEnabled())" />
+              <span class="wa-slider round"></span>
+            </label>
+          </div>
+
+          @if (autoTextEnabled()) {
+            <div class="wa-settings-group">
+              <div class="wa-setting-field">
+                <label class="field-label" for="modal_auto_freq">Repetitiveness &amp; Frequency</label>
+                <div class="field-select-wrap">
+                  <select 
+                    id="modal_auto_freq" 
+                    [value]="autoTextFrequency()" 
+                    (change)="onAutoTextFreqChange($event)"
+                    class="wa-field-select"
+                  >
+                    <option value="6h">Frequent (Every 6 hours)</option>
+                    <option value="12h">Twice a day (Every 12 hours)</option>
+                    <option value="24h">Daily (Every 24 hours - Recommended)</option>
+                    <option value="48h">Every 2 days (48 hours)</option>
+                    <option value="weekly">Weekly (Once every 7 days)</option>
+                  </select>
+                </div>
+                <span class="field-hint">Controls how often {{ chatService.activeCharacter()?.name || 'this companion' }} reaches out to you.</span>
+              </div>
+
+              <div class="wa-setting-field">
+                <label class="field-label" for="modal_auto_time">Preferred Time Window</label>
+                <div class="field-select-wrap">
+                  <select 
+                    id="modal_auto_time" 
+                    [value]="autoTextPreferredTime()" 
+                    (change)="onAutoTextTimeChange($event)"
+                    class="wa-field-select"
+                  >
+                    <option value="anytime">Anytime throughout the day (Natural)</option>
+                    <option value="morning">Morning (8:00 AM – 12:00 PM)</option>
+                    <option value="afternoon">Afternoon (12:00 PM – 6:00 PM)</option>
+                    <option value="evening">Evening (6:00 PM – 10:00 PM)</option>
+                  </select>
+                </div>
+                <span class="field-hint">Auto-text check-ins will only be dispatched inside your selected window.</span>
+              </div>
+
+              <div class="wa-setting-field">
+                <label class="field-label">Notification Channels</label>
+                <div class="wa-channel-options">
+                  <label class="wa-checkbox-row">
+                    <input type="checkbox" [checked]="notifyPush()" (change)="notifyPush.set(!notifyPush())" />
+                    <div class="checkbox-text">
+                      <span class="checkbox-title">🔔 Web Push Notification</span>
+                      <span class="checkbox-sub">Receive instant browser and device alerts when a check-in arrives.</span>
+                    </div>
+                  </label>
+
+                  <label class="wa-checkbox-row">
+                    <input type="checkbox" [checked]="notifyEmail()" (change)="notifyEmail.set(!notifyEmail())" />
+                    <div class="checkbox-text">
+                      <span class="checkbox-title">✉️ Email Notification (via Resend)</span>
+                      <span class="checkbox-sub">Receive check-in messages directly in your email inbox.</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="wa-modal-footer">
+          <button type="button" class="wa-btn-secondary" (click)="closeAutoTextModal()">Close</button>
+          <button 
+            type="button" 
+            class="wa-btn-primary" 
+            [disabled]="isSavingAutoText()" 
+            (click)="saveAutoTextSettings()"
+          >
+            @if (isSavingAutoText()) {
+              <span class="wa-spinner-sm"></span>
+              <span>Saving...</span>
+            } @else {
+              <span>Save Settings</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================
+       DELETE COMPANION CONFIRMATION MODAL
+       ======================================================== -->
+  @if (isDeleteConfirmModalOpen()) {
+    <div class="wa-modal-backdrop" (click)="closeDeleteConfirmModal()">
+      <div class="wa-modal-card wa-delete-modal" (click)="$event.stopPropagation()">
+        <div class="wa-delete-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <h3 class="wa-delete-title">Delete Companion</h3>
+        <p class="wa-delete-desc">
+          Are you sure you want to permanently delete <strong>{{ chatService.activeCharacter()?.name }}</strong>?
+          All message history, shared memories, and custom voice parameters will be deleted. This action cannot be undone.
+        </p>
+
+        @if (deleteError()) {
+          <div class="wa-modal-alert error">
+            <span>{{ deleteError() }}</span>
+          </div>
+        }
+
+        <div class="wa-delete-actions">
+          <button type="button" class="wa-btn-secondary" (click)="closeDeleteConfirmModal()" [disabled]="isDeletingCharacter()">
+            Cancel
+          </button>
+          <button type="button" class="wa-btn-danger" (click)="executeDeleteCharacter()" [disabled]="isDeletingCharacter()">
+            @if (isDeletingCharacter()) {
+              <span class="wa-spinner-sm"></span>
+              <span>Deleting...</span>
+            } @else {
+              <span>Yes, Delete</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>

@@ -41,7 +41,7 @@ import { CommonModule } from '@angular/common';
                 <span class="preview-name">{{ mindName || 'AI Mind' }}</span>
                 <span class="preview-handle">&#64;{{ cleanHandle }}</span>
               </div>
-              <p class="preview-headline">{{ headline || 'Univasos AI Profile' }}</p>
+              <p class="preview-headline">{{ headline || 'Virtual Human AI Profile' }}</p>
               <div class="preview-badge">
                 <span class="pulse-dot"></span>
                 <span>Active AI Companion</span>
@@ -504,7 +504,7 @@ export class ShareMindModalComponent {
 
   get shareMessage(): string {
     const name = this.mindName || 'AI Profile';
-    return `Chat with my personal AI (${name}) on Univasos:`;
+    return `Chat with my personal AI (${name}) on Virtual Human:`;
   }
 
   get twitterShareUrl(): string {
@@ -528,7 +528,7 @@ export class ShareMindModalComponent {
   }
 
   get redditShareUrl(): string {
-    return `https://reddit.com/submit?url=${encodeURIComponent(this.shareUrl)}&title=${encodeURIComponent('Chat with ' + (this.mindName || 'AI Profile') + ' on Univasos')}`;
+    return `https://reddit.com/submit?url=${encodeURIComponent(this.shareUrl)}&title=${encodeURIComponent('Chat with ' + (this.mindName || 'AI Profile') + ' on Virtual Human')}`;
   }
 
   copyLink(inputEl: HTMLInputElement): void {

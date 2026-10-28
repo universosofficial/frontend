@@ -46,7 +46,7 @@ export class VoiceService {
   /**
    * Clone a voice from an uploaded or recorded audio sample.
    */
-  cloneVoice(file: Blob, name: string, description?: string): Observable<ClonedVoiceResult> {
+  cloneVoice(file: Blob, name: string, description?: string, consent: boolean = true): Observable<ClonedVoiceResult> {
     const formData = new FormData();
     let filename = 'sample.mp3';
     if (file instanceof File && file.name) {
@@ -59,6 +59,7 @@ export class VoiceService {
     }
     formData.append('sample', file, filename);
     formData.append('name', name);
+    formData.append('consent', String(consent));
     if (description) {
       formData.append('description', description);
     }

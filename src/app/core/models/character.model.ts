@@ -43,6 +43,13 @@ export interface Character {
   primary_leagues?: string[];
   risk_tier?: 'conservative_eighth_kelly' | 'balanced_quarter_kelly' | 'fixed_one_percent';
   allow_proactive_checkins?: boolean;
+  proactive_frequency?: '6h' | '12h' | '24h' | '48h' | 'weekly' | string;
+  proactive_preferred_time?: 'morning' | 'afternoon' | 'evening' | 'anytime' | string;
+  proactive_channels?: {
+    push?: boolean;
+    email?: boolean;
+    [key: string]: any;
+  } | null;
   last_message?: string | null;
   last_message_at?: string | null;
   last_message_sender?: 'user' | 'assistant' | null;
@@ -85,6 +92,14 @@ export interface CreateCharacterDto {
   analysis_style?: string;
   primary_leagues?: string[];
   risk_tier?: string;
+  allow_proactive_checkins?: boolean;
+  proactive_frequency?: string;
+  proactive_preferred_time?: string;
+  proactive_channels?: {
+    push?: boolean;
+    email?: boolean;
+    [key: string]: any;
+  } | null;
 }
 
 export interface Conversation {
