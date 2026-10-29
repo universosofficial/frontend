@@ -1095,43 +1095,187 @@
 
           @if (autoTextEnabled()) {
             <div class="wa-settings-group">
-              <div class="wa-setting-field">
-                <label class="field-label" for="modal_auto_freq">Repetitiveness &amp; Frequency</label>
-                <div class="field-select-wrap">
-                  <select 
-                    id="modal_auto_freq" 
-                    [value]="autoTextFrequency()" 
-                    (change)="onAutoTextFreqChange($event)"
-                    class="wa-field-select"
-                  >
-                    <option value="6h">Frequent (Every 6 hours)</option>
-                    <option value="12h">Twice a day (Every 12 hours)</option>
-                    <option value="24h">Daily (Every 24 hours - Recommended)</option>
-                    <option value="48h">Every 2 days (48 hours)</option>
-                    <option value="weekly">Weekly (Once every 7 days)</option>
-                  </select>
+              <!-- Live Schedule Dynamic Summary Card -->
+              <div class="wa-schedule-preview-card">
+                <div class="preview-icon">✨</div>
+                <div class="preview-text">
+                  <span class="preview-headline">Live Schedule</span>
+                  <p class="preview-summary">{{ getScheduleSummaryText() }}</p>
                 </div>
-                <span class="field-hint">Controls how often {{ chatService.activeCharacter()?.name || 'this companion' }} reaches out to you.</span>
               </div>
 
+              <!-- Timing Mode Selector Tabs -->
               <div class="wa-setting-field">
-                <label class="field-label" for="modal_auto_time">Preferred Time Window</label>
-                <div class="field-select-wrap">
-                  <select 
-                    id="modal_auto_time" 
-                    [value]="autoTextPreferredTime()" 
-                    (change)="onAutoTextTimeChange($event)"
-                    class="wa-field-select"
+                <label class="field-label">Timing Mode</label>
+                <div class="wa-segmented-tabs">
+                  <button 
+                    type="button" 
+                    class="wa-tab-btn" 
+                    [class.active]="autoTextTimingType() === 'exact_time'"
+                    (click)="setTimingType('exact_time')"
                   >
-                    <option value="anytime">Anytime throughout the day (Natural)</option>
-                    <option value="morning">Morning (8:00 AM – 12:00 PM)</option>
-                    <option value="afternoon">Afternoon (12:00 PM – 6:00 PM)</option>
-                    <option value="evening">Evening (6:00 PM – 10:00 PM)</option>
-                  </select>
+                    <span class="tab-icon">🎯</span>
+                    <span class="tab-title">Particular Time</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="wa-tab-btn" 
+                    [class.active]="autoTextTimingType() === 'window'"
+                    (click)="setTimingType('window')"
+                  >
+                    <span class="tab-icon">🕒</span>
+                    <span class="tab-title">Time Window</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="wa-tab-btn" 
+                    [class.active]="autoTextTimingType() === 'interval'"
+                    (click)="setTimingType('interval')"
+                  >
+                    <span class="tab-icon">⏳</span>
+                    <span class="tab-title">Interval / Repeat</span>
+                  </button>
                 </div>
-                <span class="field-hint">Auto-text check-ins will only be dispatched inside your selected window.</span>
               </div>
 
+              <!-- Case A: Particular Time of Day -->
+              @if (autoTextTimingType() === 'exact_time') {
+                <div class="wa-exact-time-panel">
+                  <div class="wa-setting-field">
+                    <label class="field-label" for="modal_exact_time_input">Exact Delivery Time</label>
+                    <div class="wa-time-input-row">
+                      <input 
+                        type="time" 
+                        id="modal_exact_time_input" 
+                        class="wa-time-input" 
+                        [value]="autoTextExactTime()" 
+                        (input)="onExactTimeChange($event)" 
+                      />
+                      <span class="wa-tz-badge" title="Detected local timezone">🌐 {{ autoTextUserTimezone() }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Quick 1-Tap Presets -->
+                  <div class="wa-setting-field">
+                    <span class="field-sub-label">Quick Time Presets:</span>
+                    <div class="wa-preset-pills">
+                      @for (preset of timePresets; track preset.time) {
+                        <button 
+                          type="button" 
+                          class="wa-preset-pill" 
+                          [class.active]="autoTextExactTime() === preset.time"
+                          (click)="setExactTimePreset(preset.time)"
+                        >
+                          {{ preset.label }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Case B: Time Window -->
+              @if (autoTextTimingType() === 'window') {
+                <div class="wa-setting-field">
+                  <label class="field-label" for="modal_auto_time">Preferred Time Window</label>
+                  <div class="field-select-wrap">
+                    <select 
+                      id="modal_auto_time" 
+                      [value]="autoTextPreferredTime()" 
+                      (change)="onAutoTextTimeChange($event)"
+                      class="wa-field-select"
+                    >
+                      <option value="anytime">Anytime throughout the day (Spontaneous &amp; Natural)</option>
+                      <option value="morning">Morning (8:00 AM – 12:00 PM)</option>
+                      <option value="afternoon">Afternoon (12:00 PM – 6:00 PM)</option>
+                      <option value="evening">Evening (6:00 PM – 10:00 PM)</option>
+                      <option value="night">Late Night (9:00 PM – 12:00 AM)</option>
+                    </select>
+                  </div>
+                  <span class="field-hint">Auto-text check-ins will only arrive during this selected window.</span>
+                </div>
+              }
+
+              <!-- Case C: Repeating Interval -->
+              @if (autoTextTimingType() === 'interval') {
+                <div class="wa-setting-field">
+                  <label class="field-label" for="modal_auto_freq">Repetition Frequency</label>
+                  <div class="field-select-wrap">
+                    <select 
+                      id="modal_auto_freq" 
+                      [value]="autoTextFrequency()" 
+                      (change)="onAutoTextFreqChange($event)"
+                      class="wa-field-select"
+                    >
+                      <option value="2h">Every 2 hours (Frequent)</option>
+                      <option value="4h">Every 4 hours</option>
+                      <option value="6h">Every 6 hours</option>
+                      <option value="12h">Twice a day (Every 12 hours)</option>
+                      <option value="24h">Daily (Every 24 hours)</option>
+                      <option value="48h">Every 2 days (48 hours)</option>
+                      <option value="weekly">Weekly (Once every 7 days)</option>
+                    </select>
+                  </div>
+                  <span class="field-hint">Controls how often {{ chatService.activeCharacter()?.name || 'this companion' }} texts you.</span>
+                </div>
+              }
+
+              <!-- Days of the Week Selection (Available for Exact Time & Window modes) -->
+              @if (autoTextTimingType() !== 'interval') {
+                <div class="wa-setting-field">
+                  <label class="field-label">Active Days of the Week</label>
+                  <div class="wa-cadence-pills">
+                    <button 
+                      type="button" 
+                      class="wa-cadence-btn" 
+                      [class.active]="autoTextDaysMode() === 'everyday'" 
+                      (click)="setDaysMode('everyday')"
+                    >
+                      Every Day
+                    </button>
+                    <button 
+                      type="button" 
+                      class="wa-cadence-btn" 
+                      [class.active]="autoTextDaysMode() === 'weekdays'" 
+                      (click)="setDaysMode('weekdays')"
+                    >
+                      Weekdays
+                    </button>
+                    <button 
+                      type="button" 
+                      class="wa-cadence-btn" 
+                      [class.active]="autoTextDaysMode() === 'weekends'" 
+                      (click)="setDaysMode('weekends')"
+                    >
+                      Weekends
+                    </button>
+                    <button 
+                      type="button" 
+                      class="wa-cadence-btn" 
+                      [class.active]="autoTextDaysMode() === 'custom'" 
+                      (click)="setDaysMode('custom')"
+                    >
+                      Custom Days
+                    </button>
+                  </div>
+
+                  <div class="wa-weekdays-grid">
+                    @for (day of weekDaysList; track day.key) {
+                      <button 
+                        type="button" 
+                        class="wa-day-chip" 
+                        [class.selected]="isCustomDaySelected(day.key)"
+                        (click)="toggleCustomDay(day.key)"
+                      >
+                        <span class="day-check-icon">✓</span>
+                        <span>{{ day.label }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Notification Channels -->
               <div class="wa-setting-field">
                 <label class="field-label">Notification Channels</label>
                 <div class="wa-channel-options">
@@ -1139,7 +1283,7 @@
                     <input type="checkbox" [checked]="notifyPush()" (change)="notifyPush.set(!notifyPush())" />
                     <div class="checkbox-text">
                       <span class="checkbox-title">🔔 Web Push Notification</span>
-                      <span class="checkbox-sub">Receive instant browser and device alerts when a check-in arrives.</span>
+                      <span class="checkbox-sub">Receive instant mobile and desktop alerts when a check-in arrives.</span>
                     </div>
                   </label>
 

@@ -455,6 +455,130 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
     return current.includes(league);
   }
 
+  weekDaysList = [
+    { key: 'mon', label: 'Mon' },
+    { key: 'tue', label: 'Tue' },
+    { key: 'wed', label: 'Wed' },
+    { key: 'thu', label: 'Thu' },
+    { key: 'fri', label: 'Fri' },
+    { key: 'sat', label: 'Sat' },
+    { key: 'sun', label: 'Sun' },
+  ];
+
+  timePresets = [
+    { label: '☀️ 8:30 AM', time: '08:30', name: 'Morning' },
+    { label: '🥪 12:30 PM', time: '12:30', name: 'Midday' },
+    { label: '☕ 4:00 PM', time: '16:00', name: 'Afternoon' },
+    { label: '🌇 7:00 PM', time: '19:00', name: 'Evening' },
+    { label: '🌙 9:30 PM', time: '21:30', name: 'Night' },
+  ];
+
+  setTimingType(type: 'exact_time' | 'window' | 'interval'): void {
+    this.characterForm.patchValue({ proactive_timing_type: type });
+  }
+
+  setDaysMode(mode: 'everyday' | 'weekdays' | 'weekends' | 'custom'): void {
+    this.characterForm.patchValue({ proactive_days_mode: mode });
+    if (mode === 'everyday') {
+      this.characterForm.patchValue({ proactive_custom_days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] });
+    } else if (mode === 'weekdays') {
+      this.characterForm.patchValue({ proactive_custom_days: ['mon', 'tue', 'wed', 'thu', 'fri'] });
+    } else if (mode === 'weekends') {
+      this.characterForm.patchValue({ proactive_custom_days: ['sat', 'sun'] });
+    }
+  }
+
+  setExactTimePreset(time: string): void {
+    this.characterForm.patchValue({
+      proactive_exact_time: time,
+      proactive_timing_type: 'exact_time',
+    });
+  }
+
+  toggleCustomDay(dayKey: string): void {
+    const current: string[] = this.characterForm.get('proactive_custom_days')?.value || [];
+    let updated: string[];
+    if (current.includes(dayKey)) {
+      updated = current.length > 1 ? current.filter((d) => d !== dayKey) : current;
+    } else {
+      updated = [...current, dayKey];
+    }
+    this.characterForm.patchValue({
+      proactive_custom_days: updated,
+      proactive_days_mode: 'custom',
+    });
+  }
+
+  isCustomDaySelected(dayKey: string): boolean {
+    const current: string[] = this.characterForm.get('proactive_custom_days')?.value || [];
+    return current.includes(dayKey);
+  }
+
+  getFormScheduleSummaryText(): string {
+    const name = this.characterForm.get('name')?.value || 'Companion';
+    if (!this.characterForm.get('allow_proactive_checkins')?.value) {
+      return `${name}'s auto-text check-ins are turned off.`;
+    }
+
+    const push = this.characterForm.get('proactive_notify_push')?.value;
+    const email = this.characterForm.get('proactive_notify_email')?.value;
+    const channels: string[] = [];
+    if (push) channels.push('Web Push');
+    if (email) channels.push('Email');
+    const channelText = channels.length > 0 ? channels.join(' & ') : 'silent chat';
+
+    const daysMode = this.characterForm.get('proactive_days_mode')?.value || 'everyday';
+    let dayText = 'every day';
+    if (daysMode === 'weekdays') dayText = 'on weekdays (Mon–Fri)';
+    else if (daysMode === 'weekends') dayText = 'on weekends (Sat–Sun)';
+    else if (daysMode === 'custom') {
+      const days: string[] = this.characterForm.get('proactive_custom_days')?.value || [];
+      if (days.length === 7) dayText = 'every day';
+      else if (days.length === 0) dayText = 'on selected days';
+      else dayText = `on ${days.map((d) => d.toUpperCase()).join(', ')}`;
+    }
+
+    const timingType = this.characterForm.get('proactive_timing_type')?.value || 'exact_time';
+    if (timingType === 'exact_time') {
+      const time = this.characterForm.get('proactive_exact_time')?.value || '09:00';
+      let formattedTime = time;
+      try {
+        const parts = time.split(':').map(Number);
+        const h = parts[0];
+        const m = parts[1] || 0;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const displayH = h % 12 || 12;
+        formattedTime = `${displayH}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+      } catch {}
+      const tz = this.characterForm.get('proactive_user_timezone')?.value || 'local time';
+      return `✨ ${name} will text you ${dayText} at ${formattedTime} (${tz}) via ${channelText}.`;
+    }
+
+    if (timingType === 'window') {
+      const w = this.characterForm.get('proactive_preferred_time')?.value || 'morning';
+      const windowLabels: Record<string, string> = {
+        morning: 'in the morning (8:00 AM – 12:00 PM)',
+        afternoon: 'in the afternoon (12:00 PM – 6:00 PM)',
+        evening: 'in the evening (6:00 PM – 10:00 PM)',
+        night: 'at night (9:00 PM – 12:00 AM)',
+        anytime: 'spontaneously throughout the day',
+      };
+      return `✨ ${name} will text you ${dayText} ${windowLabels[w] || w} via ${channelText}.`;
+    }
+
+    const freq = this.characterForm.get('proactive_frequency')?.value || '24h';
+    const freqLabels: Record<string, string> = {
+      '2h': 'every 2 hours',
+      '4h': 'every 4 hours',
+      '6h': 'every 6 hours',
+      '12h': 'twice a day (every 12 hours)',
+      '24h': 'daily (every 24 hours)',
+      '48h': 'every 2 days',
+      'weekly': 'once a week',
+    };
+    return `✨ ${name} will reach out ${freqLabels[freq] || 'regularly'} via ${channelText}.`;
+  }
+
   characterForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     avatarUrl: [''],
@@ -485,8 +609,13 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
     risk_tier: ['balanced_quarter_kelly'],
     // Proactive Auto-Text & Notification Settings
     allow_proactive_checkins: [true],
+    proactive_timing_type: ['exact_time'],
+    proactive_exact_time: ['09:00'],
     proactive_frequency: ['24h'],
     proactive_preferred_time: ['anytime'],
+    proactive_days_mode: ['everyday'],
+    proactive_custom_days: [['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']],
+    proactive_user_timezone: [Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'],
     proactive_notify_push: [true],
     proactive_notify_email: [true],
   });
@@ -804,6 +933,24 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
             this.selectedPresetId.set(char.voice_id || 'alloy');
           }
 
+          let channels: any = {};
+          if (typeof char.proactive_channels === 'string') {
+            try { channels = JSON.parse(char.proactive_channels); } catch {}
+          } else if (typeof char.proactive_channels === 'object') {
+            channels = char.proactive_channels || {};
+          }
+
+          const prefTime = (char.proactive_preferred_time || 'anytime').trim();
+          const isExactTimeFormat = /^\d{1,2}:\d{2}$/.test(prefTime);
+          const timingType = channels.timing_type || 
+            (isExactTimeFormat ? 'exact_time' : 
+            (['morning', 'afternoon', 'evening', 'night'].includes(prefTime) ? 'window' : 
+            (char.proactive_frequency && ['2h', '4h', '6h', '12h', 'weekly'].includes(char.proactive_frequency) ? 'interval' : 'exact_time')));
+          const daysMode = channels.days_mode || 
+            (char.proactive_frequency === 'weekdays' ? 'weekdays' : 
+            (char.proactive_frequency === 'weekends' ? 'weekends' : 
+            (char.proactive_frequency === 'custom_days' ? 'custom' : 'everyday')));
+
           this.characterForm.patchValue({
             name: char.name,
             avatarUrl: char.avatar_url || '',
@@ -838,10 +985,15 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
             primary_leagues: Array.isArray(char.primary_leagues) ? char.primary_leagues : [],
             risk_tier: char.risk_tier || 'balanced_quarter_kelly',
             allow_proactive_checkins: char.allow_proactive_checkins !== false,
+            proactive_timing_type: timingType,
+            proactive_exact_time: channels.exact_time || (isExactTimeFormat ? prefTime : '09:00'),
             proactive_frequency: char.proactive_frequency || '24h',
-            proactive_preferred_time: char.proactive_preferred_time || 'anytime',
-            proactive_notify_push: (char.proactive_channels as any)?.push !== false,
-            proactive_notify_email: (char.proactive_channels as any)?.email !== false,
+            proactive_preferred_time: channels.window || (!isExactTimeFormat && prefTime !== 'anytime' ? prefTime : 'morning'),
+            proactive_days_mode: daysMode,
+            proactive_custom_days: Array.isArray(channels.custom_days) && channels.custom_days.length > 0 ? channels.custom_days : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+            proactive_user_timezone: channels.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+            proactive_notify_push: channels.push !== false,
+            proactive_notify_email: channels.email !== false,
           });
         }
       },
@@ -968,6 +1120,42 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
       ? val.catchphrases.split(',').map((s: string) => s.trim()).filter((s: string) => !!s)
       : [];
 
+    const timingType = val.proactive_timing_type || 'exact_time';
+    let effectiveFreq = val.proactive_frequency || '24h';
+    let effectivePrefTime = val.proactive_preferred_time || 'anytime';
+
+    if (timingType === 'exact_time') {
+      effectivePrefTime = val.proactive_exact_time || '09:00';
+      const daysMode = val.proactive_days_mode || 'everyday';
+      if (daysMode === 'everyday') effectiveFreq = '24h';
+      else if (daysMode === 'weekdays') effectiveFreq = 'weekdays';
+      else if (daysMode === 'weekends') effectiveFreq = 'weekends';
+      else if (daysMode === 'custom') effectiveFreq = 'custom_days';
+    } else if (timingType === 'window') {
+      effectivePrefTime = val.proactive_preferred_time || 'morning';
+      const daysMode = val.proactive_days_mode || 'everyday';
+      if (daysMode === 'everyday') effectiveFreq = '24h';
+      else if (daysMode === 'weekdays') effectiveFreq = 'weekdays';
+      else if (daysMode === 'weekends') effectiveFreq = 'weekends';
+      else if (daysMode === 'custom') effectiveFreq = 'custom_days';
+    } else if (timingType === 'interval') {
+      effectivePrefTime = 'anytime';
+      effectiveFreq = val.proactive_frequency || '24h';
+    }
+
+    const channelsPayload = {
+      push: Boolean(val.proactive_notify_push),
+      email: Boolean(val.proactive_notify_email),
+      timing_type: timingType,
+      exact_time: val.proactive_exact_time || '09:00',
+      window: val.proactive_preferred_time || 'morning',
+      days_mode: val.proactive_days_mode || 'everyday',
+      custom_days: Array.isArray(val.proactive_custom_days) && val.proactive_custom_days.length > 0
+        ? val.proactive_custom_days
+        : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+      timezone: val.proactive_user_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    };
+
     const dto: CreateCharacterDto = {
       name: finalName,
       avatarUrl: val.avatarUrl || null,
@@ -1002,12 +1190,9 @@ export class CharacterFormComponent implements OnInit, OnDestroy {
       primary_leagues: isSports ? (val.primary_leagues?.length ? val.primary_leagues : ['Premier League']) : [],
       risk_tier: isSports ? (val.risk_tier || 'balanced_quarter_kelly') : 'balanced_quarter_kelly',
       allow_proactive_checkins: Boolean(val.allow_proactive_checkins),
-      proactive_frequency: val.proactive_frequency || '24h',
-      proactive_preferred_time: val.proactive_preferred_time || 'anytime',
-      proactive_channels: {
-        push: Boolean(val.proactive_notify_push),
-        email: Boolean(val.proactive_notify_email),
-      },
+      proactive_frequency: effectiveFreq,
+      proactive_preferred_time: effectivePrefTime,
+      proactive_channels: channelsPayload,
     };
 
     if (this.isEditMode && this.characterId) {

@@ -780,34 +780,174 @@
 
             @if (characterForm.get('allow_proactive_checkins')?.value) {
               <div class="wa-autotext-options">
-                <div class="wa-form-row two-col">
-                  <!-- Frequency -->
-                  <div class="wa-form-field-group">
-                    <label for="proactive_frequency" class="wa-input-label">Repetition &amp; Frequency</label>
-                    <div class="wa-input-box">
-                      <select id="proactive_frequency" formControlName="proactive_frequency" class="wa-field">
-                        <option value="6h">Frequent (Every 6 hours)</option>
-                        <option value="12h">Twice a day (Every 12 hours)</option>
-                        <option value="24h">Daily (Every 24 hours - Recommended)</option>
-                        <option value="48h">Every 2 days (48 hours)</option>
-                        <option value="weekly">Weekly</option>
-                      </select>
+                <!-- Live Dynamic Schedule Preview -->
+                <div class="wa-schedule-preview-card">
+                  <div class="preview-icon">✨</div>
+                  <div class="preview-text">
+                    <span class="preview-headline">Live Schedule</span>
+                    <p class="preview-summary">{{ getFormScheduleSummaryText() }}</p>
+                  </div>
+                </div>
+
+                <!-- Timing Mode Segmented Tabs -->
+                <div class="wa-setting-field">
+                  <label class="wa-input-label">Timing Mode</label>
+                  <div class="wa-segmented-tabs">
+                    <button 
+                      type="button" 
+                      class="wa-tab-btn" 
+                      [class.active]="characterForm.get('proactive_timing_type')?.value === 'exact_time'"
+                      (click)="setTimingType('exact_time')"
+                    >
+                      <span class="tab-icon">🎯</span>
+                      <span class="tab-title">Particular Time</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="wa-tab-btn" 
+                      [class.active]="characterForm.get('proactive_timing_type')?.value === 'window'"
+                      (click)="setTimingType('window')"
+                    >
+                      <span class="tab-icon">🕒</span>
+                      <span class="tab-title">Time Window</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="wa-tab-btn" 
+                      [class.active]="characterForm.get('proactive_timing_type')?.value === 'interval'"
+                      (click)="setTimingType('interval')"
+                    >
+                      <span class="tab-icon">⏳</span>
+                      <span class="tab-title">Interval / Repeat</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Case A: Particular Time of Day -->
+                @if (characterForm.get('proactive_timing_type')?.value === 'exact_time') {
+                  <div class="wa-exact-time-panel">
+                    <div class="wa-setting-field">
+                      <label class="wa-input-label" for="form_exact_time_input">Exact Delivery Time</label>
+                      <div class="wa-time-input-row">
+                        <input 
+                          type="time" 
+                          id="form_exact_time_input" 
+                          class="wa-time-input" 
+                          formControlName="proactive_exact_time" 
+                        />
+                        <span class="wa-tz-badge" title="Detected local timezone">🌐 {{ characterForm.get('proactive_user_timezone')?.value || 'UTC' }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Quick 1-Tap Presets -->
+                    <div class="wa-setting-field">
+                      <span class="field-sub-label">Quick Time Presets:</span>
+                      <div class="wa-preset-pills">
+                        @for (preset of timePresets; track preset.time) {
+                          <button 
+                            type="button" 
+                            class="wa-preset-pill" 
+                            [class.active]="characterForm.get('proactive_exact_time')?.value === preset.time"
+                            (click)="setExactTimePreset(preset.time)"
+                          >
+                            {{ preset.label }}
+                          </button>
+                        }
+                      </div>
                     </div>
                   </div>
+                }
 
-                  <!-- Preferred Time of Day -->
-                  <div class="wa-form-field-group">
-                    <label for="proactive_preferred_time" class="wa-input-label">Preferred Time Window</label>
+                <!-- Case B: Time Window -->
+                @if (characterForm.get('proactive_timing_type')?.value === 'window') {
+                  <div class="wa-setting-field">
+                    <label class="wa-input-label" for="form_auto_time">Preferred Time Window</label>
                     <div class="wa-input-box">
-                      <select id="proactive_preferred_time" formControlName="proactive_preferred_time" class="wa-field">
-                        <option value="anytime">Anytime (Natural)</option>
+                      <select id="form_auto_time" formControlName="proactive_preferred_time" class="wa-field">
+                        <option value="anytime">Anytime throughout the day (Spontaneous &amp; Natural)</option>
                         <option value="morning">Morning (8:00 AM – 12:00 PM)</option>
                         <option value="afternoon">Afternoon (12:00 PM – 6:00 PM)</option>
                         <option value="evening">Evening (6:00 PM – 10:00 PM)</option>
+                        <option value="night">Late Night (9:00 PM – 12:00 AM)</option>
                       </select>
                     </div>
+                    <span class="field-hint">Auto-text check-ins will only arrive during this selected window.</span>
                   </div>
-                </div>
+                }
+
+                <!-- Case C: Repeating Interval -->
+                @if (characterForm.get('proactive_timing_type')?.value === 'interval') {
+                  <div class="wa-setting-field">
+                    <label class="wa-input-label" for="form_auto_freq">Repetition Frequency</label>
+                    <div class="wa-input-box">
+                      <select id="form_auto_freq" formControlName="proactive_frequency" class="wa-field">
+                        <option value="2h">Every 2 hours (Frequent)</option>
+                        <option value="4h">Every 4 hours</option>
+                        <option value="6h">Every 6 hours</option>
+                        <option value="12h">Twice a day (Every 12 hours)</option>
+                        <option value="24h">Daily (Every 24 hours)</option>
+                        <option value="48h">Every 2 days (48 hours)</option>
+                        <option value="weekly">Weekly (Once every 7 days)</option>
+                      </select>
+                    </div>
+                    <span class="field-hint">Controls how often {{ characterForm.get('name')?.value || 'this companion' }} texts you.</span>
+                  </div>
+                }
+
+                <!-- Days of the Week Selection (Available for Exact Time & Window modes) -->
+                @if (characterForm.get('proactive_timing_type')?.value !== 'interval') {
+                  <div class="wa-setting-field">
+                    <label class="wa-input-label">Active Days of the Week</label>
+                    <div class="wa-cadence-pills">
+                      <button 
+                        type="button" 
+                        class="wa-cadence-btn" 
+                        [class.active]="characterForm.get('proactive_days_mode')?.value === 'everyday'" 
+                        (click)="setDaysMode('everyday')"
+                      >
+                        Every Day
+                      </button>
+                      <button 
+                        type="button" 
+                        class="wa-cadence-btn" 
+                        [class.active]="characterForm.get('proactive_days_mode')?.value === 'weekdays'" 
+                        (click)="setDaysMode('weekdays')"
+                      >
+                        Weekdays
+                      </button>
+                      <button 
+                        type="button" 
+                        class="wa-cadence-btn" 
+                        [class.active]="characterForm.get('proactive_days_mode')?.value === 'weekends'" 
+                        (click)="setDaysMode('weekends')"
+                      >
+                        Weekends
+                      </button>
+                      <button 
+                        type="button" 
+                        class="wa-cadence-btn" 
+                        [class.active]="characterForm.get('proactive_days_mode')?.value === 'custom'" 
+                        (click)="setDaysMode('custom')"
+                      >
+                        Custom Days
+                      </button>
+                    </div>
+
+                    <div class="wa-weekdays-grid">
+                      @for (day of weekDaysList; track day.key) {
+                        <button 
+                          type="button" 
+                          class="wa-day-chip" 
+                          [class.selected]="isCustomDaySelected(day.key)"
+                          (click)="toggleCustomDay(day.key)"
+                        >
+                          <span class="day-check-icon">✓</span>
+                          <span>{{ day.label }}</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
 
                 <!-- Channels -->
                 <div class="wa-channels-group">

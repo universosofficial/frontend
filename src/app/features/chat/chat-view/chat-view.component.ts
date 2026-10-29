@@ -83,10 +83,33 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // Per-Character Auto-Text Config Fields
   autoTextEnabled = signal<boolean>(true);
-  autoTextFrequency = signal<string>('24h');
+  autoTextTimingType = signal<'exact_time' | 'window' | 'interval'>('exact_time');
+  autoTextExactTime = signal<string>('09:00');
   autoTextPreferredTime = signal<string>('anytime');
+  autoTextFrequency = signal<string>('24h');
+  autoTextDaysMode = signal<'everyday' | 'weekdays' | 'weekends' | 'custom'>('everyday');
+  autoTextCustomDays = signal<string[]>(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+  autoTextUserTimezone = signal<string>(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
   notifyPush = signal<boolean>(true);
   notifyEmail = signal<boolean>(true);
+
+  weekDaysList = [
+    { key: 'mon', label: 'Mon' },
+    { key: 'tue', label: 'Tue' },
+    { key: 'wed', label: 'Wed' },
+    { key: 'thu', label: 'Thu' },
+    { key: 'fri', label: 'Fri' },
+    { key: 'sat', label: 'Sat' },
+    { key: 'sun', label: 'Sun' },
+  ];
+
+  timePresets = [
+    { label: '☀️ 8:30 AM', time: '08:30', name: 'Morning' },
+    { label: '🥪 12:30 PM', time: '12:30', name: 'Midday' },
+    { label: '☕ 4:00 PM', time: '16:00', name: 'Afternoon' },
+    { label: '🌇 7:00 PM', time: '19:00', name: 'Evening' },
+    { label: '🌙 9:30 PM', time: '21:30', name: 'Night' },
+  ];
 
   // Feature #4: Dynamic Conversation Posture / Mood Switcher
   activeConversationMode = signal<string>('default');
@@ -904,10 +927,48 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (char) {
       this.autoTextEnabled.set(char.allow_proactive_checkins !== false);
       this.autoTextFrequency.set(char.proactive_frequency || '24h');
-      this.autoTextPreferredTime.set(char.proactive_preferred_time || 'anytime');
-      const channels = char.proactive_channels || {};
+
+      let channels: any = {};
+      if (typeof char.proactive_channels === 'string') {
+        try { channels = JSON.parse(char.proactive_channels); } catch {}
+      } else if (typeof char.proactive_channels === 'object') {
+        channels = char.proactive_channels || {};
+      }
+
       this.notifyPush.set(channels.push !== false);
       this.notifyEmail.set(channels.email !== false);
+
+      const prefTime = (char.proactive_preferred_time || 'anytime').trim();
+      const isExactTimeFormat = /^\d{1,2}:\d{2}$/.test(prefTime);
+
+      if (channels.timing_type) {
+        this.autoTextTimingType.set(channels.timing_type);
+      } else if (isExactTimeFormat) {
+        this.autoTextTimingType.set('exact_time');
+      } else if (['morning', 'afternoon', 'evening', 'night'].includes(prefTime)) {
+        this.autoTextTimingType.set('window');
+      } else if (char.proactive_frequency && ['2h', '4h', '6h', '12h', 'weekly'].includes(char.proactive_frequency)) {
+        this.autoTextTimingType.set('interval');
+      } else {
+        this.autoTextTimingType.set('exact_time');
+      }
+
+      this.autoTextExactTime.set(channels.exact_time || (isExactTimeFormat ? prefTime : '09:00'));
+      this.autoTextPreferredTime.set(channels.window || (!isExactTimeFormat && prefTime !== 'anytime' ? prefTime : 'morning'));
+
+      const daysMode = channels.days_mode || 
+        (char.proactive_frequency === 'weekdays' ? 'weekdays' : 
+        (char.proactive_frequency === 'weekends' ? 'weekends' : 
+        (char.proactive_frequency === 'custom_days' ? 'custom' : 'everyday')));
+      this.autoTextDaysMode.set(daysMode);
+
+      if (Array.isArray(channels.custom_days) && channels.custom_days.length > 0) {
+        this.autoTextCustomDays.set(channels.custom_days);
+      } else {
+        this.autoTextCustomDays.set(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+      }
+
+      this.autoTextUserTimezone.set(channels.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
     }
     this.autoTextSaveSuccess.set(false);
     this.autoTextSaveError.set(null);
@@ -918,6 +979,49 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.isAutoTextModalOpen.set(false);
     this.autoTextSaveSuccess.set(false);
     this.autoTextSaveError.set(null);
+  }
+
+  setTimingType(type: 'exact_time' | 'window' | 'interval'): void {
+    this.autoTextTimingType.set(type);
+  }
+
+  setDaysMode(mode: 'everyday' | 'weekdays' | 'weekends' | 'custom'): void {
+    this.autoTextDaysMode.set(mode);
+    if (mode === 'everyday') {
+      this.autoTextCustomDays.set(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+    } else if (mode === 'weekdays') {
+      this.autoTextCustomDays.set(['mon', 'tue', 'wed', 'thu', 'fri']);
+    } else if (mode === 'weekends') {
+      this.autoTextCustomDays.set(['sat', 'sun']);
+    }
+  }
+
+  setExactTimePreset(time: string): void {
+    this.autoTextExactTime.set(time);
+    this.autoTextTimingType.set('exact_time');
+  }
+
+  toggleCustomDay(dayKey: string): void {
+    const current = this.autoTextCustomDays();
+    if (current.includes(dayKey)) {
+      if (current.length > 1) {
+        this.autoTextCustomDays.set(current.filter((d) => d !== dayKey));
+      }
+    } else {
+      this.autoTextCustomDays.set([...current, dayKey]);
+    }
+    this.autoTextDaysMode.set('custom');
+  }
+
+  isCustomDaySelected(dayKey: string): boolean {
+    return this.autoTextCustomDays().includes(dayKey);
+  }
+
+  onExactTimeChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target?.value) {
+      this.autoTextExactTime.set(target.value);
+    }
   }
 
   onAutoTextFreqChange(event: Event): void {
@@ -934,6 +1038,65 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  getScheduleSummaryText(): string {
+    const charName = this.chatService.activeCharacter()?.name || 'Companion';
+    if (!this.autoTextEnabled()) {
+      return `${charName}'s proactive messages and check-ins are turned off.`;
+    }
+
+    const channels: string[] = [];
+    if (this.notifyPush()) channels.push('Web Push');
+    if (this.notifyEmail()) channels.push('Email');
+    const channelText = channels.length > 0 ? channels.join(' & ') : 'silent chat';
+
+    let dayText = 'every day';
+    if (this.autoTextDaysMode() === 'weekdays') dayText = 'on weekdays (Mon–Fri)';
+    else if (this.autoTextDaysMode() === 'weekends') dayText = 'on weekends (Sat–Sun)';
+    else if (this.autoTextDaysMode() === 'custom') {
+      const days = this.autoTextCustomDays();
+      if (days.length === 7) dayText = 'every day';
+      else if (days.length === 0) dayText = 'on selected days';
+      else dayText = `on ${days.map((d) => d.toUpperCase()).join(', ')}`;
+    }
+
+    if (this.autoTextTimingType() === 'exact_time') {
+      const time = this.autoTextExactTime();
+      let formattedTime = time;
+      try {
+        const parts = time.split(':').map(Number);
+        const h = parts[0];
+        const m = parts[1] || 0;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const displayH = h % 12 || 12;
+        formattedTime = `${displayH}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+      } catch {}
+      return `✨ ${charName} will text you ${dayText} at ${formattedTime} (${this.autoTextUserTimezone()}) via ${channelText}.`;
+    }
+
+    if (this.autoTextTimingType() === 'window') {
+      const w = this.autoTextPreferredTime();
+      const windowLabels: Record<string, string> = {
+        morning: 'in the morning (8:00 AM – 12:00 PM)',
+        afternoon: 'in the afternoon (12:00 PM – 6:00 PM)',
+        evening: 'in the evening (6:00 PM – 10:00 PM)',
+        night: 'at night (9:00 PM – 12:00 AM)',
+        anytime: 'spontaneously throughout the day',
+      };
+      return `✨ ${charName} will text you ${dayText} ${windowLabels[w] || w} via ${channelText}.`;
+    }
+
+    const freqLabels: Record<string, string> = {
+      '2h': 'every 2 hours',
+      '4h': 'every 4 hours',
+      '6h': 'every 6 hours',
+      '12h': 'twice a day (every 12 hours)',
+      '24h': 'daily (every 24 hours)',
+      '48h': 'every 2 days',
+      'weekly': 'once a week',
+    };
+    return `✨ ${charName} will reach out ${freqLabels[this.autoTextFrequency()] || 'regularly'} via ${channelText}.`;
+  }
+
   saveAutoTextSettings(): void {
     const char = this.chatService.activeCharacter();
     if (!char) return;
@@ -942,14 +1105,45 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.autoTextSaveSuccess.set(false);
     this.autoTextSaveError.set(null);
 
+    const timingType = this.autoTextTimingType();
+    let effectiveFreq = this.autoTextFrequency();
+    let effectivePrefTime = this.autoTextPreferredTime();
+
+    if (timingType === 'exact_time') {
+      effectivePrefTime = this.autoTextExactTime();
+      const daysMode = this.autoTextDaysMode();
+      if (daysMode === 'everyday') effectiveFreq = '24h';
+      else if (daysMode === 'weekdays') effectiveFreq = 'weekdays';
+      else if (daysMode === 'weekends') effectiveFreq = 'weekends';
+      else if (daysMode === 'custom') effectiveFreq = 'custom_days';
+    } else if (timingType === 'window') {
+      effectivePrefTime = this.autoTextPreferredTime();
+      const daysMode = this.autoTextDaysMode();
+      if (daysMode === 'everyday') effectiveFreq = '24h';
+      else if (daysMode === 'weekdays') effectiveFreq = 'weekdays';
+      else if (daysMode === 'weekends') effectiveFreq = 'weekends';
+      else if (daysMode === 'custom') effectiveFreq = 'custom_days';
+    } else if (timingType === 'interval') {
+      effectivePrefTime = 'anytime';
+      effectiveFreq = this.autoTextFrequency();
+    }
+
+    const channelsPayload = {
+      push: this.notifyPush(),
+      email: this.notifyEmail(),
+      timing_type: timingType,
+      exact_time: this.autoTextExactTime(),
+      window: this.autoTextPreferredTime(),
+      days_mode: this.autoTextDaysMode(),
+      custom_days: this.autoTextCustomDays(),
+      timezone: this.autoTextUserTimezone(),
+    };
+
     const patchPayload = {
       allow_proactive_checkins: this.autoTextEnabled(),
-      proactive_frequency: this.autoTextFrequency(),
-      proactive_preferred_time: this.autoTextPreferredTime(),
-      proactive_channels: {
-        push: this.notifyPush(),
-        email: this.notifyEmail(),
-      },
+      proactive_frequency: effectiveFreq,
+      proactive_preferred_time: effectivePrefTime,
+      proactive_channels: channelsPayload,
     };
 
     this.characterService.updateCharacter(char.id, patchPayload).subscribe({

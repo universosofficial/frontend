@@ -3075,6 +3075,250 @@ input:checked + .wa-slider:before {
   }
 }
 
+/* Live Schedule Summary Preview Card */
+.wa-schedule-preview-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(0, 168, 132, 0.12) 0%, rgba(20, 184, 166, 0.05) 100%);
+  border: 1px solid rgba(0, 168, 132, 0.35);
+  border-radius: 12px;
+
+  .preview-icon {
+    font-size: 20px;
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .preview-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .preview-headline {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--wa-teal);
+    }
+
+    .preview-summary {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--wa-text-primary);
+      line-height: 1.4;
+    }
+  }
+}
+
+/* Timing Mode Segmented Tabs */
+.wa-segmented-tabs {
+  display: flex;
+  background-color: var(--wa-bg-input);
+  border: 1px solid var(--wa-border);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+
+  .wa-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--wa-text-secondary);
+    cursor: pointer;
+    transition: all 0.18s ease;
+
+    .tab-icon {
+      font-size: 14px;
+    }
+
+    &:hover {
+      color: var(--wa-text-primary);
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+
+    &.active {
+      background-color: var(--wa-teal);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 168, 132, 0.35);
+    }
+  }
+}
+
+/* Exact Time Input & Timezone Badge */
+.wa-exact-time-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wa-time-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .wa-time-input {
+    width: 160px;
+    padding: 9px 12px;
+    background-color: var(--wa-bg-input);
+    border: 1px solid var(--wa-border);
+    border-radius: 10px;
+    color: var(--wa-text-primary);
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+    color-scheme: dark;
+
+    &:focus {
+      border-color: var(--wa-teal);
+    }
+  }
+
+  .wa-tz-badge {
+    padding: 6px 10px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--wa-border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--wa-text-secondary);
+  }
+}
+
+.field-sub-label {
+  font-size: 12px;
+  color: var(--wa-text-secondary);
+  font-weight: 500;
+}
+
+/* Preset Pills */
+.wa-preset-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+
+  .wa-preset-pill {
+    padding: 6px 12px;
+    background-color: var(--wa-bg-input);
+    border: 1px solid var(--wa-border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--wa-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background-color: var(--wa-bg-hover);
+      color: var(--wa-text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &.active {
+      background-color: rgba(0, 168, 132, 0.18);
+      border-color: var(--wa-teal);
+      color: var(--wa-teal);
+      font-weight: 600;
+    }
+  }
+}
+
+/* Active Cadence Pills */
+.wa-cadence-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .wa-cadence-btn {
+    padding: 7px 14px;
+    background-color: var(--wa-bg-input);
+    border: 1px solid var(--wa-border);
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--wa-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background-color: var(--wa-bg-hover);
+      color: var(--wa-text-primary);
+    }
+
+    &.active {
+      background-color: rgba(0, 168, 132, 0.18);
+      border-color: var(--wa-teal);
+      color: var(--wa-teal);
+      font-weight: 600;
+    }
+  }
+}
+
+/* 7-Day Chips Grid */
+.wa-weekdays-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .wa-day-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 7px 4px;
+    background-color: var(--wa-bg-input);
+    border: 1px solid var(--wa-border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--wa-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    .day-check-icon {
+      font-size: 11px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    &:hover {
+      background-color: var(--wa-bg-hover);
+      color: var(--wa-text-primary);
+    }
+
+    &.selected {
+      background-color: rgba(0, 168, 132, 0.2);
+      border-color: var(--wa-teal);
+      color: var(--wa-teal);
+      font-weight: 600;
+
+      .day-check-icon {
+        opacity: 1;
+      }
+    }
+  }
+}
+
 .wa-modal-footer {
   padding: 14px 22px;
   background-color: var(--wa-bg-header);
